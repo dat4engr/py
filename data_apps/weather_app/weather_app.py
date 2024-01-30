@@ -33,7 +33,7 @@ def format_date(timestamp):
 
 def collect_weather_data():
     # This function collects weather data for the user's current location, prints the data to the console, and saves it to a JSON file.
-    api_key = "5c9026775828973746c850fa10e2f45c"
+    api_key = "Input your OpenWeatherMap API key here."
     location = get_user_location()
     weather_data = get_weather_data(api_key, location)
 
