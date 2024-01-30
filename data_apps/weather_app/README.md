@@ -3,6 +3,3 @@ This Python app was made to collect OpenWeatherMap data using the free API key f
 
 ### App requirements:
 Python >= 3.11.7, pyttsx3, requests, datetime, geocoder, and json packages. OpenWeatherMap API key.
-
-### Project's idea:
-The app's idea is to collect OpenWeatherData through API, interpret it using text-to-speech before saving it on a json file. Any features that are feasible will be added in the future as a practice for efficiency and effectiveness with Python programming language.
