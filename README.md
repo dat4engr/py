@@ -1,3 +1,5 @@
-# Py
+# py
 
-Welcome to my Py folder! This is were I keep my apps and notebooks where I used Python and packages.
+Welcome to my py folder!
+
+In this section, this is where I code apps and notebooks using Python. Enjoy and hope it helps!
