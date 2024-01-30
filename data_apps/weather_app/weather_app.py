@@ -36,11 +36,17 @@ def collect_weather_data():
     api_key = "5c9026775828973746c850fa10e2f45c"
     location = get_user_location()
     weather_data = get_weather_data(api_key, location)
-    
-    print("Weather information for", location)
-    print("Time of data collection:", format_date(weather_data['dt']))
-    print("Temperature:", weather_data['main']['temp'], "°C")
-    print("Weather description:", weather_data['weather'][0]['description'])
+
+    speak("Weather information for " + location)
+    speak("Time of data collection: " + format_date(weather_data['dt']))
+    speak("Temperature: " + str(weather_data['main']['temp']) + "°C")
+    speak("Weather description: " + weather_data['weather'][0]['description'])
+
+    # For testing of data collected using OpenWeatherMap API:
+    # print("Weather information for", location)
+    # print("Time of data collection:", format_date(weather_data['dt']))
+    # print("Temperature:", weather_data['main']['temp'], "°C")
+    # print("Weather description:", weather_data['weather'][0]['description'])
 
     data = {
         "location": location,
