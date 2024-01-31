@@ -13,7 +13,7 @@ def delete_folders(folder_path):
             print(f"Deleted directory: {item_path}")
 
 # Path to the Desktop folder
-desktop_folder = '/Users/carlo/Desktop'
+desktop_folder = '/Add/your/Desktop'
 
 # Call the function to delete all folders
 delete_folders(desktop_folder)
