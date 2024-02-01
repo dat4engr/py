@@ -32,7 +32,6 @@ def delete_files():
                 
                 # Log the time, file/folder name, and type
                 log_text = f"{datetime.now().strftime('%H:%M:%S')}: Deleted {item_type} - {file} ({file_path})\n"
-
                 log_file.write(log_text)
                 
         log_file.close()
