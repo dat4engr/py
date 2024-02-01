@@ -2,6 +2,7 @@ import geocoder
 from pyowm import OWM
 from datetime import datetime
 import json
+from typing import Union, Tuple, Any
 
 def get_coordinates(location: str) -> Union[Tuple[float, float], None]:
     # Get the latitude and longitude coordinates of a location.
@@ -52,4 +53,4 @@ def fetch_weather_data(location: str, api_key: str) -> None:
     else:
         print("Unable to fetch weather data for the location.")
 
-fetch_weather_data("Magalang,PH", "5c9026775828973746c850fa10e2f45c")
+fetch_weather_data("Magalang,PH", "Enter your API Key here")
