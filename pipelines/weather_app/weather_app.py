@@ -55,4 +55,4 @@ def fetch_weather_data(location: str, api_key: str):
     else:
         print("Unable to fetch weather data for the location.")
 
-fetch_weather_data("Magalang,PH", "5c9026775828973746c850fa10e2f45c")
+fetch_weather_data("Magalang,PH", "Your_API_Key_Here")
