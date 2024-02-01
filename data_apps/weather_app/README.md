@@ -1,5 +1,5 @@
 # weather_app.py
-This Python app was made to collect OpenWeatherMap data using the free API key from my IP's location and save it to a json file which I will used for forecasting and served as a practice. You can get the API key for free by registering.
+The Python app was made to collect weather data using the OpenWeatherMap API key from my location and save it to a json file for weather forecasting. You can get the API key for free by registering.
 
 ### App requirements:
-Python >= 3.11.7, pyttsx3, requests, datetime, geocoder, and json packages. OpenWeatherMap API key.
+Python >= 3.11.7, geocoder, pyowm, datetime, json, and OpenWeatherMap.
