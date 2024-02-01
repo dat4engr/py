@@ -2,4 +2,4 @@
 This Python app was made to automatically delete files and folders on your desktop.
 
 ### App requirements:
-Python >= 3.11.7, os, shutil.
+Python >= 3.11.7, os, platform, and datetime.
