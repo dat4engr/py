@@ -3,6 +3,7 @@ import platform
 from datetime import datetime
 
 def delete_files():
+    # Deletes files and folders on the desktop and logs the deleted items in a log file.
     desktop_path = ''
     
     # Get desktop path according to the operating system (Windows, MacOS, or Linux)
