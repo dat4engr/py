@@ -13,9 +13,10 @@ def get_current_weather(lat: float, lon: float, api_key: str):
 
     observation = mgr.weather_at_coords(lat, lon)
     # Format the current date and time
-    current_time = datetime.now().strftime('%m-%d-%Y %H:%M:%S')
+    current_date = datetime.now().strftime('%m-%d-%Y')
+    current_time = datetime.now().strftime('%H:%M:%S')
     # Return the formatted current date and time along with the weather
-    return current_time, observation.weather
+    return current_date, current_time, observation.weather
 
 def fetch_weather_data(location: str, api_key: str):
     coordinates = get_coordinates(location)
@@ -23,11 +24,12 @@ def fetch_weather_data(location: str, api_key: str):
     if coordinates:
         lat, lon = coordinates
         # Get the formatted current date, time, and weather
-        current_time, weather = get_current_weather(lat, lon, api_key)
+        current_date, current_time, weather = get_current_weather(lat, lon, api_key)
 
         weather_data = {
             'location': location,
-            'datetime': current_time,
+            'date': current_date,
+            'time': current_time,
             'temperature': f"{weather.temperature('celsius')['temp']}",
             'weather_status': weather.status
         }
@@ -46,11 +48,11 @@ def fetch_weather_data(location: str, api_key: str):
         with open('weather_data.json', 'w') as file:
             json.dump(existing_data, file, indent=4)
 
-        print(f"Current weather at {location} ({current_time}):")
+        print(f"Current weather at {location}:")
+        print(f"As of: {current_date} / {current_time}")
         print(f"Temperature: {weather_data['temperature']}°C")
         print(f"Weather Status: {weather_data['weather_status']}")
     else:
         print("Unable to fetch weather data for the location.")
 
-
-fetch_weather_data("Magalang, PH", "Add-Your-API-Key")
+fetch_weather_data("Magalang,PH", "5c9026775828973746c850fa10e2f45c")
