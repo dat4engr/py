@@ -5,10 +5,10 @@ from datetime import datetime
 def delete_files():
     desktop_path = ''
     
-    # Get desktop path according to the operating system
+    # Get desktop path according to the operating system (Windows, MacOS, or Linux)
     if platform.system() == 'Windows':
         desktop_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
-    elif platform.system() == 'Darwin':  # macOS
+    elif platform.system() == 'Darwin':
         desktop_path = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
     elif platform.system() == 'Linux':
         desktop_path = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
