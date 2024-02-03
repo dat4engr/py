@@ -63,10 +63,10 @@ class WeatherDataFetcher:
     def connect_to_db(self):
         try:
             conn = psycopg2.connect(
-                host='localhost', # Replace with your host
-                database='postgres', # Replace with your database name
-                user='postgres', # Replace with your username
-                password='041688' # Replace with your password
+                host='', # Replace with your host
+                database='', # Replace with your database name
+                user='', # Replace with your username
+                password='' # Replace with your password
             )
             return conn
         except Exception as e:
