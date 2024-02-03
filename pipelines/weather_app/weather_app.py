@@ -6,7 +6,6 @@ from typing import Union, Tuple, Any
 import configparser
 import psycopg2
 
-# Initialize the WeatherDataFetcher object.
 class WeatherDataFetcher:
     def __init__(self, api_key: str):
         if self.validate_api_key(api_key):
@@ -15,9 +14,8 @@ class WeatherDataFetcher:
             print("Error: Invalid API key provided.")
             self.api_key = None
         self.weather_cache = {}
-        self.db_conn = self.connect_to_db()
+        self.db_conn = None
         
-    # Validate the API key.
     @staticmethod
     def validate_api_key(api_key: str) -> bool:
         if api_key and not api_key.isspace():
@@ -25,7 +23,6 @@ class WeatherDataFetcher:
         else:
             return False
         
-    # Get the value of a key from the configuration file.
     @staticmethod
     def get_config(key: str) -> str:
         try:
@@ -36,7 +33,6 @@ class WeatherDataFetcher:
             print("Error: Issue reading the configuration file.")
             return ""
     
-    # Get the coordinates (latitude and longitude) of a location.
     def get_coordinates(self, location: str) -> Union[Tuple[float, float], None]:
         try:
             geo_location = geocoder.osm(location)
@@ -45,7 +41,6 @@ class WeatherDataFetcher:
             print(f"Error getting coordinates for location: {location}. Error message: {e}")
             return None
     
-    # Get the current weather at a specified latitude and longitude.
     def get_current_weather(self, lat: float, lon: float) -> Tuple[str, str, Any]:
         try:
             owm = OWM(self.api_key)
@@ -59,23 +54,24 @@ class WeatherDataFetcher:
             print(f"Error getting current weather: {e}")
             return "", "", None
     
-    # Connect to the Postgres database.
     def connect_to_db(self):
         try:
             conn = psycopg2.connect(
-                host='', # Replace with your host
-                database='', # Replace with your database name
-                user='', # Replace with your username
-                password='' # Replace with your password
+                host='localhost', # Replace with your host
+                database='postgres', # Replace with your database name
+                user='postgres', # Replace with your username
+                password='041688' # Replace with your password
             )
             return conn
         except Exception as e:
             print(f"Error connecting to the database: {e}")
             return None
     
-    # Insert the weather data into the Postgres database.
     def insert_data_into_db(self, data):
         try:
+            if self.db_conn is None:
+                self.db_conn = self.connect_to_db()
+            
             cursor = self.db_conn.cursor()
 
             insert_query = '''
@@ -89,7 +85,6 @@ class WeatherDataFetcher:
         except Exception as e:
             print(f"Error inserting data into the database: {e}")
     
-    # Fetch weather data for a specified location.
     def fetch_weather_data(self, location: str) -> None:
         try:
             if location in self.weather_cache:
@@ -143,7 +138,6 @@ class WeatherDataFetcher:
         except Exception as e:
             print(f"Error fetching weather data: {e}")
 
-# Retrieve API key from configuration file.
 api_key = WeatherDataFetcher.get_config('api_key')
 
 fetcher = WeatherDataFetcher(api_key)
