@@ -1,113 +1,51 @@
-import geocoder
-from pyowm import OWM
-from datetime import datetime
-import json
-from typing import Union, Tuple, Any
+# Calculates the number of words in a given text.
+def word_count(text):
+    count = len(text.split())
+    return count
 
-def get_coordinates(location: str) -> Union[Tuple[float, float], None]:
-    # Get the latitude and longitude coordinates of a location.
-    try:
-        geo_location = geocoder.osm(location)
-        return geo_location.latlng if geo_location.latlng else None
-    except Exception as e:
-        print(f"Error getting coordinates for location: {location}. Error message: {e}")
-        return None
+# Determines whether the given text consists of multiple words.
+def word_type(text):
+    words = text.split()
+    num_words = len(words)
+    
+    if num_words == 2:
+        return "two"
+    elif num_words > 2:
+        return "multiple"
+    else:
+        return "single"
 
-def get_current_weather(lat: float, lon: float, api_key: str) -> Tuple[str, str, Any]:
-    # Get the current weather information for a specified location.
-    try:
-        owm = OWM(api_key)
-        weather_manager = owm.weather_manager()
+def get_user_input():
+    return input("Enter some text (or 'q' to quit): ").lower()
 
-        observation = weather_manager.weather_at_coords(lat, lon)
-        current_date = datetime.now().strftime('%m-%d-%Y')
-        current_time = datetime.now().strftime('%H:%M:%S')
-        return current_date, current_time, observation.weather
-    except Exception as e:
-        print(f"Error getting current weather: {e}")
-        return "", "", None
+# The main function that runs the app. Prints the welcome message.
+def main():
+    print("Welcome to Word Count App!")
 
-def fetch_weather_data(location: str, api_key: str) -> None:
-    # Fetch weather data for a specified location and save it to a JSON file.
-    try:
-        coordinates = get_coordinates(location)
+    while True:
+        text = get_user_input()
+        
+        if text == 'q':
+            break
+        
+        count = word_count(text)
+        word_type_text = word_type(text)
 
-        if coordinates:
-            lat, lon = coordinates
-            current_date, current_time, weather = get_current_weather(lat, lon, api_key)
+        display_count(count)
+        display_word_type(word_type_text)
+        
+        print()
 
-            if weather:
-                weather_data = {
-                    'location': location,
-                    'date': current_date,
-                    'time': current_time,
-                    'temperature': f"{weather.temperature('celsius')['temp']}",
-                    'weather_status': weather.status
-                }
+def display_count(count):
+    print(f"Number of words: {count}")
 
-                try:
-                    with open('weather_data.json', 'r') as file:
-                        existing_data = json.load(file)
-                except FileNotFoundError:
-                    existing_data = []
+def display_word_type(word_type_text):
+    if word_type_text == "two":
+        print("The input text is two words")
+    elif word_type_text == "multiple":
+        print("The input text is multiple words.")
+    else:
+        print("The input text is a single word.")
 
-                existing_data.append(weather_data)
-
-                with open('weather_data.json', 'w') as file:
-                    json.dump(existing_data, file, indent=4)
-
-                print(f"Current weather at {location}:")
-                print(f"As of: {current_date} / {current_time}")
-                print(f"Temperature: {weather_data['temperature']}°C")
-                print(f"Weather Status: {weather_data['weather_status']}")
-            else:
-                print(f"Unable to fetch weather data for the {location}.")
-        else:
-            print(f"Unable to fetch coordinates for the {location}.")
-    except Exception as e:
-        print(f"Error fetching weather data: {e}")
-
-def fetch_weather_data(location: str, api_key: str) -> None:
-    # Fetch weather data for a specified location and save it to a JSON file.
-    try:
-        coordinates = get_coordinates(location)
-
-        if coordinates:
-            lat, lon = coordinates
-            current_date, current_time, weather = get_current_weather(lat, lon, api_key)
-
-            if weather:
-                weather_data = {
-                    'location': location,
-                    'date': current_date,
-                    'time': current_time,
-                    'temperature': f"{weather.temperature('celsius')['temp']}",
-                    'weather_status': weather.status
-                }
-
-                try:
-                    with open('weather_data.json', 'r') as file:
-                        existing_data = json.load(file)
-                except FileNotFoundError:
-                    existing_data = []
-
-                existing_data.append(weather_data)
-
-                with open('weather_data.json', 'w') as file:
-                    json.dump(existing_data, file, indent=4)
-
-                print(f"Current weather at {location}:")
-                print(f"As of: {current_date} / {current_time}")
-                print(f"Temperature: {weather_data['temperature']}°C")
-                print(f"Weather Status: {weather_data['weather_status']}")
-            
-            else:
-                print(f"Unable to fetch weather data for the {location}.")
-        else:
-            print(f"Unable to fetch coordinates for the {location}.")
-    except FileNotFoundError:
-        print("Error: The weather data file does not exist.")
-    except Exception as e:
-        print(f"Error fetching weather data: {e}")
-
-fetch_weather_data("Magalang,PH", "5c9026775828973746c850fa10e2f45c")
+if __name__ == "__main__":
+    main()
