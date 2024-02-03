@@ -1,79 +1,9 @@
 [
     {
         "location": "Magalang, PH",
-        "date": "02-03-2024",
-        "time": "08:33:45",
-        "temperature": "25.62",
-        "weather_status": "Clouds"
-    },
-    {
-        "location": "Magalang, PH",
-        "date": "02-03-2024",
-        "time": "08:34:23",
-        "temperature": "25.62",
-        "weather_status": "Clouds"
-    },
-    {
-        "location": "Magalang, PH",
-        "date": "02-03-2024",
-        "time": "12:00:08",
-        "temperature": "29.3",
-        "weather_status": "Clouds"
-    },
-    {
-        "location": "Magalang, PH",
-        "date": "02-03-2024",
-        "time": "12:04:52",
-        "temperature": "29.3",
-        "weather_status": "Clouds"
-    },
-    {
-        "location": "Magalang, PH",
-        "date": "02-03-2024",
-        "time": "12:06:45",
-        "temperature": "29.3",
-        "weather_status": "Clouds"
-    },
-    {
-        "location": "Magalang, PH",
-        "date": "02-03-2024",
-        "time": "16:46:58",
-        "temperature": "33.62",
-        "weather_status": "Clouds"
-    },
-    {
-        "location": "Magalang, PH",
-        "date": "02-03-2024",
-        "time": "16:49:53",
-        "temperature": "33.62",
-        "weather_status": "Clouds"
-    },
-    {
-        "location": "Magalang, PH",
-        "date": "02-03-2024",
-        "time": "16:55:02",
-        "temperature": "33.62",
-        "weather_status": "Clouds"
-    },
-    {
-        "location": "Magalang, PH",
-        "date": "02-03-2024",
-        "time": "17:07:34",
-        "temperature": "32.62",
-        "weather_status": "Clouds"
-    },
-    {
-        "location": "Magalang, PH",
-        "date": "02-03-2024",
-        "time": "17:28:24",
-        "temperature": "32.62",
-        "weather_status": "Clouds"
-    },
-    {
-        "location": "Magalang, PH",
-        "date": "02-03-2024",
-        "time": "21:13:32",
-        "temperature": "27.62",
+        "date": "2024-02-04",
+        "time": "00:52:08",
+        "temperature": "26.62",
         "weather_status": "Clouds"
     }
 ]
