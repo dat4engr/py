@@ -1,40 +1,51 @@
+# Calculates the number of words in a given text.
 def word_count(text):
-    # Calculates the number of words in a given text.
     count = len(text.split())
     return count
 
-def is_two_words(text):
+# Determines whether the given text consists of multiple words.
+def word_type(text):
     words = text.split()
-    return len(words) == 2
-
-def is_multiple_words(text):
-    # Determines whether the given text consists of multiple words.
-    if len(text.split()) > 2:
-        return True
+    num_words = len(words)
+    
+    if num_words == 2:
+        return "two"
+    elif num_words > 2:
+        return "multiple"
     else:
-        return False
+        return "single"
 
+def get_user_input():
+    return input("Enter some text (or 'q' to quit): ").lower()
+
+# The main function that runs the app. Prints the welcome message.
 def main():
-    # The main function that runs the app. Prints the welcome message.
     print("Welcome to Word Count App!")
 
     while True:
-        text = input("Enter some text (or 'q' to quit): ")
-        if text.lower() == 'q':
-            print("Thank you for using Word Count App!")
+        text = get_user_input()
+        
+        if text == 'q':
             break
-        else:
-            count = word_count(text)
-            print("Number of words:", count)
-            # Check if input is two words
-            if is_two_words(text):
-                print("The input text is two words")
-            # Check if input is multiple words
-            elif is_multiple_words(text):
-                print("The input text is multiple words.")
-            else:
-                print("The input text is a single word.")
-            print()
+        
+        count = word_count(text)
+        word_type_text = word_type(text)
+
+        display_count(count)
+        display_word_type(word_type_text)
+        
+        print()
+
+def display_count(count):
+    print(f"Number of words: {count}")
+
+def display_word_type(word_type_text):
+    if word_type_text == "two":
+        print("The input text is two words")
+    elif word_type_text == "multiple":
+        print("The input text is multiple words.")
+    else:
+        print("The input text is a single word.")
 
 if __name__ == "__main__":
     main()
