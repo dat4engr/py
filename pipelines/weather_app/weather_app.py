@@ -4,6 +4,7 @@ from datetime import datetime
 import json
 from typing import Union, Tuple, Any
 import configparser
+import psycopg2
 
 # Initialize the WeatherDataFetcher object.
 class WeatherDataFetcher:
@@ -14,6 +15,7 @@ class WeatherDataFetcher:
             print("Error: Invalid API key provided.")
             self.api_key = None
         self.weather_cache = {}
+        self.db_conn = self.connect_to_db()
         
     # Validate the API key.
     @staticmethod
@@ -57,6 +59,36 @@ class WeatherDataFetcher:
             print(f"Error getting current weather: {e}")
             return "", "", None
     
+    # Connect to the Postgres database.
+    def connect_to_db(self):
+        try:
+            conn = psycopg2.connect(
+                host='localhost', # Replace with your host
+                database='postgres', # Replace with your database name
+                user='postgres', # Replace with your username
+                password='041688' # Replace with your password
+            )
+            return conn
+        except Exception as e:
+            print(f"Error connecting to the database: {e}")
+            return None
+    
+    # Insert the weather data into the Postgres database.
+    def insert_data_into_db(self, data):
+        try:
+            cursor = self.db_conn.cursor()
+
+            insert_query = '''
+            INSERT INTO weather_data (location, date, time, temperature, weather_status) 
+            VALUES (%s, %s, %s, %s, %s);
+            '''
+
+            cursor.execute(insert_query, data)
+            self.db_conn.commit()
+            print("Data inserted into the database successfully.")
+        except Exception as e:
+            print(f"Error inserting data into the database: {e}")
+    
     # Fetch weather data for a specified location.
     def fetch_weather_data(self, location: str) -> None:
         try:
@@ -68,12 +100,14 @@ class WeatherDataFetcher:
                     lat, lon = coordinates
                     current_date, current_time, weather = self.get_current_weather(lat, lon)
                     if weather:
+                        temperature = f"{weather.temperature('celsius')['temp']}"
+                        weather_status = weather.status
                         weather_data = {
                             'location': location,
                             'date': current_date,
                             'time': current_time,
-                            'temperature': f"{weather.temperature('celsius')['temp']}",
-                            'weather_status': weather.status
+                            'temperature': temperature,
+                            'weather_status': weather_status
                         }
                         self.weather_cache[location] = weather_data
                     else:
@@ -82,19 +116,22 @@ class WeatherDataFetcher:
                 else:
                     print(f"Unable to fetch coordinates for {location}.")
                     return
-            try:
-                with open('weather_data.json', 'r') as file:
-                    existing_data = json.load(file)
-            except FileNotFoundError:
-                existing_data = []
+            
+            self.insert_data_into_db((
+                weather_data['location'],
+                weather_data['date'],
+                weather_data['time'],
+                weather_data['temperature'],
+                weather_data['weather_status']
+            ))
+
+            with open('weather_data.json', 'r') as file:
+                existing_data = json.load(file)
 
             existing_data.append(weather_data)
 
-            try:
-                with open('weather_data.json', 'w') as file:
-                    json.dump(existing_data, file, indent=4)
-            except Exception as e:
-                print(f"Error writing to the weather data file: {e}")
+            with open('weather_data.json', 'w') as file:
+                json.dump(existing_data, file, indent=4)
 
             print(f"Current weather at {location}:")
             print(f"As of: {weather_data['date']} / {weather_data['time']}")
