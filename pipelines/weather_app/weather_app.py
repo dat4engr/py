@@ -8,7 +8,7 @@ import logging
 from typing import Union, Tuple, Any
 
 class ErrorCode:
-    # This class defines error codes used within the application.
+    # A class for error codes used within the application.
     INVALID_API_KEY = 1
     CONFIG_FILE_READ_ERROR = 2
     COORDINATES_RETRIEVAL_ERROR = 3
@@ -18,6 +18,7 @@ class ErrorCode:
     DATA_INSERTION_ERROR = 7
     JSON_UPDATE_ERROR = 8
     FILE_NOT_FOUND_ERROR = 9
+
 
 # A class to fetch and handle weather data.
 class WeatherDataFetcher:
@@ -55,8 +56,8 @@ class WeatherDataFetcher:
         try:
             geo_location = geocoder.osm(location)
             return geo_location.latlng if geo_location.latlng else None
-        except Exception as e:
-            logging.error(f"Error getting coordinates for location: {location}. Error message: {e}")
+        except Exception as coordinates_retrieval_error:
+            logging.error(f"Error getting coordinates for location: {location}. Error message: {coordinates_retrieval_error}")
             return None, ErrorCode.COORDINATES_RETRIEVAL_ERROR
     
     def get_current_weather(self, lat: float, lon: float) -> Tuple[str, str, Any]:
@@ -69,8 +70,8 @@ class WeatherDataFetcher:
             current_date = datetime.now().strftime('%Y-%m-%d')
             current_time = datetime.now().strftime('%H:%M:%S')
             return current_date, current_time, observation.weather
-        except Exception as e:
-            logging.error(f"Error getting current weather: {e}")
+        except Exception as current_weather_retrieval_error:
+            logging.error(f"Error getting current weather: {current_weather_retrieval_error}")
             return "", "", None, ErrorCode.CURRENT_WEATHER_RETRIEVAL_ERROR
     
     def fetch_weather_data(self, location: str) -> None:
@@ -114,8 +115,8 @@ class WeatherDataFetcher:
 
         except FileNotFoundError:
             logging.error("Error: The weather data file does not exist.", ErrorCode.FILE_NOT_FOUND_ERROR)
-        except Exception as e:
-            logging.error(f"Error fetching weather data: {e}", ErrorCode.WEATHER_DATA_FETCH_ERROR)
+        except Exception as weather_data_fetch_error:
+            logging.error(f"Error fetching weather data: {weather_data_fetch_error}", ErrorCode.WEATHER_DATA_FETCH_ERROR)
 
 class DatabaseHandler:
     # A class to handle database operations.
@@ -135,8 +136,8 @@ class DatabaseHandler:
                 password=config.get('Database', 'password')
             )
             return conn
-        except Exception as e:
-            logging.error(f"Error connecting to the database: {e}", ErrorCode.DATABASE_CONNECTION_ERROR)
+        except Exception as database_connection_error:
+            logging.error(f"Error connecting to the database: {database_connection_error}", ErrorCode.DATABASE_CONNECTION_ERROR)
             return None
     
     def insert_data(self, data):
@@ -161,8 +162,8 @@ class DatabaseHandler:
             ))
             self.db_conn.commit()
             logging.info("Data inserted into the database successfully.")
-        except Exception as e:
-            logging.error(f"Error inserting data into the database: {e}", ErrorCode.DATA_INSERTION_ERROR)
+        except Exception as data_insertion_error:
+            logging.error(f"Error inserting data into the database: {data_insertion_error}", ErrorCode.DATA_INSERTION_ERROR)
 
 class JSONHandler:
     # A class to handle JSON operations.
@@ -176,8 +177,8 @@ class JSONHandler:
             with open('weather_data.json', 'w') as file:
                 json.dump(existing_data, file, indent=4)
 
-        except Exception as e:
-            logging.error(f"Error updating JSON data: {e}", ErrorCode.JSON_UPDATE_ERROR)
+        except Exception as json_update_error:
+            logging.error(f"Error updating JSON data: {json_update_error}", ErrorCode.JSON_UPDATE_ERROR)
 
 if __name__ == "__main__":
     api_key = WeatherDataFetcher.get_config('api_key')
