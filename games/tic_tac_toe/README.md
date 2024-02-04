@@ -1,5 +1,6 @@
 # tic_tac_toe
 
-Welcome to my games folder!
+The Python game app was developed for me to attempt on creating an AI against the player.
 
-In this section, this is where I code games apps using Python to practice AI. Enjoy and hope it helps!
+### App requirements:
+Python >= 3.11.7, pygame, and sys.
