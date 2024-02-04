@@ -36,10 +36,11 @@ player1_rect = Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 60, 200, 50)
 ai_rect = Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 60, 200, 50)
 
 def draw_grid():
+    # Function to draw the grid on the screen.
     bg = (255, 255, 255)
     grid = (50, 50, 50)
     screen.fill(bg)
-    for x in range(1,3):
+    for x in range(1, 3):
         pygame.draw.line(screen, grid, (0, x * 100), (SCREEN_WIDTH, x * 100), line_width)
         pygame.draw.line(screen, grid, (x * 100, 0), (x * 100, SCREEN_HEIGHT), line_width)
 
@@ -48,6 +49,7 @@ for x in range(3):
     markers.append(row)
 
 def draw_markers():
+    # Function to draw the markers (X and O) on the screen.
     x_pos = 0
     for x in markers:
         y_pos = 0
@@ -61,6 +63,7 @@ def draw_markers():
         x_pos += 1
 
 def check_winner():
+    # Function to check if there is a winner.
     global winner
     global game_over
 
@@ -73,7 +76,7 @@ def check_winner():
         if sum(x) == -3:
             winner = 2
             game_over = True
-        
+
         # Check rows:
         if markers[0][y_pos] + markers[1][y_pos] + markers[2][y_pos] == 3:
             winner = 1
@@ -92,6 +95,7 @@ def check_winner():
         game_over = True
 
 def draw_winner(winner):
+    # Function to draw the winner message on the screen.
     if winner == 1:
         win_text = "Player 1 wins!"
         pygame.draw.rect(screen, green, player1_rect)
@@ -111,7 +115,7 @@ run = True
 while run:
     draw_grid()
     draw_markers()
-    
+
     # Event handlers:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -127,7 +131,7 @@ while run:
                 if markers[cell_x // 100][cell_y // 100] == 0:
                     markers[cell_x // 100][cell_y // 100] = player
                     player *= -1
-                    
+
                     check_winner() # Moved after the player's move
                     if game_over == False:
                         # Easy AI opponent's turn
@@ -136,7 +140,7 @@ while run:
                         markers[ai_move[0]][ai_move[1]] = player
                         player *= -1
                         check_winner()
-    
+
     if game_over is True:
         draw_winner(winner)
         # Check Mouseclick to see if user/s clicked on Play Again
