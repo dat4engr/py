@@ -19,10 +19,8 @@ class ErrorCode:
     JSON_UPDATE_ERROR = 8
     FILE_NOT_FOUND_ERROR = 9
 
-
 class WeatherDataFetcher:
     # A class to fetch and handle weather data.
-
     def __init__(self, api_key: str):
         # Initializes an instance of WeatherDataFetcher class.
         if self.validate_api_key(api_key):
@@ -121,7 +119,6 @@ class WeatherDataFetcher:
 
 class DatabaseHandler:
     # A class to handle database operations.
-
     def __init__(self):
         # Initializes an instance of the DatabaseHandler class.
         self.db_conn = None
@@ -169,7 +166,6 @@ class DatabaseHandler:
 
 class JSONHandler:
     # A class to handle JSON operations.
-
     def update_data(self, weather_data):
         try:
             with open('weather_data.json', 'r') as file:
