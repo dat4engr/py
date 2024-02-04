@@ -1,141 +1,164 @@
+# Import modules
 import pygame
-import sys
+import random
+from pygame.locals import *
 
 # Initialize pygame
 pygame.init()
 
-# Set up the game window
-WIDTH = 300
-HEIGHT = 300
-BG_COLOR = (255, 255, 255)
-LINE_COLOR = (0, 0, 0)
-window = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Tic-Tac-Toe")
-window.fill(BG_COLOR)
+# Game Resolution
+SCREEN_WIDTH = 300
+SCREEN_HEIGHT = 300
 
-# Define the board
-board = [['', '', ''], ['', '', ''], ['', '', '']]
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption('Play TicTacToe')
 
-# Set up players
-player = 'X'
+# Variables and Functions
+line_width = 6
+markers = []
+clicked = False
+pos = []
+player = 1
+winner = 0
 game_over = False
 
-# Set up font
-FONT_SIZE = 80
-FONT_COLOR = (0, 0, 0)
-font = pygame.font.Font(None, FONT_SIZE)
+# Colors
+green = (0, 255, 0)
+red = (255, 0, 0)
+blue = (0, 0, 255)
 
-# Thickness of X and O symbols
-SYMBOL_THICKNESS = 5
+# Font styles
+font = pygame.font.SysFont(None, 40)
 
-# Draw the board lines
-def draw_lines():
-    # Horizontal lines
-    pygame.draw.line(window, LINE_COLOR, (0, 100), (300, 100), SYMBOL_THICKNESS)
-    pygame.draw.line(window, LINE_COLOR, (0, 200), (300, 200), SYMBOL_THICKNESS)
-    # Vertical lines
-    pygame.draw.line(window, LINE_COLOR, (100, 0), (100, 300), SYMBOL_THICKNESS)
-    pygame.draw.line(window, LINE_COLOR, (200, 0), (200, 300), SYMBOL_THICKNESS)
+# Play Again Rect
+again_rect = Rect(SCREEN_WIDTH // 2 - 80, SCREEN_HEIGHT // 2, 160, 50)
+player1_rect = Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 60, 200, 50)
+ai_rect = Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 60, 200, 50)
 
-# Draw the X and O symbols
-def draw_symbols():
-    for row in range(3):
-        for col in range(3):
-            if board[row][col] == 'X':
-                x_pos = col * 100 + 50
-                y_pos = row * 100 + 50
-                pygame.draw.line(window, LINE_COLOR, (x_pos - 40, y_pos - 40), (x_pos + 40, y_pos + 40), SYMBOL_THICKNESS)
-                pygame.draw.line(window, LINE_COLOR, (x_pos + 40, y_pos - 40), (x_pos - 40, y_pos + 40), SYMBOL_THICKNESS)
-            elif board[row][col] == 'O':
-                x_pos = col * 100 + 50
-                y_pos = row * 100 + 50
-                pygame.draw.circle(window, LINE_COLOR, (x_pos, y_pos), 40, SYMBOL_THICKNESS)
+def draw_grid():
+    bg = (255, 255, 255)
+    grid = (50, 50, 50)
+    screen.fill(bg)
+    for x in range(1,3):
+        pygame.draw.line(screen, grid, (0, x * 100), (SCREEN_WIDTH, x * 100), line_width)
+        pygame.draw.line(screen, grid, (x * 100, 0), (x * 100, SCREEN_HEIGHT), line_width)
 
-# Check for a win
-def check_win(player):
-    for row in range(3):
-        if board[row][0] == board[row][1] == board[row][2] == player:
-            pygame.draw.line(window, (255, 0, 0), (0, (row + 0.5) * 100), (300, (row + 0.5) * 100), SYMBOL_THICKNESS*2)
-            return True
-    for col in range(3):
-        if board[0][col] == board[1][col] == board[2][col] == player:
-            pygame.draw.line(window, (255, 0, 0), ((col + 0.5) * 100, 0), ((col + 0.5) * 100, 300), SYMBOL_THICKNESS*2)
-            return True
-    if board[0][0] == board[1][1] == board[2][2] == player:
-        pygame.draw.line(window, (255, 0, 0), (50, 50), (250, 250), SYMBOL_THICKNESS*2)
-        return True
-    if board[0][2] == board[1][1] == board[2][0] == player:
-        pygame.draw.line(window, (255, 0, 0), (250, 50), (50, 250), SYMBOL_THICKNESS*2)
-        return True
-    return False
+for x in range(3):
+    row = [0] * 3
+    markers.append(row)
 
-# Restart the game
-def restart_game():
-    # Reset the board
-    for row in range(3):
-        for col in range(3):
-            board[row][col] = ''
-    # Reset the player
-    player = 'X'
-    # Reset game over state
-    game_over = False
-    # Clear the window
-    window.fill(BG_COLOR)
+def draw_markers():
+    x_pos = 0
+    for x in markers:
+        y_pos = 0
+        for y in x:
+            if y == 1:
+                pygame.draw.line(screen, green, (x_pos * 100 + 15, y_pos * 100 + 15), (x_pos * 100 + 85, y_pos * 100 + 85), line_width)
+                pygame.draw.line(screen, green, (x_pos * 100 + 15, y_pos * 100 + 85), (x_pos * 100 + 85, y_pos * 100 + 15), line_width)
+            if y == -1:
+                pygame.draw.circle(screen, red, (x_pos * 100 + 50, y_pos * 100 + 50), 38, line_width)
+            y_pos += 1
+        x_pos += 1
 
-# Main game loop
-while True:
+def check_winner():
+    global winner
+    global game_over
+
+    y_pos = 0
+    for x in markers:
+        # Check columns:
+        if sum(x) == 3:
+            winner = 1
+            game_over = True
+        if sum(x) == -3:
+            winner = 2
+            game_over = True
+        
+        # Check rows:
+        if markers[0][y_pos] + markers[1][y_pos] + markers[2][y_pos] == 3:
+            winner = 1
+            game_over = True
+        if markers[0][y_pos] + markers[1][y_pos] + markers[2][y_pos] == -3:
+            winner = 2
+            game_over = True
+        y_pos += 1
+
+    # Check cross:
+    if markers[0][0] + markers[1][1] + markers[2][2] == 3 or markers[2][0] + markers[1][1] + markers[0][2] == 3:
+        winner = 1
+        game_over = True
+    if markers[0][0] + markers[1][1] + markers[2][2] == -3 or markers[2][0] + markers[1][1] + markers[0][2] == -3:
+        winner = 2
+        game_over = True
+
+def draw_winner(winner):
+    if winner == 1:
+        win_text = "Player 1 wins!"
+        pygame.draw.rect(screen, green, player1_rect)
+    elif winner == 2:
+        win_text = "AI wins!"
+        pygame.draw.rect(screen, green, ai_rect)
+    win_img = font.render(win_text, True, blue)
+    screen.blit(win_img, (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 50))
+
+    again_text = 'Play again?'
+    again_img = font.render(again_text, True, blue)
+    pygame.draw.rect(screen, green, again_rect)
+    screen.blit(again_img, (SCREEN_WIDTH // 2 - 80, SCREEN_HEIGHT // 2 + 10))
+
+# Game Setup and Exit Handler
+run = True
+while run:
+    draw_grid()
+    draw_markers()
+    
+    # Event handlers:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        elif event.type == pygame.MOUSEBUTTONDOWN and not game_over:
-            x_pos, y_pos = pygame.mouse.get_pos()
-            if x_pos < 100 and y_pos < 100 and board[0][0] == '':
-                board[0][0] = player
-                player = 'O' if player == 'X' else 'X'
-            elif x_pos < 200 and y_pos < 100 and board[0][1] == '':
-                board[0][1] = player
-                player = 'O' if player == 'X' else 'X'
-            elif x_pos < 300 and y_pos < 100 and board[0][2] == '':
-                board[0][2] = player
-                player = 'O' if player == 'X' else 'X'
-            elif x_pos < 100 and y_pos < 200 and board[1][0] == '':
-                board[1][0] = player
-                player = 'O' if player == 'X' else 'X'
-            elif x_pos < 200 and y_pos < 200 and board[1][1] == '':
-                board[1][1] = player
-                player = 'O' if player == 'X' else 'X'
-            elif x_pos < 300 and y_pos < 200 and board[1][2] == '':
-                board[1][2] = player
-                player = 'O' if player == 'X' else 'X'
-            elif x_pos < 100 and y_pos < 300 and board[2][0] == '':
-                board[2][0] = player
-                player = 'O' if player == 'X' else 'X'
-            elif x_pos < 200 and y_pos < 300 and board[2][1] == '':
-                board[2][1] = player
-                player = 'O' if player == 'X' else 'X'
-            elif x_pos < 300 and y_pos < 300 and board[2][2] == '':
-                board[2][2] = player
-                player = 'O' if player == 'X' else 'X'
-            if check_win('X'):
-                game_over = True
-                message = font.render("X wins!", True, FONT_COLOR)
-                window.blit(message, (WIDTH // 2 - message.get_width() // 2, HEIGHT // 2 - message.get_height() // 2))
-            elif check_win('O'):
-                game_over = True
-                message = font.render("O wins!", True, FONT_COLOR)
-                window.blit(message, (WIDTH // 2 - message.get_width() // 2, HEIGHT // 2 - message.get_height() // 2))
-            elif all(board[i][j] != '' for i in range(3) for j in range(3)):
-                game_over = True
-                message = font.render("It's a tie!", True, FONT_COLOR)
-                window.blit(message, (WIDTH // 2 - message.get_width() // 2, HEIGHT // 2 - message.get_height() // 2))
-        elif event.type == pygame.KEYDOWN and game_over:
-            if event.key == pygame.K_RETURN:
-                restart_game()
+            run = False
+        if game_over == 0:
+            if event.type == pygame.MOUSEBUTTONDOWN and clicked is False:
+                clicked = True
+            if event.type == pygame.MOUSEBUTTONUP and clicked is True:
+                clicked = False
+                pos = pygame.mouse.get_pos()
+                cell_x = pos[0]
+                cell_y = pos[1]
+                if markers[cell_x // 100][cell_y // 100] == 0:
+                    markers[cell_x // 100][cell_y // 100] = player
+                    player *= -1
+                    
+                    check_winner() # Moved after the player's move
+                    if game_over == False:
+                        # Easy AI opponent's turn
+                        empty_cells = [(i, j) for i in range(3) for j in range(3) if markers[i][j] == 0]
+                        ai_move = random.choice(empty_cells)
+                        markers[ai_move[0]][ai_move[1]] = player
+                        player *= -1
+                        check_winner()
     
-    if not game_over:
-        window.fill(BG_COLOR)
-        draw_lines()
-        draw_symbols()
+    if game_over is True:
+        draw_winner(winner)
+        # Check Mouseclick to see if user/s clicked on Play Again
+        if event.type == pygame.MOUSEBUTTONDOWN and clicked is False:
+            clicked = True
+        if event.type == pygame.MOUSEBUTTONUP and clicked is True:
+            clicked = False
+            pos = pygame.mouse.get_pos()
+            if again_rect.collidepoint(pos):
+                # Reset Variables
+                markers = []
+                pos = []
+                player = 1
+                winner = 0
+                game_over = False
 
-    pygame.display.flip()
+                for x in range(3):
+                    row = [0] * 3
+                    markers.append(row)
+
+    # Update Game Running
+    pygame.display.update()
+
+# To end pygame
+pygame.quit()
