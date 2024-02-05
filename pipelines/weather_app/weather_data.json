@@ -1,44 +1,11 @@
 [
     {
-        "location": "Magalang, PH",
-        "date": "2024-02-04",
-        "time": "00:52:08",
-        "temperature": "26.62",
-        "weather_status": "Clouds"
-    },
-    {
-        "location": "Magalang, PH",
-        "date": "2024-02-04",
-        "time": "21:46:08",
-        "temperature": "26.62",
-        "weather_status": "Clouds"
-    },
-    {
-        "location": "Magalang, PH",
-        "date": "2024-02-04",
-        "time": "23:00:57",
-        "temperature": "22.08",
-        "weather_status": "Clouds"
-    },
-    {
-        "location": "Magalang, PH",
         "date": "2024-02-05",
-        "time": "17:22:11",
-        "temperature": "32.62",
-        "weather_status": "Clouds"
-    },
-    {
+        "time": "21:11:40",
         "location": "Magalang, PH",
-        "date": "2024-02-05",
-        "time": "18:17:50",
-        "temperature": "30.62",
-        "weather_status": "Clouds"
-    },
-    {
-        "location": "Magalang, PH",
-        "date": "2024-02-05",
-        "time": "19:05:36",
-        "temperature": "29.62",
-        "weather_status": "Clouds"
+        "weather_status": "Clouds",
+        "temperature": "27.62",
+        "wind_speed": 1.03,
+        "humidity": 74
     }
 ]
