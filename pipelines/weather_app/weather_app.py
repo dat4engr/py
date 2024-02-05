@@ -23,7 +23,7 @@ class ErrorCode:
 
 class WeatherDataFetcher:
     # A class to fetch and handle weather data.
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str) -> None:
         # Initializes an instance of WeatherDataFetcher class.
         if self.validate_api_key(api_key):
             self.api_key = api_key
@@ -117,11 +117,11 @@ class WeatherDataFetcher:
 
 class DatabaseHandler:
     # A class to handle database operations.
-    def __init__(self):
+    def __init__(self) -> None:
         # Initializes an instance of the DatabaseHandler class.
         self.db_conn = None
 
-    def connect_to_db(self):
+    def connect_to_db(self) -> Any:
         # Connects to the database.
         try:
             config = configparser.ConfigParser()
@@ -137,7 +137,7 @@ class DatabaseHandler:
             logging.error(f"Error connecting to the database: {database_connection_error}", ErrorCode.DATABASE_CONNECTION_ERROR)
             return None
     
-    def insert_data(self, data):
+    def insert_data(self, data: dict) -> None:
         # Inserts weather data into the database.
         try:
             if self.db_conn is None:
@@ -164,7 +164,7 @@ class DatabaseHandler:
 
 class JSONHandler:
     # A class to handle JSON operations.
-    def update_data(self, weather_data):
+    def update_data(self, weather_data: dict) -> None:
         try:
             with open('weather_data.json', 'r') as file:
                 existing_data = json.load(file)
