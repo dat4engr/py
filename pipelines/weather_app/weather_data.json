@@ -5,5 +5,33 @@
         "time": "00:52:08",
         "temperature": "26.62",
         "weather_status": "Clouds"
+    },
+    {
+        "location": "Magalang, PH",
+        "date": "2024-02-04",
+        "time": "21:46:08",
+        "temperature": "26.62",
+        "weather_status": "Clouds"
+    },
+    {
+        "location": "Magalang, PH",
+        "date": "2024-02-04",
+        "time": "23:00:57",
+        "temperature": "22.08",
+        "weather_status": "Clouds"
+    },
+    {
+        "location": "Magalang, PH",
+        "date": "2024-02-05",
+        "time": "17:22:11",
+        "temperature": "32.62",
+        "weather_status": "Clouds"
+    },
+    {
+        "location": "Magalang, PH",
+        "date": "2024-02-05",
+        "time": "18:17:50",
+        "temperature": "30.62",
+        "weather_status": "Clouds"
     }
 ]
