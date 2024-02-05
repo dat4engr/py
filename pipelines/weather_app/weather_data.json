@@ -33,5 +33,12 @@
         "time": "18:17:50",
         "temperature": "30.62",
         "weather_status": "Clouds"
+    },
+    {
+        "location": "Magalang, PH",
+        "date": "2024-02-05",
+        "time": "19:05:36",
+        "temperature": "29.62",
+        "weather_status": "Clouds"
     }
 ]
