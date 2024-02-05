@@ -1,11 +1,13 @@
 import geocoder
+import json
+import logging
+import configparser
+from typing import Union, Tuple, Any
 from pyowm import OWM
 from datetime import datetime
-import json
-import psycopg2
-import configparser
-import logging
-from typing import Union, Tuple, Any
+from psycopg2 import connect
+
+logging.basicConfig(level=logging.INFO)
 
 class ErrorCode:
     # A class for error codes used within the application.
@@ -29,15 +31,11 @@ class WeatherDataFetcher:
             logging.error("Invalid API key provided.")
             self.api_key = None
         self.weather_cache = {}
-        self.db_conn = None
 
     @staticmethod
     def validate_api_key(api_key: str) -> bool:
         # Validates if the API key is present and not empty.
-        if api_key and not api_key.isspace():
-            return True
-        else:
-            return False
+        return bool(api_key and not api_key.isspace())
 
     @staticmethod
     def get_config(key: str) -> str:
@@ -128,7 +126,7 @@ class DatabaseHandler:
         try:
             config = configparser.ConfigParser()
             config.read('config.ini')
-            conn = psycopg2.connect(
+            conn = connect(
                 host=config.get('Database', 'host'),
                 database=config.get('Database', 'database'),
                 user=config.get('Database', 'user'),
