@@ -24,13 +24,13 @@ class ErrorCode:
 
 
 class WeatherDataFetcher:
+    weather_cache = {}
     def __init__(self, api_key: str) -> None:
         if self.validate_api_key(api_key):
             self.api_key = api_key
         else:
             logging.error("Invalid API key provided.")
             self.api_key = None
-        self.weather_cache = {}
 
     @staticmethod
     def validate_api_key(api_key: str) -> bool:
@@ -47,9 +47,15 @@ class WeatherDataFetcher:
             return "", ErrorCode.CONFIG_FILE_READ_ERROR
     
     def get_coordinates(self, location: str) -> Union[Tuple[float, float], None]:
+        if location in self.weather_cache:
+            return self.weather_cache[location]['coordinates']
+        
         try:
             geo_location = geocoder.osm(location)
-            return geo_location.latlng if geo_location.latlng else None
+            coordinates = geo_location.latlng if geo_location.latlng else None
+            if coordinates:
+                self.weather_cache[location] = {'coordinates': coordinates}
+            return coordinates
         except Exception as coordinates_retrieval_error:
             logging.error(f"Error getting coordinates for location: {location}. Error message: {coordinates_retrieval_error}")
             return None, ErrorCode.COORDINATES_RETRIEVAL_ERROR
@@ -74,34 +80,15 @@ class WeatherDataFetcher:
             if location in self.weather_cache:
                 weather_data = self.weather_cache[location]
             else:
-                coordinates = self.get_coordinates(location)
-                if coordinates[1]:
-                    lat, lon = coordinates
-                    current_date, current_time, weather, wind, humidity = self.get_current_weather(lat, lon)
-                    if weather:
-                        temperature = f"{weather.temperature('celsius')['temp']}"
-                        weather_status = weather.status
-                        weather_data = {
-                            'date': current_date,
-                            'time': current_time,
-                            'location': location,
-                            'weather_status': weather_status,
-                            'temperature': temperature,
-                            'wind_speed': wind['speed'],
-                            'humidity': humidity,
-                        }
-                        self.weather_cache[location] = weather_data
-                    else:
-                        logging.error(f"Unable to fetch weather data for {location}.")
-                        return ErrorCode.WEATHER_DATA_FETCH_ERROR
-                else:
-                    logging.error(f"Unable to fetch coordinates for {location}.")
-                    return ErrorCode.COORDINATES_RETRIEVAL_ERROR
-            
+                weather_data = self.fetch_weather_data_from_api(location)
+
+                if weather_data is not None:
+                    self.weather_cache[location] = weather_data
+
             if weather_data is None:
                 logging.error("Error fetching weather data: Weather data is None.")
                 return ErrorCode.WEATHER_DATA_FETCH_ERROR
-                
+            
             db_handler = DatabaseHandler()
             db_handler.insert_data(weather_data)
 
@@ -119,7 +106,31 @@ class WeatherDataFetcher:
             logging.error("Error: The weather data file does not exist.", ErrorCode.FILE_NOT_FOUND_ERROR)
         except Exception as weather_data_fetch_error:
             logging.error(f"Error fetching weather data: {weather_data_fetch_error}", ErrorCode.WEATHER_DATA_FETCH_ERROR)
-
+    
+    def fetch_weather_data_from_api(self, location: str) -> Union[dict, None]:
+        coordinates = self.get_coordinates(location)
+        if coordinates[1]:
+            lat, lon = coordinates
+            current_date, current_time, weather, wind, humidity = self.get_current_weather(lat, lon)
+            if weather:
+                temperature = f"{weather.temperature('celsius')['temp']}"
+                weather_status = weather.status
+                weather_data = {
+                    'date': current_date,
+                    'time': current_time,
+                    'location': location,
+                    'weather_status': weather_status,
+                    'temperature': temperature,
+                    'wind_speed': wind['speed'],
+                    'humidity': humidity,
+                }
+                return weather_data
+            else:
+                logging.error(f"Unable to fetch weather data for {location}.")
+                return ErrorCode.WEATHER_DATA_FETCH_ERROR
+        else:
+            logging.error(f"Unable to fetch coordinates for {location}.")
+            return ErrorCode.COORDINATES_RETRIEVAL_ERROR
 
 
 class DatabaseHandler:
@@ -186,4 +197,4 @@ class JSONHandler:
 if __name__ == "__main__":
     api_key = WeatherDataFetcher.get_config('api_key')
     fetcher = WeatherDataFetcher(api_key)
-    fetcher.fetch_weather_data("Input_City_Name,Input_Country_Code")
+    fetcher.fetch_weather_data("Magalang, PH")
