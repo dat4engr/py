@@ -1,16 +1,17 @@
 import geocoder
 import json
-import logging
+from datetime import datetime
+from psycopg2 import connect
 import configparser
 from typing import Union, Tuple, Any
 from pyowm import OWM
-from datetime import datetime
-from psycopg2 import connect
+import logging
+
 
 logging.basicConfig(level=logging.INFO)
 
+
 class ErrorCode:
-    # A class for error codes used within the application.
     INVALID_API_KEY = 1
     CONFIG_FILE_READ_ERROR = 2
     COORDINATES_RETRIEVAL_ERROR = 3
@@ -21,10 +22,9 @@ class ErrorCode:
     JSON_UPDATE_ERROR = 8
     FILE_NOT_FOUND_ERROR = 9
 
+
 class WeatherDataFetcher:
-    # A class to fetch and handle weather data.
     def __init__(self, api_key: str) -> None:
-        # Initializes an instance of WeatherDataFetcher class.
         if self.validate_api_key(api_key):
             self.api_key = api_key
         else:
@@ -34,12 +34,10 @@ class WeatherDataFetcher:
 
     @staticmethod
     def validate_api_key(api_key: str) -> bool:
-        # Validates if the API key is present and not empty.
         return bool(api_key and not api_key.isspace())
 
     @staticmethod
     def get_config(key: str) -> str:
-        # Retrieves a configuration value from the config.ini file.
         try:
             config = configparser.ConfigParser()
             config.read('config.ini')
@@ -49,7 +47,6 @@ class WeatherDataFetcher:
             return "", ErrorCode.CONFIG_FILE_READ_ERROR
     
     def get_coordinates(self, location: str) -> Union[Tuple[float, float], None]:
-        # Retrieves the latitude and longitude coordinates of a location.
         try:
             geo_location = geocoder.osm(location)
             return geo_location.latlng if geo_location.latlng else None
@@ -58,26 +55,21 @@ class WeatherDataFetcher:
             return None, ErrorCode.COORDINATES_RETRIEVAL_ERROR
     
     def get_current_weather(self, lat: float, lon: float) -> Tuple[str, str, Any]:
-        # Retrieves the current weather data for a given set of latitude and longitude coordinates.
         try:
             owm = OWM(self.api_key)
             weather_manager = owm.weather_manager()
-            
             observation = weather_manager.weather_at_coords(lat, lon)
             current_date = datetime.now().strftime('%Y-%m-%d')
             current_time = datetime.now().strftime('%H:%M:%S')
-            
             weather = observation.weather
             wind = weather.wind()
             humidity = weather.humidity
-            
             return current_date, current_time, weather, wind, humidity
         except Exception as current_weather_retrieval_error:
             logging.error(f"Error getting current weather: {current_weather_retrieval_error}")
             return "", "", None, ErrorCode.CURRENT_WEATHER_RETRIEVAL_ERROR
     
     def fetch_weather_data(self, location: str) -> None:
-        # Fetches weather data for a given location.
         try:
             if location in self.weather_cache:
                 weather_data = self.weather_cache[location]
@@ -106,6 +98,10 @@ class WeatherDataFetcher:
                     logging.error(f"Unable to fetch coordinates for {location}.")
                     return ErrorCode.COORDINATES_RETRIEVAL_ERROR
             
+            if weather_data is None:
+                logging.error("Error fetching weather data: Weather data is None.")
+                return ErrorCode.WEATHER_DATA_FETCH_ERROR
+                
             db_handler = DatabaseHandler()
             db_handler.insert_data(weather_data)
 
@@ -124,14 +120,13 @@ class WeatherDataFetcher:
         except Exception as weather_data_fetch_error:
             logging.error(f"Error fetching weather data: {weather_data_fetch_error}", ErrorCode.WEATHER_DATA_FETCH_ERROR)
 
+
+
 class DatabaseHandler:
-    # A class to handle database operations.
     def __init__(self) -> None:
-        # Initializes an instance of the DatabaseHandler class.
         self.db_conn = None
 
     def connect_to_db(self) -> Any:
-        # Connects to the database.
         try:
             config = configparser.ConfigParser()
             config.read('config.ini')
@@ -147,7 +142,6 @@ class DatabaseHandler:
             return None
     
     def insert_data(self, data: dict) -> None:
-        # Inserts weather data into the database.
         try:
             if self.db_conn is None:
                 self.db_conn = self.connect_to_db()
@@ -173,8 +167,8 @@ class DatabaseHandler:
         except Exception as data_insertion_error:
             logging.error(f"Error inserting data into the database: {data_insertion_error}", ErrorCode.DATA_INSERTION_ERROR)
 
+
 class JSONHandler:
-    # A class to handle JSON operations.
     def update_data(self, weather_data: dict) -> None:
         try:
             with open('weather_data.json', 'r') as file:
@@ -188,7 +182,8 @@ class JSONHandler:
         except Exception as json_update_error:
             logging.error(f"Error updating JSON data: {json_update_error}", ErrorCode.JSON_UPDATE_ERROR)
 
+
 if __name__ == "__main__":
     api_key = WeatherDataFetcher.get_config('api_key')
     fetcher = WeatherDataFetcher(api_key)
-    fetcher.fetch_weather_data("Magalang, PH")
+    fetcher.fetch_weather_data("Input_City_Name,Input_Country_Code")
