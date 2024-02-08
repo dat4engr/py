@@ -5,6 +5,7 @@ from psycopg2 import connect
 import configparser
 from typing import Union, Tuple, Any
 from pyowm import OWM
+from contextlib import contextmanager
 import logging
 
 
@@ -180,14 +181,24 @@ class DatabaseHandler:
 
 
 class JSONHandler:
+    @contextmanager
+    def open_file(self, file_path: str, mode: str) -> Any:
+        file = None
+        try:
+            file = open(file_path, mode)
+            yield file
+        finally:
+            if file:
+                file.close()
+
     def update_data(self, weather_data: dict) -> None:
         try:
-            with open('weather_data.json', 'r') as file:
+            with self.open_file('weather_data.json', 'r') as file:
                 existing_data = json.load(file)
 
             existing_data.append(weather_data)
 
-            with open('weather_data.json', 'w') as file:
+            with self.open_file('weather_data.json', 'w') as file:
                 json.dump(existing_data, file, indent=4)
 
         except Exception as json_update_error:
