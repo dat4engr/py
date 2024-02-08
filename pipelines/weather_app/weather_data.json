@@ -88,5 +88,32 @@
         "temperature": "25.62",
         "wind_speed": 1.54,
         "humidity": 83
+    },
+    {
+        "date": "2024-02-08",
+        "time": "23:32:43",
+        "location": "Magalang, PH",
+        "weather_status": "Clouds",
+        "temperature": "25.62",
+        "wind_speed": 1.54,
+        "humidity": 83
+    },
+    {
+        "date": "2024-02-08",
+        "time": "23:36:53",
+        "location": "Magalang, PH",
+        "weather_status": "Clouds",
+        "temperature": "25.62",
+        "wind_speed": 1.54,
+        "humidity": 83
+    },
+    {
+        "date": "2024-02-08",
+        "time": "23:41:34",
+        "location": "Magalang, PH",
+        "weather_status": "Clouds",
+        "temperature": "25.62",
+        "wind_speed": 1.54,
+        "humidity": 83
     }
 ]
