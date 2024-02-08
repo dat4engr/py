@@ -16,7 +16,17 @@ def word_type(text):
         return "single"
 
 def get_user_input():
-    return input("Enter some text (or 'q' to quit): ").lower()
+    while True:
+        try:
+            text = input("Enter some text (or 'q' to quit): ").lower()
+            if text == 'q':
+                return text
+            elif text.strip() != "":
+                return text
+            else:
+                raise ValueError
+        except ValueError:
+            print("Invalid input. Please enter some text or 'q' to quit.")
 
 # The main function that runs the app. Prints the welcome message.
 def main():
