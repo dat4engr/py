@@ -13,6 +13,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 class ErrorCode:
+    # Class that defines error codes for different types of errors that can occur.
     INVALID_API_KEY = 1
     CONFIG_FILE_READ_ERROR = 2
     COORDINATES_RETRIEVAL_ERROR = 3
@@ -25,20 +26,26 @@ class ErrorCode:
 
 
 class WeatherDataFetcher:
-    weather_cache = {}
+    # Class that fetches weather data for a given location.
+    api_key = None
+
     def __init__(self, api_key: str) -> None:
-        if self.validate_api_key(api_key):
-            self.api_key = api_key
+        # Initializes the WeatherDataFetcher object.
+        self.weather_cache = {}
+        if self.__class__.validate_api_key(api_key):
+            self.__class__.api_key = api_key
         else:
             logging.error("Invalid API key provided.")
-            self.api_key = None
+            self.__class__.api_key = None
 
-    @staticmethod
-    def validate_api_key(api_key: str) -> bool:
+    @classmethod
+    def validate_api_key(cls, api_key: str) -> bool:
+        # Validates the given API key.
         return bool(api_key and not api_key.isspace())
 
-    @staticmethod
-    def get_config(key: str) -> str:
+    @classmethod
+    def get_config(cls, key: str) -> str:
+        # Retrieves the value associated with the given key from the configuration file.
         try:
             config = configparser.ConfigParser()
             config.read('config.ini')
@@ -48,6 +55,7 @@ class WeatherDataFetcher:
             return "", ErrorCode.CONFIG_FILE_READ_ERROR
     
     def get_coordinates(self, location: str) -> Union[Tuple[float, float], None]:
+        # Retrieves the latitude and longitude coordinates for the given location.
         if location in self.weather_cache:
             return self.weather_cache[location]['coordinates']
         
@@ -62,8 +70,9 @@ class WeatherDataFetcher:
             return None, ErrorCode.COORDINATES_RETRIEVAL_ERROR
     
     def get_current_weather(self, lat: float, lon: float) -> Tuple[str, str, Any]:
+        # Retrieves the current weather for the given latitude and longitude coordinates.
         try:
-            owm = OWM(self.api_key)
+            owm = OWM(self.__class__.api_key)
             weather_manager = owm.weather_manager()
             observation = weather_manager.weather_at_coords(lat, lon)
             current_date = datetime.now().strftime('%Y-%m-%d')
@@ -77,6 +86,7 @@ class WeatherDataFetcher:
             return "", "", None, ErrorCode.CURRENT_WEATHER_RETRIEVAL_ERROR
     
     def fetch_weather_data(self, location: str) -> None:
+        # Fetches weather data for the given location.
         try:
             if location in self.weather_cache:
                 weather_data = self.weather_cache[location]
@@ -109,6 +119,7 @@ class WeatherDataFetcher:
             logging.error(f"Error fetching weather data: {weather_data_fetch_error}", ErrorCode.WEATHER_DATA_FETCH_ERROR)
     
     def fetch_weather_data_from_api(self, location: str) -> Union[dict, None]:
+        # Fetches weather data for the given location from the weather API.
         coordinates = self.get_coordinates(location)
         if coordinates[1]:
             lat, lon = coordinates
@@ -135,10 +146,13 @@ class WeatherDataFetcher:
 
 
 class DatabaseHandler:
+    # Class that handles database operations.
     def __init__(self) -> None:
+        # Initializes the DatabaseHandler object.
         self.db_conn = None
 
     def connect_to_db(self) -> Any:
+        # Connects to the database.
         try:
             config = configparser.ConfigParser()
             config.read('config.ini')
@@ -154,6 +168,7 @@ class DatabaseHandler:
             return None
     
     def insert_data(self, data: dict) -> None:
+        # Inserts the given data into the database.
         try:
             if self.db_conn is None:
                 self.db_conn = self.connect_to_db()
@@ -181,8 +196,10 @@ class DatabaseHandler:
 
 
 class JSONHandler:
+    # Class that handles JSON operations.
     @contextmanager
     def open_file(self, file_path: str, mode: str) -> Any:
+        # Opens the specified file in the specified mode.
         file = None
         try:
             file = open(file_path, mode)
@@ -192,6 +209,7 @@ class JSONHandler:
                 file.close()
 
     def update_data(self, weather_data: dict) -> None:
+        # Updates the JSON file with the given weather data.
         try:
             with self.open_file('weather_data.json', 'r') as file:
                 existing_data = json.load(file)
