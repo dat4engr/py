@@ -6,4 +6,6 @@ INSERT INTO public.weather_data ("date","time","location",weather_status,tempera
 	 ('2024-02-06','20:49:10','Magalang, PH','Clouds',27.62,2.06,65.0),
 	 ('2024-02-06','21:04:05','Magalang, PH','Clouds',23.19,0.86,78.0),
 	 ('2024-02-06','21:10:23','Magalang, PH','Clouds',26.62,2.06,69.0),
-	 ('2024-02-06','21:10:37','Magalang, PH','Clouds',23.19,0.86,78.0);
+	 ('2024-02-06','21:10:37','Magalang, PH','Clouds',23.19,0.86,78.0),
+	 ('2024-02-08','23:24:01','Magalang, PH','Clouds',25.62,1.54,83.0),
+	 ('2024-02-08','23:24:27','Magalang, PH','Clouds',25.62,1.54,83.0);
