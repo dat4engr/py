@@ -3,7 +3,7 @@ from datetime import datetime
 import shutil
 
 def get_desktop_path():
-    # Returns the path to the desktop directory based on the current platform. 
+    # Returns the path to the desktop directory based on the current platform.
     return os.path.join(os.path.expanduser('~'), 'Desktop')
 
 def delete_files(desktop_path):
@@ -15,7 +15,7 @@ def delete_files(desktop_path):
     log_file_path = os.path.join(os.getcwd(), 'deleted_files.txt')
 
     try:
-        num_files = 0
+        number_of_files = 0
         with open(log_file_path, 'a') as log_file:
             files = os.listdir(desktop_path)
 
@@ -33,28 +33,27 @@ def delete_files(desktop_path):
                     else:
                         os.remove(file_path)
 
-                    num_files += 1
+                    number_of_files += 1
                     log_text = "{}: Deleted {} - {} ({})\n".format(
                         datetime.now().strftime('%H:%M:%S'), item_type, file, file_path)
                     log_file.write(log_text)
 
         print("Files and folders deleted successfully!")
-        print("Deleted {} items from the desktop.".format(num_files))
+        print(f"Deleted {number_of_files} items from the desktop.")
     except FileNotFoundError:
         print("Log file not found!")
     except PermissionError:
         print("Permission denied!")
-    except Exception as e:
-        print("An error occurred: {}".format(str(e)))
+    except Exception as error:
+        print(f"An error occurred: {str(error)}")
 
-def get_confirmation(num_files):
+def get_confirmation(number_of_files):
     # Prompts the user for confirmation to delete files and folders.
     while True:
-        confirmation = input("Are you sure you want to delete {} items from the desktop? (y/n): ".format(num_files))
+        confirmation = input(f"Are you sure you want to delete {number_of_files} items from the desktop? (y/n): ")
         if confirmation.lower() in ["y", "n"]:
             return confirmation.lower() == "y"
-        else:
-            print("Invalid input. Please enter 'y' for yes or 'n' for no.")
+        print("Invalid input. Please enter 'y' for yes or 'n' for no.")
 
 desktop_path = get_desktop_path()
 delete_files(desktop_path)
