@@ -3,19 +3,36 @@ import customtkinter
 from pytube import YouTube
 
 def start_download():
+    # Starts the video download process when the 'Download' button is clicked.
     try:
         youtube_link = link.get()
         youtube_object = YouTube(youtube_link, on_progress_callback=download_progress)
-        video = youtube_object.streams.get_highest_resolution()
-        title.configure(text=youtube_object.title)
-        finish_label.configure(text="")
-        finish_label.configure(text="Downloading")
-        video.download()
-        finish_label.configure(text="Download complete.", text_color="white")
+        video = get_highest_resolution_video(youtube_object)
+        set_title(youtube_object)
+        set_finish_label("Downloading")
+        download_video(video)
+        set_finish_label("Download complete.", text_color="white")
     except:
-        finish_label.configure(text="Download error.", text_color="red")
+        set_finish_label("Download error.", text_color="red")
+
+def get_highest_resolution_video(youtube_object):
+    # Returns the video stream with the highest resolution of the given YouTube object.
+    return youtube_object.streams.get_highest_resolution()
+
+def set_title(youtube_object):
+    # Sets the title of the YouTube video in the GUI label.
+    title.configure(text=youtube_object.title)
+
+def set_finish_label(text, text_color=None):
+    # Updates the finish_label with the given text and text color.
+    finish_label.configure(text=text, text_color=text_color)
+
+def download_video(video):
+    # Downloads the given video stream.
+    video.download()
 
 def download_progress(stream, chunk, bytes_remaining):
+    # Updates the GUI with the current progress of the video download.
     total_size = stream.filesize
     bytes_downloaded = total_size - bytes_remaining
     percentage_of_completion = bytes_downloaded / total_size * 100
@@ -32,7 +49,7 @@ customtkinter.set_default_color_theme("blue")
 
 app = customtkinter.CTk()
 app.geometry("720x480")
-app.title("YouTube Downloader")
+app.title("Any Video Downloader")
 
 title = customtkinter.CTkLabel(app, text="Insert a YouTube link")
 title.pack(padx=10, pady=10)
