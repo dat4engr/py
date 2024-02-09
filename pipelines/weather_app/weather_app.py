@@ -32,14 +32,14 @@ class WeatherDataFetcher:
     def __init__(self, api_key: str) -> None:
         # Initializes the WeatherDataFetcher object.
         self.weather_cache = {}
-        if self.__class__.validate_api_key(api_key):
-            self.__class__.api_key = api_key
+        if self.validate_api_key(api_key):
+            self.api_key = api_key
         else:
             logging.error("Invalid API key provided.")
-            self.__class__.api_key = None
+            self.api_key = None
 
-    @classmethod
-    def validate_api_key(cls, api_key: str) -> bool:
+    @staticmethod
+    def validate_api_key(api_key: str) -> bool:
         # Validates the given API key.
         return bool(api_key and not api_key.isspace())
 
@@ -72,7 +72,7 @@ class WeatherDataFetcher:
     def get_current_weather(self, lat: float, lon: float) -> Tuple[str, str, Any]:
         # Retrieves the current weather for the given latitude and longitude coordinates.
         try:
-            owm = OWM(self.__class__.api_key)
+            owm = OWM(self.api_key)
             weather_manager = owm.weather_manager()
             observation = weather_manager.weather_at_coords(lat, lon)
             current_date = datetime.now().strftime('%Y-%m-%d')
@@ -190,7 +190,7 @@ class DatabaseHandler:
                 data['humidity']
             ))
             self.db_conn.commit()
-            logging.info("Data inserted into the database successfully.")
+            logging.info(" Data inserted into the database successfully.")
         except Exception as data_insertion_error:
             logging.error(f"Error inserting data into the database: {data_insertion_error}", ErrorCode.DATA_INSERTION_ERROR)
 
