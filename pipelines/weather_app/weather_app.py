@@ -145,10 +145,12 @@ class WeatherDataFetcher:
 
 
 class DatabaseHandler:
+    # Class that handles database operations.
     def __init__(self) -> None:
         self.db_conn = None
 
     def connect_to_db(self) -> Any:
+        # Connects to the database.
         try:
             config = configparser.ConfigParser()
             config.read('config.ini')
@@ -172,6 +174,7 @@ class DatabaseHandler:
             self.db_conn.close()
 
     def insert_data(self, data: dict) -> None:
+        # Inserts the given data into the database.
         try:
             cursor = self.db_conn.cursor()
 
@@ -197,11 +200,13 @@ class DatabaseHandler:
 
 
 class JSONHandler:
+    # Class that handles JSON operations.
     def __init__(self):
         self.file = None
 
     @contextmanager
     def open_file(self, file_path: str, mode: str) -> Any:
+        # Opens the specified file in the specified mode.
         try:
             self.file = open(file_path, mode)
             yield self.file
@@ -219,6 +224,7 @@ class JSONHandler:
             self.file = None
 
     def update_data(self, weather_data: dict) -> None:
+        # Updates the JSON file with the given weather data.
         try:
             with self.open_file('weather_data.json', 'r') as file:
                 existing_data = json.load(file)
