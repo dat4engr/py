@@ -8,6 +8,7 @@ from pyowm import OWM
 from contextlib import contextmanager
 import logging
 import concurrent.futures
+from functools import lru_cache
 
 
 logging.basicConfig(level=logging.INFO)
@@ -47,10 +48,12 @@ class WeatherDataFetcher:
             config = configparser.ConfigParser()
             config.read('config.ini')
             return config.get('API', key)
-        except configparser.Error as e:
+        except configparser.Error as config_parser_error:
             logging.error("Issue reading the configuration file.")
-            raise RuntimeError(ErrorCode.CONFIG_FILE_READ_ERROR) from e
+            raise RuntimeError(ErrorCode.CONFIG_FILE_READ_ERROR) from config_parser_error
 
+    # Use LRU cache to cache the coordinates
+    @lru_cache(maxsize=128)
     def get_coordinates(self, location: str) -> Union[Tuple[float, float], None]:
         # Retrieves the coordinates (latitude and longitude) for the given location.
         if location in self.weather_cache:
@@ -62,9 +65,9 @@ class WeatherDataFetcher:
             if coordinates:
                 self.weather_cache[location] = {'coordinates': coordinates}
             return coordinates
-        except Exception as e:
-            logging.error(f"Error getting coordinates for location: {location}. Error message: {e}")
-            raise RuntimeError(ErrorCode.COORDINATES_RETRIEVAL_ERROR) from e
+        except Exception as exception:
+            logging.error(f"Error getting coordinates for location: {location}. Error message: {exception}")
+            raise RuntimeError(ErrorCode.COORDINATES_RETRIEVAL_ERROR) from exception
 
     def get_current_weather(self, lat: float, lon: float) -> Tuple[str, str, Any]:
         # Retrieves the current weather data for the given coordinates (latitude and longitude).
@@ -78,13 +81,14 @@ class WeatherDataFetcher:
             wind = weather.wind()
             humidity = weather.humidity
             return current_date, current_time, weather, wind, humidity
-        except Exception as e:
-            logging.error(f"Error getting current weather: {e}")
-            raise RuntimeError(ErrorCode.CURRENT_WEATHER_RETRIEVAL_ERROR) from e
+        except Exception as exception:
+            logging.error(f"Error getting current weather: {exception}")
+            raise RuntimeError(ErrorCode.CURRENT_WEATHER_RETRIEVAL_ERROR) from exception
 
     def fetch_weather_data(self, location: str) -> None:
         # Fetches the weather data for the given location.
         try:
+            # Check if the weather data is already in the cache
             if location in self.weather_cache:
                 weather_data = self.weather_cache[location]
             else:
@@ -110,19 +114,19 @@ class WeatherDataFetcher:
             print(f"Wind Speed: {weather_data['wind_speed']} m/s")
             print(f"Humidity: {weather_data['humidity']}%")
 
-        except FileNotFoundError:
-            logging.error("Error: The weather data file does not exist.")
-            raise RuntimeError(ErrorCode.FILE_NOT_FOUND_ERROR)
-        except Exception as e:
-            logging.error(f"Error fetching weather data: {e}")
-            raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR) from e
+        except FileNotFoundError as file_not_found_exception:
+            logging.exception("Error: The weather data file does not exist.", exc_info=True)
+            raise RuntimeError(ErrorCode.FILE_NOT_FOUND_ERROR) from file_not_found_exception
+        except Exception as exception:
+            logging.exception(f"Error fetching weather data: {exception}", exc_info=True)
+            raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR) from exception
 
     def fetch_weather_data_from_api(self, location: str) -> Union[dict, None]:
-       # Fetches the weather data for the given location using the weather API.
+        # Fetches the weather data for the given location using the weather API.
         coordinates = self.get_coordinates(location)
         if coordinates:
-            lat, lon = coordinates
-            current_date, current_time, weather, wind, humidity = self.get_current_weather(lat, lon)
+            latitude, longitude = coordinates
+            current_date, current_time, weather, wind, humidity = self.get_current_weather(latitude, longitude)
             if weather:
                 temperature = f"{weather.temperature('celsius')['temp']}"
                 weather_status = weather.status
@@ -161,9 +165,9 @@ class DatabaseHandler:
                 password=config.get('Database', 'password')
             )
             return conn
-        except Exception as e:
-            logging.error(f"Error connecting to the database: {e}")
-            raise RuntimeError(ErrorCode.DATABASE_CONNECTION_ERROR) from e
+        except Exception as exception:
+            logging.error(f"Error connecting to the database: {exception}")
+            raise RuntimeError(ErrorCode.DATABASE_CONNECTION_ERROR) from exception
 
     def __enter__(self) -> 'DatabaseHandler':
         self.db_conn = self.connect_to_db()
@@ -171,7 +175,11 @@ class DatabaseHandler:
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         if self.db_conn:
-            self.db_conn.close()
+            try:
+                self.db_conn.close()
+            except Exception as exception:
+                logging.exception(f"Error closing the database connection: {exception}", exc_info=True)
+            self.db_conn = None
 
     def insert_data(self, data: dict) -> None:
         # Inserts the given data into the database.
@@ -194,9 +202,9 @@ class DatabaseHandler:
             ))
             self.db_conn.commit()
             logging.info("Data inserted into the database successfully.")
-        except Exception as e:
-            logging.error(f"Error inserting data into the database: {e}")
-            raise RuntimeError(ErrorCode.DATA_INSERTION_ERROR) from e
+        except Exception as exception:
+            logging.exception(f"Error inserting data into the database: {exception}", exc_info=True)
+            raise RuntimeError(ErrorCode.DATA_INSERTION_ERROR) from exception
 
 
 class JSONHandler:
@@ -220,7 +228,10 @@ class JSONHandler:
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         if self.file:
-            self.file.close()
+            try:
+                self.file.close()
+            except Exception as exception:
+                logging.exception(f"Error closing the JSON file: {exception}", exc_info=True)
             self.file = None
 
     def update_data(self, weather_data: dict) -> None:
@@ -234,16 +245,19 @@ class JSONHandler:
             with self.open_file('weather_data.json', 'w') as file:
                 json.dump(existing_data, file, indent=4)
 
-        except Exception as e:
-            logging.error(f"Error updating JSON data: {e}")
-            raise RuntimeError(ErrorCode.JSON_UPDATE_ERROR) from e
+        except Exception as exception:
+            logging.exception(f"Error updating JSON data: {exception}", exc_info=True)
+            raise RuntimeError(ErrorCode.JSON_UPDATE_ERROR) from exception
 
 
 if __name__ == "__main__":
     api_key = WeatherDataFetcher.get_config('api_key')
-    locations = ["Magalang, PH", "Angeles, PH", "Mabalacat City, PH", ]
+    locations = sorted(["Angeles, PH", "Mabalacat City, PH", "Magalang, PH"])
 
     fetcher = WeatherDataFetcher(api_key)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        executor.map(lambda location: fetcher.fetch_weather_data(location), locations)
+        try:
+            executor.map(lambda location: fetcher.fetch_weather_data(location), locations)
+        except Exception as exception:
+            logging.exception(f"Error executing fetch_weather_data: {exception}", exc_info=True)
