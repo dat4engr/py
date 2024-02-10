@@ -7,6 +7,7 @@ from typing import Union, Tuple, Any
 from pyowm import OWM
 from contextlib import contextmanager
 import logging
+import concurrent.futures
 
 
 logging.basicConfig(level=logging.INFO)
@@ -225,5 +226,10 @@ class JSONHandler:
 
 if __name__ == "__main__":
     api_key = WeatherDataFetcher.get_config('api_key')
-    fetcher = WeatherDataFetcher(api_key)
-    fetcher.fetch_weather_data("Magalang, PH")
+    locations = ["Magalang, PH", "Angeles, PH", "Mabalacat City, PH", ]
+    
+    # Create an instance of WeatherDataFetcher
+    fetcher = WeatherDataFetcher(api_key)  
+    
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        executor.map(lambda location: fetcher.fetch_weather_data(location), locations)
