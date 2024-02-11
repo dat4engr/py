@@ -1,13 +1,13 @@
 import random
 from collections import Counter
 
-COLORS = ["R", "G", "B", "Y", "W", "O"]
+COLORS = {"R", "G", "B", "Y", "W", "O"}
 TRIES = 10
 CODE_LENGTH = 4
 
 def generate_code():
     # Generate a random code consisting of CODE_LENGTH number of colors from COLORS.
-    return [random.choice(COLORS) for _ in range(CODE_LENGTH)]
+    return [random.choice(tuple(COLORS)) for _ in range(CODE_LENGTH)]
 
 def guess_code():
     # Prompt the user to guess the code.
@@ -46,25 +46,30 @@ def check_code(guess, real_code):
     
     return correct_position, incorrect_position
 
-def game():
-    # Start a game of Color Guess.
-    code = generate_code()
-    # print(f"Demo Mode. Answer Sheet is: {code}")
-    print(f"Welcome to Color Guess! You have {TRIES} to guess the code.")
-    print("The valid colors are", *COLORS)
-    
-    for attempts in range(1, TRIES + 1):
-        guess = guess_code()
-        correct_position, incorrect_position = check_code(guess, code)
+def play_game():
+    while True:
+        code = generate_code()
+        # print(f"Demo Mode. Answer Sheet is: {code}")
+        print(f"Welcome to Color Guess! You have {TRIES} to guess the code.")
+        print("The valid colors are", *COLORS)
         
-        if correct_position == CODE_LENGTH:
-            print(f"You guessed the code in {attempts} tries!")
+        for attempts in range(1, TRIES + 1):
+            guess = guess_code()
+            correct_position, incorrect_position = check_code(guess, code)
+            
+            if correct_position == CODE_LENGTH:
+                print(f"You guessed the code in {attempts} tries!")
+                break
+    
+            print(f"Correct Positions: {correct_position} | Incorrect Positions: {incorrect_position}")
+    
+        else:
+            print("You ran out of tries, the code was:", *code)
+            
+        replay = input("Do you want to play again? (Y/N) ").upper()
+        if replay != "Y":
             break
 
-        print(f"Correct Positions: {correct_position} | Incorrect Positions: {incorrect_position}")
-
-    else:
-        print("You ran out of tries, the code was:", *code)
 
 if  __name__ == "__main__":
-    game()
+    play_game()
