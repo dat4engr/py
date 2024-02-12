@@ -1,56 +1,56 @@
 [
     {
-        "date": "2024-02-11",
-        "time": "02:39:27",
+        "date": "2024-02-12",
+        "time": "22:58:09",
         "location": "Mabalacat City, PH",
         "weather_status": "Clouds",
-        "temperature": "25.22",
+        "temperature": "23.22",
         "wind_speed": 2.06,
-        "humidity": 78
+        "humidity": 73
     },
     {
-        "date": "2024-02-11",
-        "time": "02:39:27",
+        "date": "2024-02-12",
+        "time": "22:58:10",
         "location": "Magalang, PH",
         "weather_status": "Clouds",
-        "temperature": "25.62",
+        "temperature": "23.62",
         "wind_speed": 2.06,
-        "humidity": 78
+        "humidity": 73
     },
     {
-        "date": "2024-02-11",
-        "time": "02:39:28",
+        "date": "2024-02-12",
+        "time": "22:58:10",
         "location": "Angeles, PH",
         "weather_status": "Clouds",
-        "temperature": "25.25",
+        "temperature": "23.25",
         "wind_speed": 2.06,
-        "humidity": 78
+        "humidity": 73
     },
     {
-        "date": "2024-02-11",
-        "time": "02:40:12",
+        "date": "2024-02-12",
+        "time": "22:59:04",
+        "location": "Magalang, PH",
+        "weather_status": "Clouds",
+        "temperature": "23.62",
+        "wind_speed": 2.06,
+        "humidity": 73
+    },
+    {
+        "date": "2024-02-12",
+        "time": "22:59:04",
         "location": "Mabalacat City, PH",
         "weather_status": "Clouds",
-        "temperature": "25.22",
+        "temperature": "23.22",
         "wind_speed": 2.06,
-        "humidity": 78
+        "humidity": 73
     },
     {
-        "date": "2024-02-11",
-        "time": "02:40:12",
+        "date": "2024-02-12",
+        "time": "22:59:05",
         "location": "Angeles, PH",
         "weather_status": "Clouds",
-        "temperature": "25.25",
+        "temperature": "23.25",
         "wind_speed": 2.06,
-        "humidity": 78
-    },
-    {
-        "date": "2024-02-11",
-        "time": "02:40:13",
-        "location": "Magalang, PH",
-        "weather_status": "Clouds",
-        "temperature": "25.62",
-        "wind_speed": 2.06,
-        "humidity": 78
+        "humidity": 73
     }
 ]
