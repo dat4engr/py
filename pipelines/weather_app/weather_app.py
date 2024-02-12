@@ -10,10 +10,9 @@ from psycopg2 import connect
 from pyowm import OWM
 import geocoder
 from contextlib import contextmanager
+from cachetools import TTLCache
 
-
-logging.basicConfig(level=logging.INFO)
-
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class ErrorCode:
     INVALID_API_KEY = 1
@@ -29,7 +28,7 @@ class ErrorCode:
 
 class WeatherDataFetcher:
     def __init__(self, api_key: str) -> None:
-        self.weather_cache = {}
+        self.weather_cache = TTLCache(maxsize=128, ttl=3600)
         if self.validate_api_key(api_key):
             self.api_key = api_key
         else:
@@ -51,8 +50,9 @@ class WeatherDataFetcher:
 
     @lru_cache(maxsize=128)
     def get_coordinates(self, location: str) -> Union[Tuple[float, float], None]:
-        if location in self.weather_cache:
-            return self.weather_cache[location]['coordinates']
+        coordinates = self.weather_cache.get(location)
+        if coordinates is not None:
+            return coordinates
 
         try:
             geo_location = geocoder.osm(location)
@@ -81,6 +81,7 @@ class WeatherDataFetcher:
 
     def fetch_weather_data(self, location: str) -> None:
         try:
+            logging.info(f"Fetching weather data for location: {location}")
             if location in self.weather_cache:
                 weather_data = self.weather_cache[location]
             else:
@@ -107,10 +108,10 @@ class WeatherDataFetcher:
             print(f"Humidity: {weather_data['humidity']}%")
 
         except FileNotFoundError as file_not_found_exception:
-            logging.exception("Error: The weather data file does not exist.", exc_info=True)
+            logging.error("Error: The weather data file does not exist.", exc_info=True)
             raise RuntimeError(ErrorCode.FILE_NOT_FOUND_ERROR) from file_not_found_exception
         except Exception as exception:
-            logging.exception(f"Error fetching weather data: {exception}", exc_info=True)
+            logging.error(f"Error: fetching weather data: {exception}", exc_info=True)
             raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR) from exception
 
     def fetch_weather_data_from_api(self, location: str) -> Union[dict, None]:
@@ -264,4 +265,4 @@ if __name__ == "__main__":
         except RuntimeError as runtime_error:
             logging.error(f"Runtime Error: {runtime_error}")
         except Exception as exception:
-            logging.exception(f"Error executing fetch_weather_data: {exception}", exc_info=True)
+            logging.exception("Error executing fetch_weather_data.", exc_info=True)
