@@ -12,6 +12,7 @@ import geocoder
 from contextlib import contextmanager
 from cachetools import TTLCache
 from retrying import retry
+from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -50,9 +51,15 @@ class WeatherDataFetcher:
             config = configparser.ConfigParser()
             config.read('config.ini')
             return config.get('API', key)
-        except configparser.Error as config_parser_error:
-            logging.error("Issue reading the configuration file.")
-            raise RuntimeError(ErrorCode.CONFIG_FILE_READ_ERROR) from config_parser_error
+        except configparser.NoSectionError as no_section_error:
+            logging.error("Configuration section not found in the configuration file.")
+            raise RuntimeError(ErrorCode.CONFIG_FILE_READ_ERROR) from no_section_error
+        except configparser.NoOptionError as no_option_error:
+            logging.error("Configuration option not found in the configuration file.")
+            raise RuntimeError(ErrorCode.CONFIG_FILE_READ_ERROR) from no_option_error
+        except FileNotFoundError as file_not_found_error:
+            logging.error("Configuration file not found.")
+            raise RuntimeError(ErrorCode.CONFIG_FILE_READ_ERROR) from file_not_found_error
 
     @lru_cache(maxsize=128)
     def get_coordinates(self, location: str) -> Union[Tuple[float, float], None]:
@@ -67,8 +74,11 @@ class WeatherDataFetcher:
             if coordinates:
                 self.weather_cache[location] = {'coordinates': coordinates}
             return coordinates
+        except (GeocoderTimedOut, GeocoderServiceError) as geocoder_error:
+            logging.error(f"Error getting coordinates for location: {location}. Error message: {geocoder_error}")
+            raise RuntimeError(ErrorCode.COORDINATES_RETRIEVAL_ERROR) from geocoder_error
         except Exception as exception:
-            logging.error(f"Error getting coordinates for location: {location}. Error message: {exception}")
+            logging.error(f"Unknown error getting coordinates for location: {location}. Error message: {exception}")
             raise RuntimeError(ErrorCode.COORDINATES_RETRIEVAL_ERROR) from exception
 
     def get_current_weather(self, latitude: float, longitude: float) -> Tuple[str, str, Any]:
@@ -123,6 +133,7 @@ class WeatherDataFetcher:
             logging.error(f"Error: fetching weather data: {exception}", exc_info=True)
             raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR) from exception
 
+
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def fetch_weather_data_from_api(self, location: str) -> Union[dict, None]:
         # Fetch weather data for a given location from the API.
@@ -166,16 +177,21 @@ class DatabaseHandler:
         try:
             config = configparser.ConfigParser()
             config.read('config.ini')
-            connection = connect(
-                host=config.get('Database', 'host'),
-                database=config.get('Database', 'database'),
-                user=config.get('Database', 'user'),
-                password=config.get('Database', 'password')
-            )
-            return connection
-        except Exception as exception:
-            logging.error(f"Error connecting to the database: {exception}")
-            raise RuntimeError(ErrorCode.DATABASE_CONNECTION_ERROR) from exception
+            connection = None
+            try:
+                connection = connect(
+                    host=config.get('Database', 'host'),
+                    database=config.get('Database', 'database'),
+                    user=config.get('Database', 'user'),
+                    password=config.get('Database', 'password')
+                )
+                return connection
+            except Exception as exception:
+                logging.error(f"Error connecting to the database: {exception}")
+                raise RuntimeError(ErrorCode.DATABASE_CONNECTION_ERROR) from exception
+        except (configparser.NoSectionError, configparser.NoOptionError, FileNotFoundError) as error:
+            logging.error(f"Error reading database configuration: {error}")
+            raise ImportError(ErrorCode.CONFIG_FILE_READ_ERROR) from error
 
     def __enter__(self) -> 'DatabaseHandler':
         # Context manager enter method.
@@ -185,15 +201,22 @@ class DatabaseHandler:
         except RuntimeError as error:
             logging.error(f"Error connecting to database: {ErrorCode.DATABASE_CONNECTION_ERROR}")
             raise error
+        except Exception as exception:
+            logging.error(f"Error connecting to the database: {exception}")
+            raise RuntimeError(ErrorCode.DATABASE_CONNECTION_ERROR) from exception
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         # Context manager exit method.
         if self.database_connection:
             try:
-                self.database_connection.close()
-            except Exception as exception:
-                logging.exception(f"Error closing the database connection: {exception}", exc_info=True)
-            self.database_connection = None
+                if exc_type is not None:
+                    self.database_connection.rollback()
+            finally:
+                try:
+                    self.database_connection.close()
+                except Exception as exception:
+                    logging.exception(f"Error closing the database connection: {exception}", exc_info=True)
+                self.database_connection = None
 
     def insert_data(self, data: dict) -> None:
         # Insert weather data into the database.
@@ -219,6 +242,9 @@ class DatabaseHandler:
         except Exception as exception:
             logging.exception(f"Error inserting data into the database: {exception}", exc_info=True)
             raise RuntimeError(ErrorCode.DATA_INSERTION_ERROR) from exception
+        finally:
+            if cursor:
+                cursor.close()
 
 
 class JSONHandler:
