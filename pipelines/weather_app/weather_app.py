@@ -11,10 +11,13 @@ from pyowm import OWM
 import geocoder
 from contextlib import contextmanager
 from cachetools import TTLCache
+from retrying import retry
+
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class ErrorCode:
+    # Class responsible for error codes.
     INVALID_API_KEY = 1
     CONFIG_FILE_READ_ERROR = 2
     COORDINATES_RETRIEVAL_ERROR = 3
@@ -27,6 +30,7 @@ class ErrorCode:
 
 
 class WeatherDataFetcher:
+    # Class responsible for fetching weather data.
     def __init__(self, api_key: str) -> None:
         self.weather_cache = TTLCache(maxsize=128, ttl=3600)
         if self.validate_api_key(api_key):
@@ -36,10 +40,12 @@ class WeatherDataFetcher:
 
     @staticmethod
     def validate_api_key(api_key: str) -> bool:
+        # Validate if the given API key is valid.
         return bool(api_key and not api_key.isspace())
 
     @classmethod
     def get_config(cls, key: str) -> str:
+        # Get the configuration value from the config.ini file.
         try:
             config = configparser.ConfigParser()
             config.read('config.ini')
@@ -50,6 +56,7 @@ class WeatherDataFetcher:
 
     @lru_cache(maxsize=128)
     def get_coordinates(self, location: str) -> Union[Tuple[float, float], None]:
+        # Get the coordinates (latitude, longitude) for a given location.
         coordinates = self.weather_cache.get(location)
         if coordinates is not None:
             return coordinates
@@ -65,6 +72,7 @@ class WeatherDataFetcher:
             raise RuntimeError(ErrorCode.COORDINATES_RETRIEVAL_ERROR) from exception
 
     def get_current_weather(self, latitude: float, longitude: float) -> Tuple[str, str, Any]:
+        # Get the current weather data for a given latitude and longitude.
         try:
             owm = OWM(self.api_key)
             weather_manager = owm.weather_manager()
@@ -80,6 +88,7 @@ class WeatherDataFetcher:
             raise RuntimeError(ErrorCode.CURRENT_WEATHER_RETRIEVAL_ERROR) from exception
 
     def fetch_weather_data(self, location: str) -> None:
+        # Fetch weather data for a given location and perform necessary operations like inserting into database and updating JSON file.
         try:
             logging.info(f"Fetching weather data for location: {location}")
             if location in self.weather_cache:
@@ -114,7 +123,9 @@ class WeatherDataFetcher:
             logging.error(f"Error: fetching weather data: {exception}", exc_info=True)
             raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR) from exception
 
+    @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def fetch_weather_data_from_api(self, location: str) -> Union[dict, None]:
+        # Fetch weather data for a given location from the API.
         try:
             coordinates = self.get_coordinates(location)
             if coordinates:
@@ -145,10 +156,13 @@ class WeatherDataFetcher:
 
 
 class DatabaseHandler:
+    # Context manager class responsible for handling database connections and operations.
     def __init__(self) -> None:
+        # Constructor for DatabaseHandler class.
         self.database_connection = None
 
     def connect_to_database(self) -> Any:
+        # Connect to the database using the credentials from the config.ini file.
         try:
             config = configparser.ConfigParser()
             config.read('config.ini')
@@ -164,6 +178,7 @@ class DatabaseHandler:
             raise RuntimeError(ErrorCode.DATABASE_CONNECTION_ERROR) from exception
 
     def __enter__(self) -> 'DatabaseHandler':
+        # Context manager enter method.
         try:
             self.database_connection = self.connect_to_database()
             return self
@@ -172,6 +187,7 @@ class DatabaseHandler:
             raise error
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        # Context manager exit method.
         if self.database_connection:
             try:
                 self.database_connection.close()
@@ -180,6 +196,7 @@ class DatabaseHandler:
             self.database_connection = None
 
     def insert_data(self, data: dict) -> None:
+        # Insert weather data into the database.
         try:
             cursor = self.database_connection.cursor()
 
@@ -205,11 +222,14 @@ class DatabaseHandler:
 
 
 class JSONHandler:
+    # Context manager class responsible for handling JSON file operations.
     def __init__(self):
+        # Constructor for JSONHandler class.
         self.file = None
 
     @contextmanager
     def open_json_file(self, file_path: str, mode: str) -> Any:
+        # Open the JSON file in the given mode.
         try:
             self.file = open(file_path, mode)
             yield self.file
@@ -225,9 +245,11 @@ class JSONHandler:
                 self.file = None
 
     def __enter__(self):
+        # Context manager enter method.
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        # Context manager exit method.
         if self.file:
             try:
                 self.file.close()
@@ -236,6 +258,7 @@ class JSONHandler:
             self.file = None
 
     def update_json_data(self, weather_data: dict) -> None:
+        # Update the JSON file with the new weather data.
         try:
             with self.open_json_file('weather_data.json', 'r') as file:
                 existing_data = json.load(file)
