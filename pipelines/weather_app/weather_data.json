@@ -133,5 +133,86 @@
         "temperature": "23.22",
         "wind_speed": 1.03,
         "humidity": 83
+    },
+    {
+        "date": "2024-02-14",
+        "time": "11:00:25",
+        "location": "Mabalacat City, PH",
+        "weather_status": "Clouds",
+        "temperature": "27.78",
+        "wind_speed": 5.72,
+        "humidity": 51
+    },
+    {
+        "date": "2024-02-14",
+        "time": "11:00:26",
+        "location": "Angeles, PH",
+        "weather_status": "Clouds",
+        "temperature": "27.81",
+        "wind_speed": 6.27,
+        "humidity": 50
+    },
+    {
+        "date": "2024-02-14",
+        "time": "11:00:26",
+        "location": "Magalang, PH",
+        "weather_status": "Clouds",
+        "temperature": "28.19",
+        "wind_speed": 5.62,
+        "humidity": 49
+    },
+    {
+        "date": "2024-02-14",
+        "time": "11:08:06",
+        "location": "Magalang, PH",
+        "weather_status": "Clouds",
+        "temperature": "28.62",
+        "wind_speed": 4.12,
+        "humidity": 65
+    },
+    {
+        "date": "2024-02-14",
+        "time": "11:08:06",
+        "location": "Angeles, PH",
+        "weather_status": "Clouds",
+        "temperature": "27.81",
+        "wind_speed": 6.27,
+        "humidity": 50
+    },
+    {
+        "date": "2024-02-14",
+        "time": "11:08:07",
+        "location": "Mabalacat City, PH",
+        "weather_status": "Clouds",
+        "temperature": "28.22",
+        "wind_speed": 4.12,
+        "humidity": 65
+    },
+    {
+        "date": "2024-02-14",
+        "time": "11:16:51",
+        "location": "Magalang, PH",
+        "weather_status": "Clouds",
+        "temperature": "28.62",
+        "wind_speed": 4.12,
+        "humidity": 65
+    },
+    {
+        "date": "2024-02-14",
+        "time": "11:16:52",
+        "location": "Mabalacat City, PH",
+        "weather_status": "Clouds",
+        "temperature": "28.22",
+        "wind_speed": 4.12,
+        "humidity": 65
+    },
+    {
+        "date": "2024-02-14",
+        "time": "11:16:52",
+        "location": "Angeles, PH",
+        "weather_status": "Clouds",
+        "temperature": "28.25",
+        "wind_speed": 4.12,
+        "humidity": 65
     }
 ]
