@@ -1,5 +1,4 @@
 import random
-from collections import Counter
 
 class ColorGuess:
     COLORS = {"R", "G", "B", "Y", "W", "O"}
@@ -8,6 +7,7 @@ class ColorGuess:
     
     def __init__(self):
         self.code = self.generate_code()
+        self.score = 0
     
     def generate_code(self):
         # Generate a random code consisting of CODE_LENGTH number of colors from COLORS.
@@ -34,7 +34,7 @@ class ColorGuess:
     
     def check_code(self, guess):
         # Check the correctness of the guess against the real code.
-        color_counts = Counter(self.code)
+        color_counts = {color: self.code.count(color) for color in self.COLORS}
         correct_position = sum(guess_color == real_color for guess_color, real_color in zip(guess, self.code))
         incorrect_position = sum(guess_color in color_counts and color_counts[guess_color] > 0 for guess_color in guess)
         return correct_position, incorrect_position
@@ -53,12 +53,15 @@ class ColorGuess:
 
                     if correct_position == self.CODE_LENGTH:
                         print(f"You guessed the code in {attempts} tries!")
+                        self.score += 1
                         break
 
                     print(f"Correct Positions: {correct_position} | Incorrect Positions: {incorrect_position}")
 
                 else:
                     print("You ran out of tries, the code was:", *self.code)
+
+                print("Your score is:", self.score)
 
                 replay = input("Do you want to play again? (Y/N) ").upper()
                 if replay != "Y":
