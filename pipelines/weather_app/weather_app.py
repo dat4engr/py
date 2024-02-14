@@ -14,8 +14,8 @@ from cachetools import TTLCache
 from retrying import retry
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 
-
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 class ErrorCode:
     # Class responsible for error codes.
@@ -32,8 +32,11 @@ class ErrorCode:
 
 class WeatherDataFetcher:
     # Class responsible for fetching weather data.
+    CACHE_SIZE = 128
+    CACHE_TTL = 3600
+    
     def __init__(self, api_key: str) -> None:
-        self.weather_cache = TTLCache(maxsize=128, ttl=3600)
+        self.weather_cache = TTLCache(maxsize=self.CACHE_SIZE, ttl=self.CACHE_TTL)
         if self.validate_api_key(api_key):
             self.api_key = api_key
         else:
@@ -261,7 +264,7 @@ class JSONHandler:
             yield self.file
         except FileNotFoundError as file_not_found_error:
             logging.error(f"JSON file not found: {file_not_found_error}")
-            raise RuntimeError("JSON_UPDATE_ERROR") from file_not_found_error
+            raise RuntimeError("JSON_FILE_NOT_FOUND_ERROR") from file_not_found_error
         except Exception as exception:
             logging.exception(f"Error opening JSON file: {exception}", exc_info=True)
             raise RuntimeError("JSON_UPDATE_ERROR") from exception
