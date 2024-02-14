@@ -14,8 +14,8 @@ from cachetools import TTLCache
 from retrying import retry
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class ErrorCode:
     # Class responsible for error codes.
@@ -28,6 +28,19 @@ class ErrorCode:
     DATA_INSERTION_ERROR = 7
     JSON_UPDATE_ERROR = 8
     FILE_NOT_FOUND_ERROR = 9
+
+
+class ConfigParserWrapper:
+    def __init__(self, config_file: str) -> None:
+        self.config_file = config_file
+        self.config_parser = configparser.ConfigParser()
+        self.config_parser.read(config_file)
+
+    def get_value(self, section: str, key: str) -> str:
+        try:
+            return self.config_parser.get(section, key)
+        except (configparser.NoSectionError, configparser.NoOptionError) as config_parser_error:
+            raise ValueError(f"Error reading configuration value: {config_parser_error}")
 
 
 class WeatherDataFetcher:
@@ -51,18 +64,11 @@ class WeatherDataFetcher:
     def get_config(cls, key: str) -> str:
         # Get the configuration value from the config.ini file.
         try:
-            config = configparser.ConfigParser()
-            config.read('config.ini')
-            return config.get('API', key)
-        except configparser.NoSectionError as no_section_error:
-            logging.error("Configuration section not found in the configuration file.")
-            raise RuntimeError(ErrorCode.CONFIG_FILE_READ_ERROR) from no_section_error
-        except configparser.NoOptionError as no_option_error:
-            logging.error("Configuration option not found in the configuration file.")
-            raise RuntimeError(ErrorCode.CONFIG_FILE_READ_ERROR) from no_option_error
-        except FileNotFoundError as file_not_found_error:
-            logging.error("Configuration file not found.")
-            raise RuntimeError(ErrorCode.CONFIG_FILE_READ_ERROR) from file_not_found_error
+            config = ConfigParserWrapper('config.ini')
+            return config.get_value('API', key)
+        except ValueError as error:
+            logging.exception(f"Configuration error: {error}")
+            raise RuntimeError(ErrorCode.CONFIG_FILE_READ_ERROR) from error
 
     @lru_cache(maxsize=128)
     def get_coordinates(self, location: str) -> Union[Tuple[float, float], None]:
@@ -78,10 +84,10 @@ class WeatherDataFetcher:
                 self.weather_cache[location] = {'coordinates': coordinates}
             return coordinates
         except (GeocoderTimedOut, GeocoderServiceError) as geocoder_error:
-            logging.error(f"Error getting coordinates for location: {location}. Error message: {geocoder_error}")
+            logging.exception(f"Error getting coordinates for location: {location}. Error message: {geocoder_error}")
             raise RuntimeError(ErrorCode.COORDINATES_RETRIEVAL_ERROR) from geocoder_error
         except Exception as exception:
-            logging.error(f"Unknown error getting coordinates for location: {location}. Error message: {exception}")
+            logging.exception(f"Unknown error getting coordinates for location: {location}. Error message: {exception}")
             raise RuntimeError(ErrorCode.COORDINATES_RETRIEVAL_ERROR) from exception
 
     def get_current_weather(self, latitude: float, longitude: float) -> Tuple[str, str, Any]:
@@ -97,7 +103,7 @@ class WeatherDataFetcher:
             humidity = weather.humidity
             return current_date, current_time, weather, wind, humidity
         except Exception as exception:
-            logging.error(f"Error getting current weather: {exception}")
+            logging.exception(f"Error getting current weather: {exception}")
             raise RuntimeError(ErrorCode.CURRENT_WEATHER_RETRIEVAL_ERROR) from exception
 
     def fetch_weather_data(self, location: str) -> None:
@@ -113,7 +119,7 @@ class WeatherDataFetcher:
                     self.weather_cache[location] = weather_data
 
             if weather_data is None:
-                logging.error("Error fetching weather data: Weather data is None.")
+                logging.exception("Error fetching weather data: Weather data is None.")
                 raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR)
 
             with DatabaseHandler() as database_handler:
@@ -130,12 +136,11 @@ class WeatherDataFetcher:
             print(f"Humidity: {weather_data['humidity']}%")
 
         except FileNotFoundError as file_not_found_exception:
-            logging.error("Error: The weather data file does not exist.", exc_info=True)
+            logging.exception("Error: The weather data file does not exist.", exc_info=True)
             raise RuntimeError(ErrorCode.FILE_NOT_FOUND_ERROR) from file_not_found_exception
         except Exception as exception:
-            logging.error(f"Error: fetching weather data: {exception}", exc_info=True)
+            logging.exception(f"Error: fetching weather data: {exception}", exc_info=True)
             raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR) from exception
-
 
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def fetch_weather_data_from_api(self, location: str) -> Union[dict, None]:
@@ -159,13 +164,13 @@ class WeatherDataFetcher:
                     }
                     return weather_data
                 else:
-                    logging.error(f"Unable to fetch weather data for {location}.")
+                    logging.exception(f"Unable to fetch weather data for {location}.")
                     raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR)
             else:
-                logging.error(f"Unable to fetch coordinates for {location}.")
+                logging.exception(f"Unable to fetch coordinates for {location}.")
                 raise RuntimeError(ErrorCode.COORDINATES_RETRIEVAL_ERROR)
         except Exception as exception:
-            logging.error(f"Error fetching weather data from API: {exception}")
+            logging.exception(f"Error fetching weather data from API: {exception}")
             raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR) from exception
 
 
@@ -190,10 +195,10 @@ class DatabaseHandler:
                 )
                 return connection
             except Exception as exception:
-                logging.error(f"Error connecting to the database: {exception}")
+                logging.exception(f"Error connecting to the database: {exception}")
                 raise RuntimeError(ErrorCode.DATABASE_CONNECTION_ERROR) from exception
         except (configparser.NoSectionError, configparser.NoOptionError, FileNotFoundError) as error:
-            logging.error(f"Error reading database configuration: {error}")
+            logging.exception(f"Error reading database configuration: {error}")
             raise ImportError(ErrorCode.CONFIG_FILE_READ_ERROR) from error
 
     def __enter__(self) -> 'DatabaseHandler':
@@ -202,10 +207,10 @@ class DatabaseHandler:
             self.database_connection = self.connect_to_database()
             return self
         except RuntimeError as error:
-            logging.error(f"Error connecting to database: {ErrorCode.DATABASE_CONNECTION_ERROR}")
+            logging.exception(f"Error connecting to database: {ErrorCode.DATABASE_CONNECTION_ERROR}")
             raise error
         except Exception as exception:
-            logging.error(f"Error connecting to the database: {exception}")
+            logging.exception(f"Error connecting to the database: {exception}")
             raise RuntimeError(ErrorCode.DATABASE_CONNECTION_ERROR) from exception
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
@@ -263,7 +268,7 @@ class JSONHandler:
             self.file = open(file_path, mode)
             yield self.file
         except FileNotFoundError as file_not_found_error:
-            logging.error(f"JSON file not found: {file_not_found_error}")
+            logging.exception(f"JSON file not found: {file_not_found_error}")
             raise RuntimeError("JSON_FILE_NOT_FOUND_ERROR") from file_not_found_error
         except Exception as exception:
             logging.exception(f"Error opening JSON file: {exception}", exc_info=True)
@@ -298,7 +303,7 @@ class JSONHandler:
                 json.dump(existing_data, file, indent=4)
 
         except FileNotFoundError as file_not_found_error:
-            logging.error(f"JSON file not found: {file_not_found_error}")
+            logging.exception(f"JSON file not found: {file_not_found_error}")
             raise RuntimeError("JSON_UPDATE_ERROR") from file_not_found_error
         except Exception as exception:
             logging.exception(f"Error updating JSON data: {exception}", exc_info=True)
@@ -315,6 +320,6 @@ if __name__ == "__main__":
         try:
             executor.map(lambda location: fetcher.fetch_weather_data(location), locations)
         except RuntimeError as runtime_error:
-            logging.error(f"Runtime Error: {runtime_error}")
+            logging.exception(f"Runtime Error: {runtime_error}")
         except Exception as exception:
             logging.exception("Error executing fetch_weather_data.", exc_info=True)
