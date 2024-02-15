@@ -40,7 +40,7 @@ class ConfigParserWrapper:
         try:
             return self.config_parser.get(section, key)
         except (configparser.NoSectionError, configparser.NoOptionError) as config_parser_error:
-            raise ValueError(f"Error reading configuration value: {config_parser_error}")
+            raise ValueError(f"Error reading configuration value: {config_parser_error}") from config_parser_error
 
 
 class WeatherDataFetcher:
@@ -135,12 +135,10 @@ class WeatherDataFetcher:
             print(f"Wind Speed: {weather_data['wind_speed']} m/s")
             print(f"Humidity: {weather_data['humidity']}%")
 
-        except FileNotFoundError as file_not_found_exception:
-            logging.exception("Error: The weather data file does not exist.", exc_info=True)
-            raise RuntimeError(ErrorCode.FILE_NOT_FOUND_ERROR) from file_not_found_exception
         except Exception as exception:
             logging.exception(f"Error: fetching weather data: {exception}", exc_info=True)
             raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR) from exception
+
 
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def fetch_weather_data_from_api(self, location: str) -> Union[dict, None]:
@@ -226,33 +224,37 @@ class DatabaseHandler:
                     logging.exception(f"Error closing the database connection: {exception}", exc_info=True)
                 self.database_connection = None
 
-    def insert_data(self, data: dict) -> None:
-        # Insert weather data into the database.
+    @contextmanager
+    def create_cursor(self):
         try:
             cursor = self.database_connection.cursor()
-
-            insert_query = '''
-            INSERT INTO weather_data (date, time, location, weather_status, temperature, wind_speed, humidity) 
-            VALUES (%s, %s, %s, %s, %s, %s, %s);
-            '''
-
-            cursor.execute(insert_query, (
-                data['date'],
-                data['time'],
-                data['location'],
-                data['weather_status'],
-                data['temperature'],
-                data['wind_speed'],
-                data['humidity']
-            ))
-            self.database_connection.commit()
-            logging.info("Data inserted into the database successfully.")
-        except Exception as exception:
-            logging.exception(f"Error inserting data into the database: {exception}", exc_info=True)
-            raise RuntimeError(ErrorCode.DATA_INSERTION_ERROR) from exception
+            yield cursor
         finally:
             if cursor:
                 cursor.close()
+
+    def insert_data(self, data: dict) -> None:
+        try:
+            with self.create_cursor() as cursor:
+                insert_query = '''
+                INSERT INTO weather_data (date, time, location, weather_status, temperature, wind_speed, humidity) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s);
+                '''
+
+                cursor.execute(insert_query, (
+                    data['date'],
+                    data['time'],
+                    data['location'],
+                    data['weather_status'],
+                    data['temperature'],
+                    data['wind_speed'],
+                    data['humidity']
+                ))
+                self.database_connection.commit()
+                logging.info("Data inserted into the database successfully.")
+        except Exception as exception:
+            logging.exception(f"Error inserting data into the database: {exception}", exc_info=True)
+            raise RuntimeError(ErrorCode.DATA_INSERTION_ERROR) from exception
 
 
 class JSONHandler:
