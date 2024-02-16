@@ -1,3 +1,5 @@
+from nltk.corpus import words
+
 # Calculates the number of words in a given text.
 def word_count(text):
     count = len(text.split())
@@ -15,18 +17,28 @@ def word_type(text):
     else:
         return "single"
 
+def validate_word(text):
+    english_words = set(words.words())
+    words_to_validate = text.split()
+    
+    for word in words_to_validate:
+        if word.lower() not in english_words:
+            return False
+    
+    return True
+
 def get_user_input():
     while True:
         try:
             text = input("Enter some text (or 'q' to quit): ").lower()
             if text == 'q':
                 return text
-            elif text.strip() != "":
+            elif text.strip() != "" and validate_word(text):
                 return text
             else:
                 raise ValueError
         except ValueError:
-            print("Invalid input. Please enter some text or 'q' to quit.")
+            print("Invalid input. Please enter a valid English word or 'q' to quit.")
 
 # The main function that runs the app. Prints the welcome message.
 def main():
@@ -51,7 +63,7 @@ def display_count(count):
 
 def display_word_type(word_type_text):
     if word_type_text == "two":
-        print("The input text is two words")
+        print("The input text is two words.")
     elif word_type_text == "multiple":
         print("The input text is multiple words.")
     else:
@@ -59,3 +71,4 @@ def display_word_type(word_type_text):
 
 if __name__ == "__main__":
     main()
+
