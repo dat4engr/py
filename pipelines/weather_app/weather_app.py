@@ -29,6 +29,29 @@ class ErrorCode:
     JSON_UPDATE_ERROR = 8
     FILE_NOT_FOUND_ERROR = 9
 
+class LocationData:
+    # Data class for storing location information.
+    def __init__(self, location_name: str, latitude: float, longitude: float, additional_info: dict):
+        self.location_name = location_name
+        self.latitude = latitude
+        self.longitude = longitude
+        self.additional_info = additional_info
+
+    def get_location_name(self):
+        return self.location_name
+
+    def get_latitude(self):
+        return self.latitude
+
+    def get_longitude(self):
+        return self.longitude
+
+    def get_additional_info(self):
+        return self.additional_info
+
+    def __str__(self):
+        return f"Location Name: {self.location_name}, Latitude: {self.latitude}, Longitude: {self.longitude}, Additional Info: {self.additional_info}"
+
 
 class ConfigParserWrapper:
     def __init__(self, config_file: str) -> None:
@@ -41,6 +64,17 @@ class ConfigParserWrapper:
             return self.config_parser.get(section, key)
         except (configparser.NoSectionError, configparser.NoOptionError) as config_parser_error:
             raise ValueError(f"Error reading configuration value: {config_parser_error}") from config_parser_error
+
+    def get_database_credentials(self) -> Tuple[str, str, str, str]:
+        try:
+            host = self.get_value('Database', 'host')
+            database = self.get_value('Database', 'database')
+            user = self.get_value('Database', 'user')
+            password = self.get_value('Database', 'password')
+            return host, database, user, password
+        except ValueError as error:
+            logging.exception(f"Error reading database credentials: {error}")
+            raise RuntimeError(ErrorCode.DATABASE_CONNECTION_ERROR) from error
 
 
 class WeatherDataFetcher:
@@ -113,15 +147,16 @@ class WeatherDataFetcher:
             if location in self.weather_cache:
                 weather_data = self.weather_cache[location]
             else:
-                weather_data = self.fetch_weather_data_from_api(location)
+                location_data = self.fetch_weather_data_from_api(location)
 
-                if weather_data is not None:
-                    self.weather_cache[location] = weather_data
+                if location_data is not None:
+                    self.weather_cache[location] = location_data.get_additional_info()
 
-            if weather_data is None:
+            if location_data is None:
                 logging.exception("Error fetching weather data: Weather data is None.")
                 raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR)
 
+            weather_data = location_data.get_additional_info()
             with DatabaseHandler() as database_handler:
                 database_handler.insert_data(weather_data)
 
@@ -140,8 +175,9 @@ class WeatherDataFetcher:
             raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR) from exception
 
 
+
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
-    def fetch_weather_data_from_api(self, location: str) -> Union[dict, None]:
+    def fetch_weather_data_from_api(self, location: str) -> Union[LocationData, None]:
         # Fetch weather data for a given location from the API.
         try:
             coordinates = self.get_coordinates(location)
@@ -160,7 +196,7 @@ class WeatherDataFetcher:
                         'wind_speed': wind['speed'],
                         'humidity': humidity,
                     }
-                    return weather_data
+                    return LocationData(location, latitude, longitude, weather_data)
                 else:
                     logging.exception(f"Unable to fetch weather data for {location}.")
                     raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR)
