@@ -1,4 +1,29 @@
-INSERT INTO public.weather_data ("date","time","location",weather_status,temperature,wind_speed,humidity) VALUES
-	 ('2024-02-17','14:28:46','Mabalacat City, PH','Clouds',31.22,3.09,51.0),
-	 ('2024-02-17','14:28:46','Magalang, PH','Clouds',31.62,3.09,51.0),
-	 ('2024-02-17','14:28:47','Angeles, PH','Clouds',31.25,3.09,51.0);
+[
+    {
+        "date": "2024-02-17",
+        "time": "14:28:46",
+        "location": "Mabalacat City, PH",
+        "weather_status": "Clouds",
+        "temperature": "31.22",
+        "wind_speed": 3.09,
+        "humidity": 51
+    },
+    {
+        "date": "2024-02-17",
+        "time": "14:28:46",
+        "location": "Magalang, PH",
+        "weather_status": "Clouds",
+        "temperature": "31.62",
+        "wind_speed": 3.09,
+        "humidity": 51
+    },
+    {
+        "date": "2024-02-17",
+        "time": "14:28:47",
+        "location": "Angeles, PH",
+        "weather_status": "Clouds",
+        "temperature": "31.25",
+        "wind_speed": 3.09,
+        "humidity": 51
+    }
+]
