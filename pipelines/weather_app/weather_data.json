@@ -25,5 +25,221 @@
         "temperature": "31.25",
         "wind_speed": 3.09,
         "humidity": 51
+    },
+    {
+        "date": "2024-02-17",
+        "time": "19:09:01",
+        "location": "Angeles, PH",
+        "weather_status": "Clear",
+        "temperature": "24.36",
+        "wind_speed": 2.63,
+        "humidity": 71
+    },
+    {
+        "date": "2024-02-17",
+        "time": "19:09:02",
+        "location": "Magalang, PH",
+        "weather_status": "Clear",
+        "temperature": "24.55",
+        "wind_speed": 2.9,
+        "humidity": 71
+    },
+    {
+        "date": "2024-02-17",
+        "time": "19:09:02",
+        "location": "Mabalacat City, PH",
+        "weather_status": "Clear",
+        "temperature": "24.33",
+        "wind_speed": 2.88,
+        "humidity": 71
+    },
+    {
+        "date": "2024-02-17",
+        "time": "19:10:24",
+        "location": "Magalang, PH",
+        "weather_status": "Clear",
+        "temperature": "24.55",
+        "wind_speed": 2.9,
+        "humidity": 71
+    },
+    {
+        "date": "2024-02-17",
+        "time": "19:10:25",
+        "location": "Angeles, PH",
+        "weather_status": "Clear",
+        "temperature": "24.36",
+        "wind_speed": 2.63,
+        "humidity": 71
+    },
+    {
+        "date": "2024-02-17",
+        "time": "19:10:26",
+        "location": "Mabalacat City, PH",
+        "weather_status": "Clear",
+        "temperature": "24.33",
+        "wind_speed": 2.88,
+        "humidity": 71
+    },
+    {
+        "date": "2024-02-17",
+        "time": "19:19:00",
+        "location": "Magalang, PH",
+        "weather_status": "Clear",
+        "temperature": "24.55",
+        "wind_speed": 2.9,
+        "humidity": 71
+    },
+    {
+        "date": "2024-02-17",
+        "time": "19:19:00",
+        "location": "Angeles, PH",
+        "weather_status": "Clear",
+        "temperature": "24.36",
+        "wind_speed": 2.63,
+        "humidity": 71
+    },
+    {
+        "date": "2024-02-17",
+        "time": "19:19:01",
+        "location": "Mabalacat City, PH",
+        "weather_status": "Clear",
+        "temperature": "24.33",
+        "wind_speed": 2.88,
+        "humidity": 71
+    },
+    {
+        "date": "2024-02-17",
+        "time": "19:20:22",
+        "location": "Magalang, PH",
+        "weather_status": "Clouds",
+        "temperature": "27.62",
+        "wind_speed": 3.09,
+        "humidity": 65
+    },
+    {
+        "date": "2024-02-17",
+        "time": "19:20:23",
+        "location": "Mabalacat City, PH",
+        "weather_status": "Clouds",
+        "temperature": "27.22",
+        "wind_speed": 3.09,
+        "humidity": 65
+    },
+    {
+        "date": "2024-02-17",
+        "time": "19:20:23",
+        "location": "Angeles, PH",
+        "weather_status": "Clouds",
+        "temperature": "27.25",
+        "wind_speed": 3.09,
+        "humidity": 65
+    },
+    {
+        "date": "2024-02-17",
+        "time": "19:26:54",
+        "location": "Magalang, PH",
+        "weather_status": "Clouds",
+        "temperature": "27.62",
+        "wind_speed": 3.09,
+        "humidity": 65
+    },
+    {
+        "date": "2024-02-17",
+        "time": "19:26:54",
+        "location": "Angeles, PH",
+        "weather_status": "Clouds",
+        "temperature": "27.25",
+        "wind_speed": 3.09,
+        "humidity": 65
+    },
+    {
+        "date": "2024-02-17",
+        "time": "19:26:55",
+        "location": "Mabalacat City, PH",
+        "weather_status": "Clouds",
+        "temperature": "27.22",
+        "wind_speed": 3.09,
+        "humidity": 65
+    },
+    {
+        "date": "2024-02-17",
+        "time": "21:54:07",
+        "location": "Angeles, PH",
+        "weather_status": "Clouds",
+        "temperature": "24.25",
+        "wind_speed": 1.03,
+        "humidity": 78
+    },
+    {
+        "date": "2024-02-17",
+        "time": "21:54:08",
+        "location": "Mabalacat City, PH",
+        "weather_status": "Clouds",
+        "temperature": "24.22",
+        "wind_speed": 1.03,
+        "humidity": 78
+    },
+    {
+        "date": "2024-02-17",
+        "time": "21:54:08",
+        "location": "Magalang, PH",
+        "weather_status": "Clouds",
+        "temperature": "24.62",
+        "wind_speed": 1.03,
+        "humidity": 78
+    },
+    {
+        "date": "2024-02-17",
+        "time": "22:04:08",
+        "location": "Angeles, PH",
+        "weather_status": "Clear",
+        "temperature": "22.39",
+        "wind_speed": 0.87,
+        "humidity": 83
+    },
+    {
+        "date": "2024-02-17",
+        "time": "22:04:09",
+        "location": "Magalang, PH",
+        "weather_status": "Clear",
+        "temperature": "22.61",
+        "wind_speed": 0.66,
+        "humidity": 83
+    },
+    {
+        "date": "2024-02-17",
+        "time": "22:04:09",
+        "location": "Mabalacat City, PH",
+        "weather_status": "Clear",
+        "temperature": "22.26",
+        "wind_speed": 0.48,
+        "humidity": 84
+    },
+    {
+        "date": "2024-02-17",
+        "time": "22:08:52",
+        "location": "Angeles, PH",
+        "weather_status": "Clear",
+        "temperature": "22.39",
+        "wind_speed": 0.87,
+        "humidity": 83
+    },
+    {
+        "date": "2024-02-17",
+        "time": "22:08:53",
+        "location": "Magalang, PH",
+        "weather_status": "Clear",
+        "temperature": "22.61",
+        "wind_speed": 0.66,
+        "humidity": 83
+    },
+    {
+        "date": "2024-02-17",
+        "time": "22:08:53",
+        "location": "Mabalacat City, PH",
+        "weather_status": "Clear",
+        "temperature": "22.26",
+        "wind_speed": 0.48,
+        "humidity": 84
     }
 ]
