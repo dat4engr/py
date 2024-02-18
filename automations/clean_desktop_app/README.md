@@ -1,5 +1,5 @@
 # clean_desktop_app.py
-The Python app was made to automatically delete files and folders on your desktop after scheduling it your operating system's scheduler. This generates a text file "deleted_files.txt" to provide the names of the files deleted when running the code.
+The Python app was made to automatically delete files and folders on your desktop after scheduling it your operating system's scheduler. This generates a text file "deleted_files.txt" to provide the names of the files deleted when running the code and "delete_file.log" to provide the number of files deleted.
 
 ### App requirements:
 Python >= 3.11.7, datetime, and pathlib.
