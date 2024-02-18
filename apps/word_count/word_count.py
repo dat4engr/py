@@ -1,32 +1,32 @@
 import logging
 from nltk.corpus import words
+import multiprocessing
 
-# Set up logging configuration
-logging.basicConfig(filename='error.log', level=logging.ERROR)
+# Set up logging configuration with parameters
+def setup_logging(log_file='error.log', log_level=logging.ERROR):
+    logging.basicConfig(filename=log_file, level=log_level)
 
 def word_count(text):
-# Calculates the number of words in a given text.
     try:
         count = len(text.split())
         return count
-    except Exception as e:
-        logging.error(f"Error in word_count function: {e}")
+    except Exception as error:
+        logging.error(f"Error in word_count function: {error}")
         raise
 
 def word_type(text):
-# Determines whether the given text consists of multiple words.
     try:
         words = text.split()
-        num_words = len(words)
+        number_of_words = len(words)
 
-        if num_words == 2:
+        if number_of_words == 2:
             return "two"
-        elif num_words > 2:
+        elif number_of_words > 2:
             return "multiple"
         else:
             return "single"
-    except Exception as e:
-        logging.error(f"Error in word_type function: {e}")
+    except Exception as error:
+        logging.error(f"Error in word_type function: {error}")
         raise
 
 def validate_word(text):
@@ -39,8 +39,8 @@ def validate_word(text):
                 return False
 
         return True
-    except Exception as e:
-        logging.error(f"Error in validate_word function: {e}")
+    except Exception as error:
+        logging.error(f"Error in validate_word function: {error}")
         raise
 
 def get_user_input():
@@ -55,25 +55,7 @@ def get_user_input():
                 raise ValueError
         except ValueError:
             logging.error(f"Invalid input {text}. Please enter a valid English word or 'q' to quit.")
-            print("Invalid input. Please enter a valid English word or 'q' to quit.")   
-
-def main():
-# The main function that runs the app. Prints the welcome message.
-    print("Welcome to Word Count App!")
-
-    while True:
-        text = get_user_input()
-
-        if text == 'q':
-            break
-
-        count = word_count(text)
-        word_type_text = word_type(text)
-
-        display_count(count)
-        display_word_type(word_type_text)
-
-        print()
+            print("Invalid input. Please enter a valid English word or 'q' to quit.")
 
 def display_count(count):
     print(f"Number of words: {count}")
@@ -85,6 +67,29 @@ def display_word_type(word_type_text):
         print("The input text is multiple words.")
     else:
         print("The input text is a single word.")
+
+def process_text(input_text):
+    count = word_count(input_text)
+    word_type_text = word_type(input_text)
+    display_count(count)
+    display_word_type(word_type_text)
+
+def main():
+    setup_logging(log_file='error.log', log_level=logging.ERROR)
+    print("Welcome to Word Count App!")
+
+    while True:
+        text = get_user_input()
+
+        if text == 'q':
+            break
+
+        # Use multiprocessing to process the text simultaneously
+        with multiprocessing.Pool() as pool:
+            result = pool.apply_async(process_text, (text,))
+            result.get()
+
+        print()
 
 if __name__ == "__main__":
     main()
