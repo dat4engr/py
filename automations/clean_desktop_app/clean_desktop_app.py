@@ -1,41 +1,31 @@
 import os
-import shutil
 import logging
 from datetime import datetime
-from pathlib import Path
 
 def get_desktop_path():
-    # Returns the path to the desktop directory.
-    return Path.home() / "Desktop"
+    return os.path.join(os.path.expanduser('~'), 'Desktop')
 
 def delete_files(desktop_path):
-    # Deletes files and folders from the desktop.
-    if not desktop_path.is_dir():
+    if not os.path.isdir(desktop_path):
         logging.error("Desktop directory not found!")
         return
 
-    log_file_path = Path.cwd() / "deleted_files.txt"
+    log_file_path = "deleted_files.txt"
 
     try:
         number_of_files = 0
-        with log_file_path.open('a') as log_file:
-            files = [file for file in desktop_path.iterdir() if file.is_file() or file.is_dir()]
+        with open(log_file_path, 'a') as log_file:
+            for entry in os.scandir(desktop_path):
+                item_type = "file" if entry.is_file() else "folder"
+                file_path = os.path.join(desktop_path, entry.name)
 
-            if not get_confirmation(len(files)):
-                logging.info("Deletion cancelled.")
-                return
-
-            for file in files:
-                item_type = "file" if file.is_file() else "folder"
-                file_path = desktop_path / file
-
-                if file.is_dir():
-                    shutil.rmtree(file_path)
+                if entry.is_dir():
+                    os.rmdir(file_path)
                 else:
-                    file.unlink()
+                    os.remove(file_path)
 
                 number_of_files += 1
-                log_text = f"{datetime.now().strftime('%H:%M:%S')}: Deleted {item_type} - {file} ({file_path})\n"
+                log_text = f"{datetime.now().strftime('%H:%M:%S')}: Deleted {item_type} - {entry.name} ({file_path})\n"
                 log_file.write(log_text)
 
         logging.info("Files and folders deleted successfully!")
@@ -48,7 +38,6 @@ def delete_files(desktop_path):
         logging.error(f"An error occurred: {str(error)}")
 
 def get_confirmation(number_of_files):
-    # Asks for confirmation to delete files and folders.
     while True:
         confirmation = input(f"Are you sure you want to delete {number_of_files} items from the desktop? (y/n): ")
         if confirmation.lower() in ["y", "n"]:
