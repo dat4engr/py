@@ -241,5 +241,32 @@
         "temperature": "22.26",
         "wind_speed": 0.48,
         "humidity": 84
+    },
+    {
+        "date": "2024-02-19",
+        "time": "17:23:56",
+        "location": "Angeles, PH",
+        "weather_status": "Clouds",
+        "temperature": "32.25",
+        "wind_speed": 4.12,
+        "humidity": 48
+    },
+    {
+        "date": "2024-02-19",
+        "time": "17:23:57",
+        "location": "Mabalacat City, PH",
+        "weather_status": "Clouds",
+        "temperature": "32.22",
+        "wind_speed": 4.12,
+        "humidity": 48
+    },
+    {
+        "date": "2024-02-19",
+        "time": "17:23:57",
+        "location": "Magalang, PH",
+        "weather_status": "Clouds",
+        "temperature": "32.62",
+        "wind_speed": 4.12,
+        "humidity": 48
     }
 ]
