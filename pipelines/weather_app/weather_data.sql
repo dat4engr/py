@@ -25,4 +25,7 @@ INSERT INTO public.weather_data ("date","time","location",weather_status,tempera
 	 ('2024-02-17','22:04:09','Mabalacat City, PH','Clear',22.26,0.48,84.0),
 	 ('2024-02-17','22:08:52','Angeles, PH','Clear',22.39,0.87,83.0),
 	 ('2024-02-17','22:08:53','Magalang, PH','Clear',22.61,0.66,83.0),
-	 ('2024-02-17','22:08:53','Mabalacat City, PH','Clear',22.26,0.48,84.0);
+	 ('2024-02-17','22:08:53','Mabalacat City, PH','Clear',22.26,0.48,84.0),
+	 ('2024-02-19','17:23:56','Angeles, PH','Clouds',32.25,4.12,48.0),
+	 ('2024-02-19','17:23:57','Mabalacat City, PH','Clouds',32.22,4.12,48.0),
+	 ('2024-02-19','17:23:57','Magalang, PH','Clouds',32.62,4.12,48.0);
