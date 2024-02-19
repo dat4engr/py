@@ -17,6 +17,13 @@ from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
+class APIConfig:
+    # Model for storing API related configuration data.
+    def __init__(self, api_key: str, config_file: str):
+        self.api_key = api_key
+        self.config_file = config_file
+
+
 class ErrorResult:
     # Model for error results with error code, message, and details.
     def __init__(self, error_code: int, error_message: str, error_details=None):
@@ -94,10 +101,10 @@ class WeatherDataFetcher:
     CACHE_SIZE = 128
     CACHE_TTL = 3600
     
-    def __init__(self, api_key: str) -> None:
+    def __init__(self, api_config: APIConfig) -> None:
         self.weather_cache = TTLCache(maxsize=self.CACHE_SIZE, ttl=self.CACHE_TTL)
-        if self.validate_api_key(api_key):
-            self.api_key = api_key
+        if self.validate_api_key(api_config.api_key):
+            self.api_key = api_config.api_key
         else:
             raise ValueError(ErrorCode.INVALID_API_KEY.error_code, ErrorCode.INVALID_API_KEY.error_message)
 
@@ -360,9 +367,10 @@ class JSONHandler:
 
 if __name__ == "__main__":
     api_key = WeatherDataFetcher.get_config('api_key')
+    api_config = APIConfig(api_key, 'config.ini')
     locations = sorted(["Angeles, PH", "Mabalacat City, PH", "Magalang, PH"])
 
-    fetcher = WeatherDataFetcher(api_key)
+    fetcher = WeatherDataFetcher(api_config)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         try:
