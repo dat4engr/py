@@ -72,25 +72,40 @@ class LocationData:
         return f"Location Name: {self.location_name}, Latitude: {self.latitude}, Longitude: {self.longitude}, Additional Info: {self.additional_info}"
 
 
+class DatabaseCredentials:
+    # Model for database credentials.
+    def __init__(self, host: str, database: str, user: str, password: str):
+        self.host = host
+        self.database = database
+        self.user = user
+        self.password = password
+
+    def __str__(self):
+        return f"Host: {self.host}, Database: {self.database}, User: {self.user}"
+    
+
 class ConfigParserWrapper:
+    # Wrapper class for configparser to read config values.
     def __init__(self, config_file: str) -> None:
         self.config_file = config_file
         self.config_parser = configparser.ConfigParser()
         self.config_parser.read(config_file)
 
     def get_value(self, section: str, key: str) -> str:
+        # Get the value from the config file for the given section and key.
         try:
             return self.config_parser.get(section, key)
         except (configparser.NoSectionError, configparser.NoOptionError) as config_parser_error:
             raise ValueError(ErrorCode.CONFIG_FILE_READ_ERROR.error_code, ErrorCode.CONFIG_FILE_READ_ERROR.error_message) from config_parser_error
 
-    def get_database_credentials(self) -> Tuple[str, str, str, str]:
+    def get_database_credentials(self) -> DatabaseCredentials:
+        # Get the database credentials from the config file.
         try:
             host = self.get_value('Database', 'host')
             database = self.get_value('Database', 'database')
             user = self.get_value('Database', 'user')
             password = self.get_value('Database', 'password')
-            return host, database, user, password
+            return DatabaseCredentials(host, database, user, password)
         except ValueError as error:
             logging.exception(f"Error reading database credentials: {error}")
             raise RuntimeError(ErrorCode.DATABASE_CONNECTION_ERROR.error_code, ErrorCode.DATABASE_CONNECTION_ERROR.error_message) from error
