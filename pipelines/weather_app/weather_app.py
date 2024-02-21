@@ -111,6 +111,20 @@ class ConfigParserWrapper:
             raise RuntimeError(ErrorCode.DATABASE_CONNECTION_ERROR.error_code, ErrorCode.DATABASE_CONNECTION_ERROR.error_message) from error
 
 
+class WeatherInfo:
+    # Model for storing weather information for a location.
+    def __init__(self, date: str, time: str, temperature: str, humidity: int, wind_speed: float, weather_status: str):
+        self.date = date
+        self.time = time
+        self.temperature = temperature
+        self.humidity = humidity
+        self.wind_speed = wind_speed
+        self.weather_status = weather_status
+
+    def __str__(self):
+        return f"Date: {self.date}, Time: {self.time}, Temperature: {self.temperature}°C, Humidity: {self.humidity}%, Wind Speed: {self.wind_speed} m/s, Weather Status: {self.weather_status}"
+
+
 class WeatherDataFetcher:
     # Class responsible for fetching weather data.
     CACHE_SIZE = 128
@@ -175,17 +189,15 @@ class WeatherDataFetcher:
             raise RuntimeError(ErrorCode.CURRENT_WEATHER_RETRIEVAL_ERROR.error_code, ErrorCode.CURRENT_WEATHER_RETRIEVAL_ERROR.error_message) from exception
 
     def fetch_weather_data(self, location: str) -> None:
-        # Fetch weather data for a given location and perform necessary operations like inserting into database and updating JSON file.
         try:
             logging.info(f"Fetching weather data for location: {location}")
             if location in self.weather_cache:
                 weather_data = self.weather_cache[location]
             else:
                 location_data = self.fetch_weather_data_from_api(location)
-
                 if location_data is not None:
                     self.weather_cache[location] = location_data.get_additional_info()
-
+                    
             if location_data is None:
                 logging.exception("Error fetching weather data: Weather data is None.")
                 raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR.error_code, ErrorCode.WEATHER_DATA_FETCH_ERROR.error_message)
@@ -197,20 +209,18 @@ class WeatherDataFetcher:
             with JSONHandler() as json_handler:
                 json_handler.update_json_data(weather_data)
 
+            # Create an instance of WeatherInfo class with the fetched weather data
+            weather_info = WeatherInfo(weather_data['date'], weather_data['time'], weather_data['temperature'], weather_data['humidity'], weather_data['wind_speed'], weather_data['weather_status'])
+
             print(f"As of: {weather_data['date']} | {weather_data['time']}")
-            print(f"Current weather at {location}:")
-            print(f"Weather Status: {weather_data['weather_status']}")
-            print(f"Temperature: {weather_data['temperature']}°C")
-            print(f"Wind Speed: {weather_data['wind_speed']} m/s")
-            print(f"Humidity: {weather_data['humidity']}%")
+            print(f"Current weather at {location}: {weather_info}")
 
         except Exception as exception:
-            logging.exception(f"Error: fetching weather data: {exception}", exc_info=True)
+            logging.exception(f"Error fetching weather data: {exception}", exc_info=True)
             raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR.error_code, ErrorCode.WEATHER_DATA_FETCH_ERROR.error_message) from exception
 
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def fetch_weather_data_from_api(self, location: str) -> Union[LocationData, None]:
-        # Fetch weather data for a given location from the API.
         try:
             coordinates = self.get_coordinates(location)
             if coordinates:
@@ -219,6 +229,8 @@ class WeatherDataFetcher:
                 if weather:
                     temperature = f"{weather.temperature('celsius')['temp']}"
                     weather_status = weather.status
+
+                    # Create a dictionary with weather data
                     weather_data = {
                         'date': current_date,
                         'time': current_time,
@@ -228,6 +240,10 @@ class WeatherDataFetcher:
                         'wind_speed': wind['speed'],
                         'humidity': humidity,
                     }
+
+                    # Create an instance of the WeatherInfo class with the fetched weather data
+                    weather_info = WeatherInfo(weather_data['date'], weather_data['time'], weather_data['temperature'], weather_data['humidity'], weather_data['wind_speed'], weather_data['weather_status'])
+
                     return LocationData(location, latitude, longitude, weather_data)
                 else:
                     logging.exception(f"Unable to fetch weather data for {location}.")
