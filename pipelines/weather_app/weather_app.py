@@ -113,7 +113,7 @@ class ConfigParserWrapper:
 
 class WeatherInfo:
     # Model for storing weather information for a location.
-    def __init__(self, date: str, time: str, temperature: str, humidity: int, wind_speed: float, weather_status: str):
+    def __init__(self, date: str, time: str, temperature: float, humidity: int, wind_speed: float, weather_status: str):
         self.date = date
         self.time = time
         self.temperature = temperature
@@ -189,6 +189,7 @@ class WeatherDataFetcher:
             raise RuntimeError(ErrorCode.CURRENT_WEATHER_RETRIEVAL_ERROR.error_code, ErrorCode.CURRENT_WEATHER_RETRIEVAL_ERROR.error_message) from exception
 
     def fetch_weather_data(self, location: str) -> None:
+        # Fetch weather data for a given location and perform necessary operations like inserting into database and updating JSON file.
         try:
             logging.info(f"Fetching weather data for location: {location}")
             if location in self.weather_cache:
@@ -209,7 +210,6 @@ class WeatherDataFetcher:
             with JSONHandler() as json_handler:
                 json_handler.update_json_data(weather_data)
 
-            # Create an instance of WeatherInfo class with the fetched weather data
             weather_info = WeatherInfo(weather_data['date'], weather_data['time'], weather_data['temperature'], weather_data['humidity'], weather_data['wind_speed'], weather_data['weather_status'])
 
             print(f"As of: {weather_data['date']} | {weather_data['time']}")
@@ -221,13 +221,14 @@ class WeatherDataFetcher:
 
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def fetch_weather_data_from_api(self, location: str) -> Union[LocationData, None]:
+        # Fetch weather data for a given location from the API.
         try:
             coordinates = self.get_coordinates(location)
             if coordinates:
                 latitude, longitude = coordinates
                 current_date, current_time, weather, wind, humidity = self.get_current_weather(latitude, longitude)
                 if weather:
-                    temperature = f"{weather.temperature('celsius')['temp']}"
+                    temperature = float(weather.temperature('celsius')['temp'])  # Convert temperature to float
                     weather_status = weather.status
 
                     # Create a dictionary with weather data
@@ -254,6 +255,7 @@ class WeatherDataFetcher:
         except Exception as exception:
             logging.exception(f"Error fetching weather data from API: {exception}")
             raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR.error_code, ErrorCode.WEATHER_DATA_FETCH_ERROR.error_message) from exception
+
 
 
 class DatabaseHandler:
