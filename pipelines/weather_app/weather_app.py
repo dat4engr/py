@@ -257,7 +257,6 @@ class WeatherDataFetcher:
             raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR.error_code, ErrorCode.WEATHER_DATA_FETCH_ERROR.error_message) from exception
 
 
-
 class DatabaseHandler:
     # Context manager class responsible for handling database connections and operations.
     def __init__(self) -> None:
@@ -355,12 +354,15 @@ class JSONHandler:
         try:
             self.file = open(file_path, mode)
             yield self.file
-        except FileNotFoundError as file_not_found_error:
-            logging.exception(ErrorCode.JSON_UPDATE_ERROR.error_code, ErrorCode.JSON_UPDATE_ERROR.error_message)       
-            raise RuntimeError(ErrorCode.JSON_UPDATE_ERROR.error_code, ErrorCode.JSON_UPDATE_ERROR.error_message) from file_not_found_error
+        except (PermissionError, IOError) as file_error:
+            logging.exception(f"Error occurred while opening JSON file: {file_error}")
+            raise RuntimeError(ErrorCode.FILE_NOT_FOUND_ERROR.error_code, ErrorCode.FILE_NOT_FOUND_ERROR.error_message) from file_error
+        except json.JSONDecodeError as json_error:
+            logging.exception(f"Error decoding JSON file: {json_error}")
+            raise RuntimeError(ErrorCode.JSON_UPDATE_ERROR.error_code, ErrorCode.JSON_UPDATE_ERROR.error_message) from json_error
         except Exception as exception:
-            logging.exception(ErrorCode.JSON_UPDATE_ERROR.error_code, ErrorCode.JSON_UPDATE_ERROR.error_message, exc_info=True)
-            raise RuntimeError(ErrorCode.JSON_UPDATE_ERROR.error_code, ErrorCode.JSON_UPDATE_ERROR.error_message) from exception
+            logging.exception("An unexpected error occurred:", exc_info=True)
+            raise RuntimeError("Unknown error occurred") from exception
         finally:
             if self.file:
                 self.file.close()
@@ -390,12 +392,15 @@ class JSONHandler:
             with self.open_json_file('weather_data.json', 'w') as file:
                 json.dump(existing_data, file, indent=4)
 
-        except FileNotFoundError as file_not_found_error:
-            logging.exception(f"JSON file not found: {file_not_found_error}")
-            raise RuntimeError(ErrorCode.JSON_UPDATE_ERROR.error_code, ErrorCode.JSON_UPDATE_ERROR.error_message) from file_not_found_error
+        except (PermissionError, IOError) as file_error:
+            logging.exception(f"File error occurred while updating JSON data: {file_error}")
+            raise RuntimeError(ErrorCode.JSON_UPDATE_ERROR.error_code, ErrorCode.JSON_UPDATE_ERROR.error_message) from file_error
+        except json.JSONDecodeError as json_error:
+            logging.exception(f"JSON decoding error while updating JSON data: {json_error}")
+            raise RuntimeError(ErrorCode.JSON_UPDATE_ERROR.error_code, ErrorCode.JSON_UPDATE_ERROR.error_message) from json_error
         except Exception as exception:
             logging.exception(f"Error updating JSON data: {exception}", exc_info=True)
-            raise RuntimeError(ErrorCode.JSON_UPDATE_ERROR.error_code, ErrorCode.JSON_UPDATE_ERROR.error_message) from exception
+            raise RuntimeError("Unknown error occurred", ErrorCode.JSON_UPDATE_ERROR.error_code, ErrorCode.JSON_UPDATE_ERROR.error_message) from exception
 
 
 if __name__ == "__main__":
