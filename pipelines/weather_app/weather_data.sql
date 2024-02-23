@@ -1,16 +1,4 @@
 INSERT INTO public.weather_data ("date","time","location",weather_status,temperature,wind_speed,humidity) VALUES
-	 ('2024-02-21','22:39:21','Mabalacat City, PH','Clouds',25.22,1.03,78.0),
-	 ('2024-02-21','22:39:21','Magalang, PH','Clouds',25.62,1.03,78.0),
-	 ('2024-02-21','22:39:22','Angeles, PH','Clouds',25.25,1.03,78.0),
-	 ('2024-02-21','22:51:24','Mabalacat City, PH','Clouds',25.22,1.03,78.0),
-	 ('2024-02-21','22:51:24','Angeles, PH','Clouds',25.25,1.03,78.0),
-	 ('2024-02-21','22:51:25','Magalang, PH','Clouds',25.62,1.03,78.0),
-	 ('2024-02-21','22:59:52','Mabalacat City, PH','Clouds',25.22,1.03,78.0),
-	 ('2024-02-21','22:59:52','Angeles, PH','Clouds',25.25,1.03,78.0),
-	 ('2024-02-21','22:59:53','Magalang, PH','Clouds',25.62,1.03,78.0),
-	 ('2024-02-22','09:38:29','Mabalacat City, PH','Clouds',26.22,1.03,73.0),
-	 ('2024-02-22','09:38:30','Angeles, PH','Clouds',26.25,1.03,73.0),
-	 ('2024-02-22','09:38:30','Magalang, PH','Clouds',26.62,1.03,73.0),
-	 ('2024-02-22','09:44:50','Mabalacat City, PH','Clouds',26.22,1.03,73.0),
-	 ('2024-02-22','09:44:50','Magalang, PH','Clouds',26.62,1.03,73.0),
-	 ('2024-02-22','09:44:51','Angeles, PH','Clouds',26.25,1.03,73.0);
+	 ('2024-02-23','21:49:26','Magalang, PH','Clouds',27.62,0.55,65.0),
+	 ('2024-02-23','21:49:26','Mabalacat City, PH','Clouds',27.22,0.5,65.0),
+	 ('2024-02-23','21:49:28','Angeles, PH','Clouds',27.25,0.56,65.0);
