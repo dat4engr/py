@@ -194,13 +194,16 @@ class WeatherDataFetcher:
             logging.info(f"Fetching weather data for location: {location}")
             if location in self.weather_cache:
                 weather_data = self.weather_cache[location]
+                logging.info(f"Weather data found in cache for location: {location}")
             else:
                 location_data = self.fetch_weather_data_from_api(location)
                 if location_data is not None:
                     self.weather_cache[location] = location_data.get_additional_info()
+                    logging.info(f"Weather data fetched from API and stored in cache for location: {location}")
                     
-            if location_data is None:
-                logging.exception("Error fetching weather data: Weather data is None.")
+            if not location_data:
+                error_message = f"Error fetching weather data for location: {location}. Data is None."
+                logging.error(error_message)
                 raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR.error_code, ErrorCode.WEATHER_DATA_FETCH_ERROR.error_message)
 
             weather_data = location_data.get_additional_info()
@@ -212,11 +215,12 @@ class WeatherDataFetcher:
 
             weather_info = WeatherInfo(weather_data['date'], weather_data['time'], weather_data['temperature'], weather_data['humidity'], weather_data['wind_speed'], weather_data['weather_status'])
 
-            print(f"As of: {weather_data['date']} | {weather_data['time']}")
-            print(f"Current weather at {location}: {weather_info}")
+            logging.info(f"As of: {weather_data['date']} | {weather_data['time']}")
+            logging.info(f"Current weather at {location}: {weather_info}")
 
         except Exception as exception:
-            logging.exception(f"Error fetching weather data: {exception}", exc_info=True)
+            error_message = f"Error fetching weather data for location: {location}. {exception}"
+            logging.exception(error_message)
             raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR.error_code, ErrorCode.WEATHER_DATA_FETCH_ERROR.error_message) from exception
 
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
@@ -408,6 +412,8 @@ if __name__ == "__main__":
     api_config = APIConfig(api_key, 'config.ini')
     locations = sorted(["Angeles, PH", "Mabalacat City, PH", "Magalang, PH"])
 
+    logging.info(f"Script execution started at {datetime.now().replace(microsecond=0)}.")
+    
     fetcher = WeatherDataFetcher(api_config)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
