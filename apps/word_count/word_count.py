@@ -3,11 +3,15 @@ import multiprocessing
 import spacy
 
 def load_spacy_model(model_name):
+    # Load a Spacy model with the specified model name.
     try:
         nlp = spacy.load(model_name)
         return nlp
     except OSError as error:
         logging.error(f"Error loading Spacy model: {error}")
+        return None
+    except Exception as e:
+        logging.error(f"An error occurred while loading Spacy model: {e}")
         return None
 
 nlp = load_spacy_model("en_core_web_sm")
@@ -17,41 +21,53 @@ if nlp is None:
     exit()
 
 def setup_logging(log_file='error.log', log_level=logging.ERROR):
-    # Set up logging configuration with specified log file and log level.
-    logging.basicConfig(filename=log_file, level=log_level)
+    # Setup logging configuration for the application.
+    try:
+        logging.basicConfig(filename=log_file, level=log_level)
+    except Exception as e:
+        logging.error(f"Error setting up logging: {e}")
 
 def word_count(text):
-    # Count the number of words in the input text.
-    doc = nlp(text)
-    logging.info(f"Text processed: {text}")
-    logging.info(f"Word count: {len(doc)}")
-    return len(doc)
+    # Count the number of words in the input text using the loaded Spacy model.
+    try:
+        doc = nlp(text)
+        logging.info(f"Text processed: {text}")
+        logging.info(f"Word count: {len(doc)}")
+        return len(doc)
+    except Exception as e:
+        logging.error(f"An error occurred while counting words: {e}")
+        return 0
 
 def word_type(text):
-    # Determine the word type of the input text: single, two, or multiple.
-    doc = nlp(text)
-    number_of_words = len(doc)
+    try:
+        doc = nlp(text)
+        number_of_words = len(doc)
 
-    if number_of_words == 2:
-        word_type_text = "two"
-    elif number_of_words > 2:
-        word_type_text = "multiple"
-    else:
-        word_type_text = "single"
-    logging.info(f"Word type: {word_type_text}")
-    return word_type_text
+        if number_of_words == 2:
+            word_type_text = "two"
+        elif number_of_words > 2:
+            word_type_text = "multiple"
+        else:
+            word_type_text = "single"
+        logging.info(f"Word type: {word_type_text}")
+        return word_type_text
+    except Exception as e:
+        logging.error(f"An error occurred while determining word type: {e}")
+        return "unknown"
 
 def validate_word(text):
-    # Validate if all tokens in the input text are alphabetic.
-    doc = nlp(text)
-    for token in doc:
-        if not token.is_alpha:
-            logging.error(f"Invalid input: {text}")
-            return False
-    return True
+    try:
+        doc = nlp(text)
+        for token in doc:
+            if not token.is_alpha and not token.text in [' ', '-']:
+                logging.error(f"Invalid input: {text}, contains non-alphabetic characters.")
+                return False
+        return True
+    except Exception as e:
+        logging.error(f"An error occurred while validating word: {e}")
+        return False
 
 def get_user_input():
-    # Get user input text continuously until a valid English word or 'q' to quit is entered.
     text = ""
     
     while text != 'q':
@@ -67,48 +83,79 @@ def get_user_input():
             print("Invalid input. Please enter a valid English word or 'q' to quit.")
 
 def display_count(count):
-    """
-    Display the number of words in the input text.
-
-    :param count: Number of words
-    """
-    print(f"Number of words: {count}")
+    try:
+        print(f"Number of words: {count}")
+    except Exception as e:
+        logging.error(f"An error occurred while displaying word count: {e}")
 
 def display_word_type(word_type_text):
-    # Display the word type (single, two, or multiple) of the input text.
-    if word_type_text == "two":
-        print("The input text is two words.")
-    elif word_type_text == "multiple":
-        print("The input text is multiple words.")
-    else:
-        print("The input text is a single word.")
+    try:
+        if word_type_text == "two":
+            print("The input text is two words.")
+        elif word_type_text == "multiple":
+            print("The input text is multiple words.")
+        else:
+            print("The input text is a single word.")
+    except Exception as e:
+        logging.error(f"An error occurred while displaying word type: {e}")
 
 def process_text(input_text):
-    # Process the input text by getting word count and word type, and display the results.
-    count = word_count(input_text)
-    word_type_text = word_type(input_text)
-    display_count(count)
-    display_word_type(word_type_text)
+    try:
+        doc = nlp(input_text)
+        word_count = len(doc)
+
+        # Count specific types of words
+        nouns = [token.text for token in doc if token.pos_ == 'NOUN']
+        verbs = [token.text for token in doc if token.pos_ == 'VERB']
+        adjectives = [token.text for token in doc if token.pos_ == 'ADJ']
+
+        # Analyzing sentence structure
+        sentence_structure = {}
+        for sent in doc.sents:
+            for token in sent:
+                if token.dep_ in sentence_structure:
+                    sentence_structure[token.dep_] += 1
+                else:
+                    sentence_structure[token.dep_] = 1
+
+        # Providing suggestions for improving text readability
+        readability_suggestions = []
+        if word_count > 20:
+            readability_suggestions.append("Consider breaking down the text into shorter sentences.")
+
+        # Display the results
+        print(f"Number of words: {word_count}")
+        print(f"Nouns: {nouns}")
+        print(f"Verbs: {verbs}")
+        print(f"Adjectives: {adjectives}")
+        print(f"Sentence Structure: {sentence_structure}")
+        print("Readability Suggestions:")
+        for suggestion in readability_suggestions:
+            print(suggestion)
+    except Exception as e:
+        logging.error(f"An error occurred while processing text: {e}")
+
 
 def main():
-    # Main function to run the Word Count App.
-    setup_logging(log_file='error.log', log_level=logging.ERROR)
-    print("Welcome to Word Count App!")
+    try:
+        setup_logging(log_file='error.log', log_level=logging.ERROR)
+        print("Welcome to Word Count App!")
 
-    while True:
-        text = get_user_input()
+        while True:
+            text = get_user_input()
 
-        if text == 'q':
-            break
+            if text == 'q':
+                break
 
-        logging.info(f"Processing text: {text}")
+            logging.info(f"Processing text: {text}")
 
-        # Use multiprocessing to process the text simultaneously
-        with multiprocessing.Pool() as pool:
-            result = pool.apply_async(process_text, (text,))
-            result.get()
+            with multiprocessing.Pool() as pool:
+                result = pool.apply_async(process_text, (text,))
+                result.get()
 
-        print()
+            print()
+    except Exception as e:
+        logging.error(f"An error occurred in the main function: {e}")
 
 if __name__ == "__main__":
     main()
