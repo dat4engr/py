@@ -14,6 +14,7 @@ from cachetools import TTLCache
 from retrying import retry
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
@@ -96,7 +97,9 @@ class ConfigParserWrapper:
         try:
             return self.config_parser.get(section, key)
         except (configparser.NoSectionError, configparser.NoOptionError) as config_parser_error:
-            raise ValueError(ErrorCode.CONFIG_FILE_READ_ERROR.error_code, ErrorCode.CONFIG_FILE_READ_ERROR.error_message) from config_parser_error
+            error_message = f"Error while reading config file: {config_parser_error}"
+            logging.error(error_message)
+            raise ValueError(error_message)
 
     def get_database_credentials(self) -> DatabaseCredentials:
         # Get the database credentials from the config file.
@@ -107,8 +110,9 @@ class ConfigParserWrapper:
             password = self.get_value('Database', 'password')
             return DatabaseCredentials(host, database, user, password)
         except ValueError as error:
-            logging.exception(f"Error reading database credentials: {error}")
-            raise RuntimeError(ErrorCode.DATABASE_CONNECTION_ERROR.error_code, ErrorCode.DATABASE_CONNECTION_ERROR.error_message) from error
+            error_message = f"Error fetching database credentials: {error}"
+            logging.error(error_message)
+            raise RuntimeError(error_message)
 
 
 class WeatherInfo:
@@ -135,7 +139,9 @@ class WeatherDataFetcher:
         if self.validate_api_key(api_config.api_key):
             self.api_key = api_config.api_key
         else:
-            raise ValueError(ErrorCode.INVALID_API_KEY.error_code, ErrorCode.INVALID_API_KEY.error_message)
+            error_message = "Invalid API Key"
+            logging.error(error_message)
+            raise ValueError(error_message)
 
     @staticmethod
     def validate_api_key(api_key: str) -> bool:
@@ -149,8 +155,9 @@ class WeatherDataFetcher:
             config = ConfigParserWrapper('config.ini')
             return config.get_value('API', key)
         except ValueError as error:
-            logging.exception(f"Configuration error: {error}")
-            raise RuntimeError(ErrorCode.CONFIG_FILE_READ_ERROR.error_code, ErrorCode.CONFIG_FILE_READ_ERROR.error_message) from error
+            error_message = f"Configuration error: {error}"
+            logging.error(error_message)
+            raise RuntimeError(error_message)
 
     @lru_cache(maxsize=128)
     def get_coordinates(self, location: str) -> Union[Tuple[float, float], None]:
@@ -166,11 +173,13 @@ class WeatherDataFetcher:
                 self.weather_cache[location] = {'coordinates': coordinates}
             return coordinates
         except (GeocoderTimedOut, GeocoderServiceError) as geocoder_error:
-            logging.exception(f"Error getting coordinates for location: {location}. Error message: {geocoder_error}")
-            raise RuntimeError(ErrorCode.COORDINATES_RETRIEVAL_ERROR.error_code, ErrorCode.COORDINATES_RETRIEVAL_ERROR.error_message) from geocoder_error
+            error_message = f"Error getting coordinates for location: {location}. {geocoder_error}"
+            logging.error(error_message)
+            raise RuntimeError(error_message)
         except Exception as exception:
-            logging.exception(f"Unknown error getting coordinates for location: {location}. Error message: {exception}")
-            raise RuntimeError(ErrorCode.COORDINATES_RETRIEVAL_ERROR.error_code, ErrorCode.COORDINATES_RETRIEVAL_ERROR.error_message) from exception
+            error_message = f"Unknown error getting coordinates for location: {location}. {exception}"
+            logging.error(error_message)
+            raise RuntimeError(error_message)
 
     def get_current_weather(self, latitude: float, longitude: float) -> Tuple[str, str, Any]:
         # Get the current weather data for a given latitude and longitude.
@@ -185,8 +194,9 @@ class WeatherDataFetcher:
             humidity = weather.humidity
             return current_date, current_time, weather, wind, humidity
         except Exception as exception:
-            logging.exception(f"Error getting current weather: {exception}")
-            raise RuntimeError(ErrorCode.CURRENT_WEATHER_RETRIEVAL_ERROR.error_code, ErrorCode.CURRENT_WEATHER_RETRIEVAL_ERROR.error_message) from exception
+            error_message = f"Error getting current weather: {exception}"
+            logging.error(error_message)
+            raise RuntimeError(error_message)
 
     def fetch_weather_data(self, location: str) -> None:
         # Fetch weather data for a given location and perform necessary operations like inserting into database and updating JSON file.
@@ -204,7 +214,7 @@ class WeatherDataFetcher:
             if not location_data:
                 error_message = f"Error fetching weather data for location: {location}. Data is None."
                 logging.error(error_message)
-                raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR.error_code, ErrorCode.WEATHER_DATA_FETCH_ERROR.error_message)
+                raise RuntimeError(error_message)
 
             weather_data = location_data.get_additional_info()
             with DatabaseHandler() as database_handler:
@@ -220,8 +230,8 @@ class WeatherDataFetcher:
 
         except Exception as exception:
             error_message = f"Error fetching weather data for location: {location}. {exception}"
-            logging.exception(error_message)
-            raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR.error_code, ErrorCode.WEATHER_DATA_FETCH_ERROR.error_message) from exception
+            logging.error(error_message)
+            raise RuntimeError(error_message)
 
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def fetch_weather_data_from_api(self, location: str) -> Union[LocationData, None]:
@@ -251,14 +261,15 @@ class WeatherDataFetcher:
 
                     return LocationData(location, latitude, longitude, weather_data)
                 else:
-                    logging.exception(f"Unable to fetch weather data for {location}.")
-                    raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR.error_code, ErrorCode.WEATHER_DATA_FETCH_ERROR.error_message)
+                    logging.error(f"Unable to fetch weather data for {location}.")
+                    raise RuntimeError(f"Unable to fetch weather data for {location}.")
             else:
-                logging.exception(f"Unable to fetch coordinates for {location}.")
-                raise RuntimeError(ErrorCode.COORDINATES_RETRIEVAL_ERROR.error_code, ErrorCode.COORDINATES_RETRIEVAL_ERROR.error_message)
+                logging.error(f"Unable to fetch coordinates for {location}.")
+                raise RuntimeError(f"Unable to fetch coordinates for {location}.")
         except Exception as exception:
-            logging.exception(f"Error fetching weather data from API: {exception}")
-            raise RuntimeError(ErrorCode.WEATHER_DATA_FETCH_ERROR.error_code, ErrorCode.WEATHER_DATA_FETCH_ERROR.error_message) from exception
+            error_message = f"Error fetching weather data from API: {exception}"
+            logging.error(error_message)
+            raise RuntimeError(error_message)
 
 
 class DatabaseHandler:
@@ -282,11 +293,13 @@ class DatabaseHandler:
                 )
                 return connection
             except Exception as exception:
-                logging.exception(f"Error connecting to the database: {exception}")
-                raise RuntimeError(ErrorCode.DATABASE_CONNECTION_ERROR.error_code, ErrorCode.DATABASE_CONNECTION_ERROR.error_message) from exception
+                error_message = f"Error connecting to the database: {exception}"
+                logging.error(error_message)
+                raise RuntimeError(error_message)
         except (configparser.NoSectionError, configparser.NoOptionError, FileNotFoundError) as error:
-            logging.exception(f"Error reading database configuration: {error}")
-            raise ImportError(ErrorCode.CONFIG_FILE_READ_ERROR.error_code, ErrorCode.CONFIG_FILE_READ_ERROR.error_message) from error
+            error_message = f"Error reading database configuration: {error}"
+            logging.error(error_message)
+            raise ImportError(error_message) from error
 
     def __enter__(self) -> 'DatabaseHandler':
         # Context manager enter method.
@@ -294,11 +307,12 @@ class DatabaseHandler:
             self.database_connection = self.connect_to_database()
             return self
         except RuntimeError as error:
-            logging.exception(f"Error connecting to database: {ErrorCode.DATABASE_CONNECTION_ERROR}")
+            logging.error(f"Error connecting to database: {error}")
             raise error
         except Exception as exception:
-            logging.exception(f"Error connecting to the database: {exception}")
-            raise RuntimeError(ErrorCode.DATABASE_CONNECTION_ERROR.error_code, ErrorCode.DATABASE_CONNECTION_ERROR.error_message) from exception
+            error_message = f"Error connecting to the database: {exception}"
+            logging.error(error_message)
+            raise RuntimeError(error_message)
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         # Context manager exit method.
@@ -310,7 +324,8 @@ class DatabaseHandler:
                 try:
                     self.database_connection.close()
                 except Exception as exception:
-                    logging.exception(f"Error closing the database connection: {exception}", exc_info=True)
+                    error_message = f"Error closing the database connection: {exception}"
+                    logging.error(error_message)
                 self.database_connection = None
 
     @contextmanager
@@ -342,8 +357,9 @@ class DatabaseHandler:
                 self.database_connection.commit()
                 logging.info("Data inserted into the database successfully.")
         except Exception as exception:
-            logging.exception(f"Error inserting data into the database: {exception}", exc_info=True)
-            raise RuntimeError(ErrorCode.DATA_INSERTION_ERROR.error_code, ErrorCode.DATA_INSERTION_ERROR.error_message) from exception
+            error_message = f"Error inserting data into the database: {exception}"
+            logging.error(error_message)
+            raise RuntimeError(error_message) from exception
 
 
 class JSONHandler:
@@ -359,18 +375,17 @@ class JSONHandler:
             self.file = open(file_path, mode)
             yield self.file
         except (PermissionError, IOError) as file_error:
-            logging.exception(f"Error occurred while opening JSON file: {file_error}")
-            raise RuntimeError(ErrorCode.FILE_NOT_FOUND_ERROR.error_code, ErrorCode.FILE_NOT_FOUND_ERROR.error_message) from file_error
+            error_message = f"Error occurred while opening JSON file: {file_error}"
+            logging.error(error_message)
+            raise RuntimeError(error_message) from file_error
         except json.JSONDecodeError as json_error:
-            logging.exception(f"Error decoding JSON file: {json_error}")
-            raise RuntimeError(ErrorCode.JSON_UPDATE_ERROR.error_code, ErrorCode.JSON_UPDATE_ERROR.error_message) from json_error
+            error_message = f"Error decoding JSON file: {json_error}"
+            logging.error(error_message)
+            raise RuntimeError(error_message) from json_error
         except Exception as exception:
-            logging.exception("An unexpected error occurred:", exc_info=True)
-            raise RuntimeError("Unknown error occurred") from exception
-        finally:
-            if self.file:
-                self.file.close()
-                self.file = None
+            error_message = "An unexpected error occurred."
+            logging.error(f"{error_message}: {exception}")
+            raise RuntimeError(f"{error_message}: {exception}")
 
     def __enter__(self):
         # Context manager enter method.
@@ -382,7 +397,8 @@ class JSONHandler:
             try:
                 self.file.close()
             except Exception as exception:
-                logging.exception(f"Error closing the JSON file: {exception}", exc_info=True)
+                error_message = f"Error closing the JSON file: {exception}"
+                logging.error(error_message)
             self.file = None
 
     def update_json_data(self, weather_data: dict) -> None:
@@ -397,29 +413,46 @@ class JSONHandler:
                 json.dump(existing_data, file, indent=4)
 
         except (PermissionError, IOError) as file_error:
-            logging.exception(f"File error occurred while updating JSON data: {file_error}")
-            raise RuntimeError(ErrorCode.JSON_UPDATE_ERROR.error_code, ErrorCode.JSON_UPDATE_ERROR.error_message) from file_error
+            error_message = f"File error occurred while updating JSON data: {file_error}"
+            logging.error(error_message)
+            raise RuntimeError(error_message) from file_error
         except json.JSONDecodeError as json_error:
-            logging.exception(f"JSON decoding error while updating JSON data: {json_error}")
-            raise RuntimeError(ErrorCode.JSON_UPDATE_ERROR.error_code, ErrorCode.JSON_UPDATE_ERROR.error_message) from json_error
+            error_message = f"JSON decoding error while updating JSON data: {json_error}"
+            logging.error(error_message)
+            raise RuntimeError(error_message) from json_error
         except Exception as exception:
-            logging.exception(f"Error updating JSON data: {exception}", exc_info=True)
-            raise RuntimeError("Unknown error occurred", ErrorCode.JSON_UPDATE_ERROR.error_code, ErrorCode.JSON_UPDATE_ERROR.error_message) from exception
-
+            error_message = f"Error updating JSON data: {exception}"
+            logging.error(error_message)
+            raise RuntimeError(error_message) from exception
+        
 
 if __name__ == "__main__":
-    api_key = WeatherDataFetcher.get_config('api_key')
-    api_config = APIConfig(api_key, 'config.ini')
-    locations = sorted(["Angeles, PH", "Mabalacat City, PH", "Magalang, PH"])
+    try:
+        api_key = WeatherDataFetcher.get_config('api_key')
+        api_config = APIConfig(api_key, 'config.ini')
+        locations = sorted(["Angeles, PH", "Mabalacat City, PH", "Magalang, PH"])
+        
+        logging.info(f"Script execution started at {datetime.now().replace(microsecond=0)}.")
 
-    logging.info(f"Script execution started at {datetime.now().replace(microsecond=0)}.")
-    
-    fetcher = WeatherDataFetcher(api_config)
+        fetcher = WeatherDataFetcher(api_config)
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        try:
-            executor.map(lambda location: fetcher.fetch_weather_data(location), locations)
-        except RuntimeError as runtime_error:
-            logging.exception(f"Runtime Error: {runtime_error}")
-        except Exception as exception:
-            logging.exception("Error executing fetch_weather_data.", exc_info=True)
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            try:
+                executor.map(lambda location: fetcher.fetch_weather_data(location), locations)
+            except (RuntimeError, ValueError, ImportError) as error:
+                logging.error(f"Error occurred: {error}")
+            except Exception as exception:
+                logging.exception("Error executing fetch_weather_data.", exc_info=True)
+        
+        logging.info(f"Script execution completed at {datetime.now().replace(microsecond=0)}.")
+
+    except ValueError as value_error:
+        logging.error(f"Value Error occurred: {value_error}")
+    except ImportError as import_error:
+        logging.error(f"Import Error occurred: {import_error}")
+    except RuntimeError as runtime_error:
+        logging.error(f"Runtime Error occurred: {runtime_error}")
+    except KeyboardInterrupt:
+        logging.error("Keyboard Interrupt detected.")
+    except Exception as exception:
+        logging.exception("Unexpected Error occurred.", exc_info=True)
