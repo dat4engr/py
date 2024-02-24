@@ -13,10 +13,11 @@ from contextlib import contextmanager
 from cachetools import TTLCache
 from retrying import retry
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
+import time
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
+start_time = time.time()
 
 class APIConfig:
     # Model for storing API related configuration data.
@@ -109,8 +110,16 @@ class ConfigParserWrapper:
             user = self.get_value('Database', 'user')
             password = self.get_value('Database', 'password')
             return DatabaseCredentials(host, database, user, password)
-        except ValueError as error:
-            error_message = f"Error fetching database credentials: {error}"
+        except ValueError as value_error:
+            error_message = f"Value Error fetching database credentials: {value_error}"
+            logging.error(error_message)
+            raise RuntimeError(error_message)
+        except configparser.NoSectionError as section_error:
+            error_message = f"No Section Error fetching database credentials: {section_error}"
+            logging.error(error_message)
+            raise RuntimeError(error_message)
+        except configparser.NoOptionError as option_error:
+            error_message = f"No Option Error fetching database credentials: {option_error}"
             logging.error(error_message)
             raise RuntimeError(error_message)
 
@@ -445,6 +454,10 @@ if __name__ == "__main__":
                 logging.exception("Error executing fetch_weather_data.", exc_info=True)
         
         logging.info(f"Script execution completed at {datetime.now().replace(microsecond=0)}.")
+
+        end_time = time.time()
+        total_time = end_time - start_time
+        logging.info(f"Total time taken is {total_time:.2f} seconds.")
 
     except ValueError as value_error:
         logging.error(f"Value Error occurred: {value_error}")
