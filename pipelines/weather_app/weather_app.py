@@ -14,6 +14,7 @@ from cachetools import TTLCache
 from retrying import retry
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 import time
+import psycopg2
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -291,25 +292,23 @@ class DatabaseHandler:
     def connect_to_database(self) -> Any:
         # Connect to the database using the credentials from the config.ini file.
         try:
-            config = configparser.ConfigParser()
-            config.read('config.ini')
-            connection = None
-            try:
-                connection = connect(
-                    host=config.get('Database', 'host'),
-                    database=config.get('Database', 'database'),
-                    user=config.get('Database', 'user'),
-                    password=config.get('Database', 'password')
-                )
-                return connection
-            except Exception as exception:
-                error_message = f"Error connecting to the database: {exception}"
-                logging.error(error_message)
-                raise RuntimeError(error_message)
-        except (configparser.NoSectionError, configparser.NoOptionError, FileNotFoundError) as error:
-            error_message = f"Error reading database configuration: {error}"
+            config = ConfigParserWrapper('config.ini')
+            db_credentials = config.get_database_credentials()
+            connection = connect(
+                host=db_credentials.host,
+                database=db_credentials.database,
+                user=db_credentials.user,
+                password=db_credentials.password
+            )
+            return connection
+        except psycopg2.OperationalError as operation_error:
+            error_message = f"Operation Error connecting to the database: {operation_error}"
             logging.error(error_message)
-            raise ImportError(error_message) from error
+            raise ErrorCode.DATABASE_CONNECTION_ERROR from operation_error
+        except psycopg2.DatabaseError as db_error:
+            error_message = f"Database connection error: {db_error}"
+            logging.error(error_message)
+            raise ErrorCode.DATABASE_CONNECTION_ERROR from db_error
 
     def __enter__(self) -> 'DatabaseHandler':
         # Context manager enter method.
@@ -322,7 +321,7 @@ class DatabaseHandler:
         except Exception as exception:
             error_message = f"Error connecting to the database: {exception}"
             logging.error(error_message)
-            raise RuntimeError(error_message)
+            raise ErrorCode.DATABASE_CONNECTION_ERROR from exception
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         # Context manager exit method.
