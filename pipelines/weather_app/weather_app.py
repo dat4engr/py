@@ -19,6 +19,7 @@ import time
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 start_time = time.time()
 
+
 class APIConfig:
     # Model for storing API related configuration data.
     def __init__(self, api_key: str, config_file: str):
@@ -242,7 +243,7 @@ class WeatherDataFetcher:
             logging.error(error_message)
             raise RuntimeError(error_message)
 
-    @retry(stop_max_attempt_number=3, wait_fixed=2000)
+    @retry(stop_max_attempt_number=3, wait_random_min=1000, wait_random_max=3000)
     def fetch_weather_data_from_api(self, location: str) -> Union[LocationData, None]:
         # Fetch weather data for a given location from the API.
         try:
