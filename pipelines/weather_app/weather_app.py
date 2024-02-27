@@ -6,7 +6,7 @@ import json
 import logging
 from typing import Union, Tuple, Any
 
-from psycopg2 import connect
+from psycopg2 import connect, OperationalError, DatabaseError
 from pyowm import OWM
 import geocoder
 from contextlib import contextmanager
@@ -14,7 +14,6 @@ from cachetools import TTLCache
 from retrying import retry
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 import time
-import psycopg2
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -301,27 +300,26 @@ class DatabaseHandler:
                 password=db_credentials.password
             )
             return connection
-        except psycopg2.OperationalError as operation_error:
+        except OperationalError as operation_error:
             error_message = f"Operation Error connecting to the database: {operation_error}"
             logging.error(error_message)
-            raise ErrorCode.DATABASE_CONNECTION_ERROR from operation_error
-        except psycopg2.DatabaseError as db_error:
+            raise ErrorCode.DATABASE_CONNECTION_ERROR
+        except DatabaseError as db_error:
             error_message = f"Database connection error: {db_error}"
             logging.error(error_message)
-            raise ErrorCode.DATABASE_CONNECTION_ERROR from db_error
+            raise ErrorCode.DATABASE_CONNECTION_ERROR
 
     def __enter__(self) -> 'DatabaseHandler':
         # Context manager enter method.
         try:
             self.database_connection = self.connect_to_database()
             return self
-        except RuntimeError as error:
-            logging.error(f"Error connecting to database: {error}")
-            raise error
-        except Exception as exception:
-            error_message = f"Error connecting to the database: {exception}"
-            logging.error(error_message)
-            raise ErrorCode.DATABASE_CONNECTION_ERROR from exception
+        except OperationalError as operation_error:
+            logging.error(f"Operational Error connecting to the database: {operation_error}")
+            raise ErrorCode.DATABASE_CONNECTION_ERROR
+        except DatabaseError as db_error:
+            logging.error(f"Database connection error: {db_error}")
+            raise ErrorCode.DATABASE_CONNECTION_ERROR
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         # Context manager exit method.
@@ -365,10 +363,14 @@ class DatabaseHandler:
                 ))
                 self.database_connection.commit()
                 logging.info("Data inserted into the database successfully.")
-        except Exception as exception:
-            error_message = f"Error inserting data into the database: {exception}"
+        except OperationalError as operation_error:
+            error_message = f"Operation Error inserting data into the database: {operation_error}"
             logging.error(error_message)
-            raise RuntimeError(error_message) from exception
+            raise ErrorCode.DATA_INSERTION_ERROR
+        except DatabaseError as db_error:
+            error_message = f"Database Error inserting data into the database: {db_error}"
+            logging.error(error_message)
+            raise ErrorCode.DATA_INSERTION_ERROR
 
 
 class JSONHandler:
@@ -435,7 +437,7 @@ class JSONHandler:
             raise RuntimeError(error_message) from exception
         
 
-if __name__ == "__main__":
+if __name__ == "__main__":      
     try:
         api_key = WeatherDataFetcher.get_config('api_key')
         api_config = APIConfig(api_key, 'config.ini')
@@ -446,13 +448,14 @@ if __name__ == "__main__":
         fetcher = WeatherDataFetcher(api_config)
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            try:
-                executor.map(lambda location: fetcher.fetch_weather_data(location), locations)
-            except (RuntimeError, ValueError, ImportError) as error:
-                logging.error(f"Error occurred: {error}")
-            except Exception as exception:
-                logging.exception("Error executing fetch_weather_data.", exc_info=True)
-        
+            futures = [executor.submit(fetcher.fetch_weather_data, location) for location in locations]
+
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    future.result()
+                except Exception as e:
+                    logging.error(f"An error occurred in thread execution: {e}")
+
         logging.info(f"Script execution completed at {datetime.now().replace(microsecond=0)}.")
 
         end_time = time.time()
@@ -460,12 +463,12 @@ if __name__ == "__main__":
         logging.info(f"Total time taken is {total_time:.2f} seconds.")
 
     except ValueError as value_error:
-        logging.error(f"Value Error occurred: {value_error}")
+        logging.error(f"Value Error occurred in main execution: {value_error}")
     except ImportError as import_error:
-        logging.error(f"Import Error occurred: {import_error}")
+        logging.error(f"Import Error occurred in main execution: {import_error}")
     except RuntimeError as runtime_error:
-        logging.error(f"Runtime Error occurred: {runtime_error}")
+        logging.error(f"Runtime Error occurred in main execution: {runtime_error}")
     except KeyboardInterrupt:
-        logging.error("Keyboard Interrupt detected.")
+        logging.error("Keyboard Interrupt detected in main execution.")
     except Exception as exception:
-        logging.exception("Unexpected Error occurred.", exc_info=True)
+        logging.exception("Unexpected Error occurred in main execution.", exc_info=True)
