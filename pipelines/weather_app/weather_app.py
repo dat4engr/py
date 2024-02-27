@@ -23,6 +23,10 @@ start_time = time.time()
 class APIConfig:
     # Model for storing API related configuration data.
     def __init__(self, api_key: str, config_file: str):
+        if not api_key or api_key.isspace():
+            error_message = "API key cannot be empty or whitespace only."
+            logging.error(error_message)
+            raise ValueError(error_message)
         self.api_key = api_key
         self.config_file = config_file
 
@@ -171,17 +175,25 @@ class WeatherDataFetcher:
 
     @lru_cache(maxsize=128)
     def get_coordinates(self, location: str) -> Union[Tuple[float, float], None]:
-        # Get the coordinates (latitude, longitude) for a given location.
-        coordinates = self.weather_cache.get(location)
-        if coordinates is not None:
-            return coordinates
-
         try:
+            if location.strip() == "":
+                raise ValueError("Location cannot be empty or whitespace only.")
+
+            coordinates = self.weather_cache.get(location)
+            if coordinates is not None:
+                return coordinates
+
             geo_location = geocoder.osm(location)
-            coordinates = geo_location.latlng if geo_location.latlng else None
-            if coordinates:
-                self.weather_cache[location] = {'coordinates': coordinates}
-            return coordinates
+            if geo_location.latlng is None:
+                return None
+
+            coordinates = geo_location.latlng
+            self.weather_cache[location] = {'coordinates': coordinates}
+            return coordinates        
+        except ValueError as value_error:
+            error_message = f"Value Error getting coordinates for location: {location}. {value_error}"
+            logging.error(error_message)
+            raise RuntimeError(error_message)
         except (GeocoderTimedOut, GeocoderServiceError) as geocoder_error:
             error_message = f"Error getting coordinates for location: {location}. {geocoder_error}"
             logging.error(error_message)
@@ -209,9 +221,11 @@ class WeatherDataFetcher:
             raise RuntimeError(error_message)
 
     def fetch_weather_data(self, location: str) -> None:
-        # Fetch weather data for a given location and perform necessary operations like inserting into database and updating JSON file.
         try:
             logging.info(f"Fetching weather data for location: {location}")
+            if location.strip() == "":
+                raise ValueError("Location cannot be empty or whitespace only.")
+
             if location in self.weather_cache:
                 weather_data = self.weather_cache[location]
                 logging.info(f"Weather data found in cache for location: {location}")
@@ -238,6 +252,9 @@ class WeatherDataFetcher:
             logging.info(f"As of: {weather_data['date']} | {weather_data['time']}")
             logging.info(f"Current weather at {location}: {weather_info}")
 
+        except ValueError as value_error:
+            logging.error(value_error)
+            raise RuntimeError(value_error)
         except Exception as exception:
             error_message = f"Error fetching weather data for location: {location}. {exception}"
             logging.error(error_message)
@@ -437,44 +454,24 @@ class JSONHandler:
             raise RuntimeError(error_message) from exception
         
 
-class WeatherService:
-    # Service layer to encapsulate business logic
-    def __init__(self, api_config: APIConfig) -> None:
-        self.fetcher = WeatherDataFetcher(api_config)
-
-    def fetch_weather_data_for_locations(self, locations: list[str]) -> None:
-        try:
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                futures = [executor.submit(self.fetcher.fetch_weather_data, location) for location in locations]
-
-                for future in concurrent.futures.as_completed(futures):
-                    try:
-                        future.result()
-                    except Exception as error:
-                        logging.error(f"An error occurred in thread execution: {error}")
-
-        except ValueError as value_error:
-            logging.error(f"Value Error occurred in main execution: {value_error}")
-        except ImportError as import_error:
-            logging.error(f"Import Error occurred in main execution: {import_error}")
-        except RuntimeError as runtime_error:
-            logging.error(f"Runtime Error occurred in main execution: {runtime_error}")
-        except KeyboardInterrupt:
-            logging.error("Keyboard Interrupt detected in main execution.")
-        except Exception as exception:
-            logging.exception("Unexpected Error occurred in main execution.", exc_info=True)
-
-
-if __name__ == "__main__":
+if __name__ == "__main__":      
     try:
         api_key = WeatherDataFetcher.get_config('api_key')
         api_config = APIConfig(api_key, 'config.ini')
         locations = sorted(["Angeles, PH", "Mabalacat City, PH", "Magalang, PH"])
-
+        
         logging.info(f"Script execution started at {datetime.now().replace(microsecond=0)}.")
 
-        weather_service = WeatherService(api_config)
-        weather_service.fetch_weather_data_for_locations(locations)
+        fetcher = WeatherDataFetcher(api_config)
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [executor.submit(fetcher.fetch_weather_data, location) for location in locations]
+
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    future.result()
+                except Exception as error:
+                    logging.error(f"An error occurred in thread execution: {error}")
 
         logging.info(f"Script execution completed at {datetime.now().replace(microsecond=0)}.")
 
@@ -482,5 +479,11 @@ if __name__ == "__main__":
         total_time = end_time - start_time
         logging.info(f"Total time taken is {total_time:.2f} seconds.")
 
+    except ValueError as value_error:
+        logging.error(f"Value Error occurred in main execution: {value_error}")
+    except ImportError as import_error:
+        logging.error(f"Import Error occurred in main execution: {import_error}")
+    except (RuntimeError, KeyboardInterrupt) as runtime_error:
+        logging.error(f"Runtime Error occurred in main execution: {runtime_error}")
     except Exception as exception:
-        logging.error(f"An unexpected error occurred in main execution: {exception}", exc_info=True)
+        logging.exception("Unexpected Error occurred in main execution.", exc_info=True)
