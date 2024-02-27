@@ -437,24 +437,44 @@ class JSONHandler:
             raise RuntimeError(error_message) from exception
         
 
-if __name__ == "__main__":      
+class WeatherService:
+    # Service layer to encapsulate business logic
+    def __init__(self, api_config: APIConfig) -> None:
+        self.fetcher = WeatherDataFetcher(api_config)
+
+    def fetch_weather_data_for_locations(self, locations: list[str]) -> None:
+        try:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = [executor.submit(self.fetcher.fetch_weather_data, location) for location in locations]
+
+                for future in concurrent.futures.as_completed(futures):
+                    try:
+                        future.result()
+                    except Exception as error:
+                        logging.error(f"An error occurred in thread execution: {error}")
+
+        except ValueError as value_error:
+            logging.error(f"Value Error occurred in main execution: {value_error}")
+        except ImportError as import_error:
+            logging.error(f"Import Error occurred in main execution: {import_error}")
+        except RuntimeError as runtime_error:
+            logging.error(f"Runtime Error occurred in main execution: {runtime_error}")
+        except KeyboardInterrupt:
+            logging.error("Keyboard Interrupt detected in main execution.")
+        except Exception as exception:
+            logging.exception("Unexpected Error occurred in main execution.", exc_info=True)
+
+
+if __name__ == "__main__":
     try:
         api_key = WeatherDataFetcher.get_config('api_key')
         api_config = APIConfig(api_key, 'config.ini')
         locations = sorted(["Angeles, PH", "Mabalacat City, PH", "Magalang, PH"])
-        
+
         logging.info(f"Script execution started at {datetime.now().replace(microsecond=0)}.")
 
-        fetcher = WeatherDataFetcher(api_config)
-
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = [executor.submit(fetcher.fetch_weather_data, location) for location in locations]
-
-            for future in concurrent.futures.as_completed(futures):
-                try:
-                    future.result()
-                except Exception as e:
-                    logging.error(f"An error occurred in thread execution: {e}")
+        weather_service = WeatherService(api_config)
+        weather_service.fetch_weather_data_for_locations(locations)
 
         logging.info(f"Script execution completed at {datetime.now().replace(microsecond=0)}.")
 
@@ -462,13 +482,5 @@ if __name__ == "__main__":
         total_time = end_time - start_time
         logging.info(f"Total time taken is {total_time:.2f} seconds.")
 
-    except ValueError as value_error:
-        logging.error(f"Value Error occurred in main execution: {value_error}")
-    except ImportError as import_error:
-        logging.error(f"Import Error occurred in main execution: {import_error}")
-    except RuntimeError as runtime_error:
-        logging.error(f"Runtime Error occurred in main execution: {runtime_error}")
-    except KeyboardInterrupt:
-        logging.error("Keyboard Interrupt detected in main execution.")
     except Exception as exception:
-        logging.exception("Unexpected Error occurred in main execution.", exc_info=True)
+        logging.error(f"An unexpected error occurred in main execution: {exception}", exc_info=True)
