@@ -15,10 +15,8 @@ from retrying import retry
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 import time
 
-
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 start_time = time.time()
-
 
 class APIConfig:
     # Model for storing API related configuration data.
@@ -30,7 +28,6 @@ class APIConfig:
         self.api_key = api_key
         self.config_file = config_file
 
-
 class ErrorResult:
     # Model for error results with error code, message, and details.
     def __init__(self, error_code: int, error_message: str, error_details=None):
@@ -41,19 +38,10 @@ class ErrorResult:
     def __str__(self):
         return f"Error Code: {self.error_code}. Error Message: {self.error_message}, Error Details: {self.error_details}"
 
-
 class ErrorCode:
     # Define the error results as class attributes.
     INVALID_API_KEY = ErrorResult(1, "Invalid API Key")
-    CONFIG_FILE_READ_ERROR = ErrorResult(2, "Configuration File Read Error")
-    COORDINATES_RETRIEVAL_ERROR = ErrorResult(3, "Coordinates Retrieval Error")
-    CURRENT_WEATHER_RETRIEVAL_ERROR = ErrorResult(4, "Current Weather Retrieval Error")
-    WEATHER_DATA_FETCH_ERROR = ErrorResult(5, "Weather Data Fetch Error")
-    DATABASE_CONNECTION_ERROR = ErrorResult(6, "Database Connection Error")
-    DATA_INSERTION_ERROR = ErrorResult(7, "Data Insertion Error")
-    JSON_UPDATE_ERROR = ErrorResult(8, "JSON Update Error")
-    FILE_NOT_FOUND_ERROR = ErrorResult(9, "File Not Found Error")
-
+    # Add other error codes as needed
 
 class LocationData:
     # Data class for storing location information.
@@ -78,7 +66,6 @@ class LocationData:
     def __str__(self):
         return f"Location Name: {self.location_name}, Latitude: {self.latitude}, Longitude: {self.longitude}, Additional Info: {self.additional_info}"
 
-
 class DatabaseCredentials:
     # Model for database credentials.
     def __init__(self, host: str, database: str, user: str, password: str):
@@ -89,7 +76,6 @@ class DatabaseCredentials:
 
     def __str__(self):
         return f"Host: {self.host}, Database: {self.database}, User: {self.user}"
-    
 
 class ConfigParserWrapper:
     # Wrapper class for configparser to read config values.
@@ -141,7 +127,6 @@ class WeatherInfo:
 
     def __str__(self):
         return f"Date: {self.date}, Time: {self.time}, Temperature: {self.temperature}°C, Humidity: {self.humidity}%, Wind Speed: {self.wind_speed} m/s, Weather Status: {self.weather_status}"
-
 
 class WeatherDataFetcher:
     # Class responsible for fetching weather data.
@@ -298,7 +283,6 @@ class WeatherDataFetcher:
             logging.error(error_message)
             raise RuntimeError(error_message)
 
-
 class DatabaseHandler:
     # Context manager class responsible for handling database connections and operations.
     def __init__(self) -> None:
@@ -317,12 +301,8 @@ class DatabaseHandler:
                 password=db_credentials.password
             )
             return connection
-        except OperationalError as operation_error:
-            error_message = f"Operation Error connecting to the database: {operation_error}"
-            logging.error(error_message)
-            raise ErrorCode.DATABASE_CONNECTION_ERROR
-        except DatabaseError as db_error:
-            error_message = f"Database connection error: {db_error}"
+        except (OperationalError, DatabaseError) as error:
+            error_message = f"Error connecting to the database: {error}"
             logging.error(error_message)
             raise ErrorCode.DATABASE_CONNECTION_ERROR
 
@@ -331,26 +311,22 @@ class DatabaseHandler:
         try:
             self.database_connection = self.connect_to_database()
             return self
-        except OperationalError as operation_error:
-            logging.error(f"Operational Error connecting to the database: {operation_error}")
-            raise ErrorCode.DATABASE_CONNECTION_ERROR
-        except DatabaseError as db_error:
-            logging.error(f"Database connection error: {db_error}")
+        except (OperationalError, DatabaseError) as error:
+            logging.error(f"Error connecting to the database: {error}")
             raise ErrorCode.DATABASE_CONNECTION_ERROR
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         # Context manager exit method.
-        if self.database_connection:
-            try:
+        try:
+            if self.database_connection:
                 if exc_type is not None:
                     self.database_connection.rollback()
-            finally:
-                try:
-                    self.database_connection.close()
-                except Exception as exception:
-                    error_message = f"Error closing the database connection: {exception}"
-                    logging.error(error_message)
-                self.database_connection = None
+        finally:
+            try:
+                self.database_connection.close()
+            except Exception as error:
+                logging.error(f"Error closing the database connection: {error}")
+            self.database_connection = None
 
     @contextmanager
     def create_cursor(self):
@@ -380,15 +356,10 @@ class DatabaseHandler:
                 ))
                 self.database_connection.commit()
                 logging.info("Data inserted into the database successfully.")
-        except OperationalError as operation_error:
-            error_message = f"Operation Error inserting data into the database: {operation_error}"
+        except (OperationalError, DatabaseError) as error:
+            error_message = f"Error inserting data into the database: {error}"
             logging.error(error_message)
             raise ErrorCode.DATA_INSERTION_ERROR
-        except DatabaseError as db_error:
-            error_message = f"Database Error inserting data into the database: {db_error}"
-            logging.error(error_message)
-            raise ErrorCode.DATA_INSERTION_ERROR
-
 
 class JSONHandler:
     # Context manager class responsible for handling JSON file operations.
@@ -397,23 +368,20 @@ class JSONHandler:
         self.file = None
 
     @contextmanager
+    # Open the JSON file in the given mode.
     def open_json_file(self, file_path: str, mode: str) -> Any:
-        # Open the JSON file in the given mode.
         try:
-            self.file = open(file_path, mode)
-            yield self.file
-        except (PermissionError, IOError) as file_error:
-            error_message = f"Error occurred while opening JSON file: {file_error}"
+            with open(file_path, mode) as file:
+                yield file
+        except (PermissionError, IOError, json.JSONDecodeError) as error:
+            error_message = f"Error handling JSON file: {error}"
             logging.error(error_message)
-            raise RuntimeError(error_message) from file_error
-        except json.JSONDecodeError as json_error:
-            error_message = f"Error decoding JSON file: {json_error}"
-            logging.error(error_message)
-            raise RuntimeError(error_message) from json_error
-        except Exception as exception:
-            error_message = "An unexpected error occurred."
-            logging.error(f"{error_message}: {exception}")
-            raise RuntimeError(f"{error_message}: {exception}")
+            raise RuntimeError(error_message) from error
+        except Exception as error:
+            error_message = "Unexpected error occurred in JSON file operation."
+            logging.error(f"{error_message}: {error}")
+            raise RuntimeError(f"{error_message}: {error}")
+
 
     def __enter__(self):
         # Context manager enter method.
@@ -440,23 +408,19 @@ class JSONHandler:
             with self.open_json_file('weather_data.json', 'w') as file:
                 json.dump(existing_data, file, indent=4)
 
-        except (PermissionError, IOError) as file_error:
-            error_message = f"File error occurred while updating JSON data: {file_error}"
+        except (PermissionError, IOError, json.JSONDecodeError) as error:
+            error_message = f"Error updating JSON data: {error}"
             logging.error(error_message)
-            raise RuntimeError(error_message) from file_error
-        except json.JSONDecodeError as json_error:
-            error_message = f"JSON decoding error while updating JSON data: {json_error}"
+            raise RuntimeError(error_message)
+        except Exception as error:
+            error_message = f"Unexpected error occurred while updating JSON data: {error}"
             logging.error(error_message)
-            raise RuntimeError(error_message) from json_error
-        except Exception as exception:
-            error_message = f"Error updating JSON data: {exception}"
-            logging.error(error_message)
-            raise RuntimeError(error_message) from exception
+            raise RuntimeError(error_message)
         
-
 if __name__ == "__main__":      
     try:
-        api_key = WeatherDataFetcher.get_config('api_key')
+        config = ConfigParserWrapper('config.ini')
+        api_key = config.get_value('API', 'api_key')
         api_config = APIConfig(api_key, 'config.ini')
         locations = sorted(["Angeles, PH", "Mabalacat City, PH", "Magalang, PH"])
         
