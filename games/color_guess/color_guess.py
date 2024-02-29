@@ -1,21 +1,20 @@
 import random
 
-COLORS = {"R", "G", "B", "Y", "W", "O"}
-
 class ColorGuess:
+    COLORS = {"R", "G", "B", "Y", "W", "O"}
     MAX_TRIES = 10
     CODE_LENGTH = 4
-    
+
     def __init__(self):
         self.code = self.generate_code()
         self.score = 0
 
     def generate_code(self):
-        # Generate a random code consisting of CODE_LENGTH number of colors from COLORS.
-        return random.choices(tuple(COLORS), k=self.CODE_LENGTH)
+        # Generates a random code using colors from a specified set.
+        return random.choices(tuple(self.COLORS), k=self.CODE_LENGTH)
 
-    def guess_code(self):
-        # Prompt the user to guess the code.
+    def get_guess(self):
+        # Prompts the user to enter a guess and validates the input.
         while True:
             try:
                 guess = input("Guess: ").upper().split(" ")
@@ -23,40 +22,38 @@ class ColorGuess:
                 if len(guess) != self.CODE_LENGTH:
                     raise ValueError(f"You must guess {self.CODE_LENGTH} colors.")
 
-                if any(color not in COLORS for color in guess):
+                if any(color not in self.COLORS for color in guess):
                     raise ValueError(f"Invalid color. Try again.")
 
-                break
+                return guess
 
             except ValueError as error:
                 print(error)
 
-        return guess
-
-    def check_code(self, guess):
-        # Check the correctness of the guess against the real code.
-        color_counts = {color: self.code.count(color) for color in COLORS}
+    def check_guess(self, guess):
+        # Compares the user's guess with the actual code to determine correct and incorrect positions.
+        colors_count = {color: self.code.count(color) for color in self.COLORS}
         correct_position = sum(guess_color == real_color for guess_color, real_color in zip(guess, self.code))
-        incorrect_position = sum(guess_color in color_counts and color_counts[guess_color] > 0 for guess_color in guess)
+        incorrect_position = sum(guess_color in colors_count and colors_count[guess_color] > 0 for guess_color in guess)
         return correct_position, incorrect_position
 
     def end_game(self):
+        # Displays the player's final score and prompts for a replay option.
         print(f"Your score is: {self.score}")
         replay = input("Do you want to play again? (Y/N) ").upper()
-        if replay != "Y":
-            return False
-        return True
+        return replay == "Y"
 
     def play_game(self):
+        # Implements the main game loop where the user can make multiple attempts to guess the code.
         while True:
             try:
                 print(f"Welcome to Color Guess! You have {self.MAX_TRIES} tries to guess the code.")
-                print(f"Demo Mode. Answer Sheet is: {self.code}")
-                print("The valid colors are", *COLORS)
+                # print(f"Demo Mode. Answer Sheet is: {self.code}")
+                print("The valid colors are", *self.COLORS)
 
                 for attempts in range(1, self.MAX_TRIES + 1):
-                    guess = self.guess_code()
-                    correct_position, incorrect_position = self.check_code(guess)
+                    guess = self.get_guess()
+                    correct_position, incorrect_position = self.check_guess(guess)
 
                     if correct_position == self.CODE_LENGTH:
                         print(f"You guessed the code in {attempts} tries!")
@@ -79,5 +76,6 @@ class ColorGuess:
 
 
 if __name__ == "__main__":
+    # Instantiate the  class and call the method to start playing the color guessing game.
     game = ColorGuess()
     game.play_game()
