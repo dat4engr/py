@@ -6,7 +6,7 @@ import json
 import logging
 from typing import Union, Tuple, Any
 
-from psycopg2 import connect, OperationalError, DatabaseError
+from psycopg2 import connect, OperationalError, DatabaseError, pool
 from pyowm import OWM
 import geocoder
 from contextlib import contextmanager
@@ -121,7 +121,6 @@ class ConfigParserWrapper:
             logging.error(error_message)
             raise RuntimeError(error_message)
 
-
 class WeatherInfo:
     # Model for storing weather information for a location.
     def __init__(self, date: str, time: str, temperature: float, humidity: int, wind_speed: float, weather_status: str):
@@ -141,6 +140,7 @@ class WeatherDataFetcher:
     CACHE_TTL = 3600
     
     def __init__(self, api_config: APIConfig) -> None:
+        # Initializes the WeatherDataFetcher with the specified API configuration.
         self.weather_cache = TTLCache(maxsize=self.CACHE_SIZE, ttl=self.CACHE_TTL)
         if self.validate_api_key(api_config.api_key):
             self.api_key = api_config.api_key
@@ -151,12 +151,12 @@ class WeatherDataFetcher:
 
     @staticmethod
     def validate_api_key(api_key: str) -> bool:
-        # Validate if the given API key is valid.
+        # Validates if the given API key is valid.
         return bool(api_key and not api_key.isspace())
 
     @classmethod
     def get_config(cls, key: str) -> str:
-        # Get the configuration value from the config.ini file.
+        # Gets the configuration value from the config.ini file.
         try:
             config = ConfigParserWrapper('config.ini')
             return config.get_value('API', key)
@@ -167,6 +167,7 @@ class WeatherDataFetcher:
 
     @lru_cache(maxsize=128)
     def get_coordinates(self, location: str) -> Union[Tuple[float, float], None]:
+        # Gets the coordinates for a given location.
         try:
             if location.strip() == "":
                 raise ValueError("Location cannot be empty or whitespace only.")
@@ -196,7 +197,7 @@ class WeatherDataFetcher:
             raise RuntimeError(error_message)
 
     def get_current_weather(self, latitude: float, longitude: float) -> Tuple[str, str, Any]:
-        # Get the current weather data for a given latitude and longitude.
+        # Gets the current weather data for a given latitude and longitude.
         try:
             owm = OWM(self.api_key)
             weather_manager = owm.weather_manager()
@@ -213,6 +214,7 @@ class WeatherDataFetcher:
             raise RuntimeError(error_message)
 
     def fetch_weather_data(self, location: str, lazy_load: bool = True) -> None:
+        # Fetches weather data for a given location. Loads from cache if available.
         try:
             logging.info(f"Fetching weather data for location: {location}")
             if location.strip() == "":
@@ -291,60 +293,44 @@ class WeatherDataFetcher:
             raise RuntimeError(error_message)
 
 class DatabaseHandler:
-    # Context manager class responsible for handling database connections and operations.
-    def __init__(self) -> None:
-        # Constructor for DatabaseHandler class.
-        self.database_connection = None
+    # A helper class to interact with a PostgreSQL database.
+    pool = pool.ThreadedConnectionPool(1, 10, 
+                                       user='postgres', 
+                                       password='041688', 
+                                       host='localhost', 
+                                       database='postgres')
 
-    def connect_to_database(self) -> Any:
-        # Connect to the database using the credentials from the config.ini file.
-        try:
-            config = ConfigParserWrapper('config.ini')
-            db_credentials = config.get_database_credentials()
-            connection = connect(
-                host=db_credentials.host,
-                database=db_credentials.database,
-                user=db_credentials.user,
-                password=db_credentials.password
-            )
-            return connection
-        except (OperationalError, DatabaseError) as error:
-            error_message = f"Error connecting to the database: {error}"
-            logging.error(error_message)
-            raise ErrorCode.DATABASE_CONNECTION_ERROR
+    def __enter__(self):
+        # Get a connection from the connection pool.
+        self.conn = DatabaseHandler.pool.getconn()
+        return self
 
-    def __enter__(self) -> 'DatabaseHandler':
-        # Context manager enter method.
-        try:
-            self.database_connection = self.connect_to_database()
-            return self
-        except (OperationalError, DatabaseError) as error:
-            logging.error(f"Error connecting to the database: {error}")
-            raise ErrorCode.DATABASE_CONNECTION_ERROR
-
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-        # Context manager exit method.
-        try:
-            if self.database_connection:
-                if exc_type is not None:
-                    self.database_connection.rollback()
-        finally:
-            try:
-                self.database_connection.close()
-            except Exception as error:
-                logging.error(f"Error closing the database connection: {error}")
-            self.database_connection = None
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Return the connection to the connection pool.
+        DatabaseHandler.pool.putconn(self.conn)
+        self.conn = None
 
     @contextmanager
     def create_cursor(self):
+        # Creates a cursor context manager.
         try:
-            cursor = self.database_connection.cursor()
+            cursor = self.conn.cursor()
             yield cursor
         finally:
             if cursor:
                 cursor.close()
 
+    def connect_to_database(self) -> Any:
+        # Connect to the database using the credentials from the config.ini file.
+        try:
+            return self.pool.getconn()
+        except (OperationalError, DatabaseError) as error:
+            error_message = f"Error connecting to the database: {error}"
+            logging.error(error_message)
+            raise ErrorCode.DATABASE_CONNECTION_ERROR
+
     def insert_data(self, data: dict) -> None:
+        # Insert data into the database.
         try:
             with self.create_cursor() as cursor:
                 insert_query = '''
@@ -361,7 +347,7 @@ class DatabaseHandler:
                     data['wind_speed'],
                     data['humidity']
                 ))
-                self.database_connection.commit()
+                self.conn.commit()
                 logging.info("Data inserted into the database successfully.")
         except (OperationalError, DatabaseError) as error:
             error_message = f"Error inserting data into the database: {error}"
@@ -388,7 +374,6 @@ class JSONHandler:
             error_message = "Unexpected error occurred in JSON file operation."
             logging.error(f"{error_message}: {error}")
             raise RuntimeError(f"{error_message}: {error}")
-
 
     def __enter__(self):
         # Context manager enter method.
