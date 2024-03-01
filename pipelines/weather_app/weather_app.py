@@ -41,7 +41,14 @@ class ErrorResult:
 class ErrorCode:
     # Define the error results as class attributes.
     INVALID_API_KEY = ErrorResult(1, "Invalid API Key")
-    # Add other error codes as needed
+    CONFIG_FILE_READ_ERROR = ErrorResult(2, "Configuration File Read Error")
+    COORDINATES_RETRIEVAL_ERROR = ErrorResult(3, "Coordinates Retrieval Error")
+    CURRENT_WEATHER_RETRIEVAL_ERROR = ErrorResult(4, "Current Weather Retrieval Error")
+    WEATHER_DATA_FETCH_ERROR = ErrorResult(5, "Weather Data Fetch Error")
+    DATABASE_CONNECTION_ERROR = ErrorResult(6, "Database Connection Error")
+    DATA_INSERTION_ERROR = ErrorResult(7, "Data Insertion Error")
+    JSON_UPDATE_ERROR = ErrorResult(8, "JSON Update Error")
+    FILE_NOT_FOUND_ERROR = ErrorResult(9, "File Not Found Error")
 
 class LocationData:
     # Data class for storing location information.
@@ -205,27 +212,27 @@ class WeatherDataFetcher:
             logging.error(error_message)
             raise RuntimeError(error_message)
 
-    def fetch_weather_data(self, location: str) -> None:
+    def fetch_weather_data(self, location: str, lazy_load: bool = True) -> None:
         try:
             logging.info(f"Fetching weather data for location: {location}")
             if location.strip() == "":
                 raise ValueError("Location cannot be empty or whitespace only.")
 
-            if location in self.weather_cache:
-                weather_data = self.weather_cache[location]
-                logging.info(f"Weather data found in cache for location: {location}")
-            else:
+            location_data = None
+            if not lazy_load or location not in self.weather_cache:
                 location_data = self.fetch_weather_data_from_api(location)
-                if location_data is not None:
-                    self.weather_cache[location] = location_data.get_additional_info()
-                    logging.info(f"Weather data fetched from API and stored in cache for location: {location}")
-                    
+            
             if not location_data:
                 error_message = f"Error fetching weather data for location: {location}. Data is None."
                 logging.error(error_message)
                 raise RuntimeError(error_message)
 
+            if location_data and not lazy_load:
+                self.weather_cache[location] = location_data.get_additional_info()
+                logging.info(f"Weather data fetched from API and stored in cache for location: {location}")
+
             weather_data = location_data.get_additional_info()
+            
             with DatabaseHandler() as database_handler:
                 database_handler.insert_data(weather_data)
 
