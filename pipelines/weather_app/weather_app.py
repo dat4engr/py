@@ -6,7 +6,7 @@ import json
 import logging
 from typing import Union, Tuple, Any
 
-from psycopg2 import connect, OperationalError, DatabaseError, pool
+from psycopg2 import OperationalError, DatabaseError, pool
 from pyowm import OWM
 import geocoder
 from contextlib import contextmanager
@@ -72,6 +72,27 @@ class LocationData:
 
     def __str__(self):
         return f"Location Name: {self.location_name}, Latitude: {self.latitude}, Longitude: {self.longitude}, Additional Info: {self.additional_info}"
+
+class DatabasePool:
+    # #Class representing a database connection pool manager.
+    _pool = None
+
+    @staticmethod
+    def get_pool():
+        # Get the database connection pool. If the pool does not exist, creates a new one and returns it.
+        if DatabasePool._pool is None:
+            DatabasePool._pool = pool.ThreadedConnectionPool(1, 10, 
+                                       user='postgres', 
+                                       password='041688', 
+                                       host='localhost', 
+                                       database='postgres')
+        return DatabasePool._pool
+
+    @staticmethod
+    def close_all_connections():
+        # Close all connections in the database connection pool if it exists.
+        if DatabasePool._pool is not None:
+            DatabasePool._pool.closeall()
 
 class DatabaseCredentials:
     # Model for database credentials.
@@ -294,50 +315,30 @@ class WeatherDataFetcher:
 
 class DatabaseHandler:
     # A helper class to interact with a PostgreSQL database.
-    pool = pool.ThreadedConnectionPool(1, 10, 
-                                       user='postgres', 
-                                       password='041688', 
-                                       host='localhost', 
-                                       database='postgres')
-
     def __enter__(self):
-        # Get a connection from the connection pool.
-        self.conn = DatabaseHandler.pool.getconn()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        # Return the connection to the connection pool.
-        DatabaseHandler.pool.putconn(self.conn)
-        self.conn = None
-
-    @contextmanager
-    def create_cursor(self):
-        # Creates a cursor context manager.
         try:
-            cursor = self.conn.cursor()
-            yield cursor
-        finally:
-            if cursor:
-                cursor.close()
-
-    def connect_to_database(self) -> Any:
-        # Connect to the database using the credentials from the config.ini file.
-        try:
-            return self.pool.getconn()
+            self.conn = DatabasePool.get_pool().getconn()
+            return self
         except (OperationalError, DatabaseError) as error:
             error_message = f"Error connecting to the database: {error}"
             logging.error(error_message)
-            raise ErrorCode.DATABASE_CONNECTION_ERROR
+            raise ValueError(error_message)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        DatabasePool.get_pool().putconn(self.conn)
+        self.conn = None
+
+    @staticmethod
+    def create_cursor(conn):
+        return conn.cursor()
 
     def insert_data(self, data: dict) -> None:
-        # Insert data into the database.
         try:
-            with self.create_cursor() as cursor:
+            with self.create_cursor(self.conn) as cursor:
                 insert_query = '''
                 INSERT INTO weather_data (date, time, location, weather_status, temperature, wind_speed, humidity) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s);
                 '''
-
                 cursor.execute(insert_query, (
                     data['date'],
                     data['time'],
@@ -352,7 +353,7 @@ class DatabaseHandler:
         except (OperationalError, DatabaseError) as error:
             error_message = f"Error inserting data into the database: {error}"
             logging.error(error_message)
-            raise ErrorCode.DATA_INSERTION_ERROR
+            raise ValueError(error_message)
 
 class JSONHandler:
     # Context manager class responsible for handling JSON file operations.
