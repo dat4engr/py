@@ -74,7 +74,7 @@ class LocationData:
         return f"Location Name: {self.location_name}, Latitude: {self.latitude}, Longitude: {self.longitude}, Additional Info: {self.additional_info}"
 
 class DatabasePool:
-    # #Class representing a database connection pool manager.
+    # Class representing a database connection pool manager.
     _pool = None
 
     @staticmethod
@@ -211,6 +211,7 @@ class WeatherDataFetcher:
         except (GeocoderTimedOut, GeocoderServiceError) as geocoder_error:
             error_message = f"Error getting coordinates for location: {location}. {geocoder_error}"
             logging.error(error_message)
+            logging.warning("Attempt to retrieve location coordinates timed out or service error.")
             raise RuntimeError(error_message)
         except Exception as exception:
             error_message = f"Unknown error getting coordinates for location: {location}. {exception}"
@@ -319,9 +320,10 @@ class DatabaseHandler:
         try:
             self.conn = DatabasePool.get_pool().getconn()
             return self
-        except (OperationalError, DatabaseError) as error:
-            error_message = f"Error connecting to the database: {error}"
+        except (OperationalError, DatabaseError) as db_error:
+            error_message = f"Error connecting to the database: {db_error}"
             logging.error(error_message)
+            logging.warning("Error connecting to the database.")
             raise ValueError(error_message)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -350,9 +352,10 @@ class DatabaseHandler:
                 ))
                 self.conn.commit()
                 logging.info("Data inserted into the database successfully.")
-        except (OperationalError, DatabaseError) as error:
-            error_message = f"Error inserting data into the database: {error}"
+        except (OperationalError, DatabaseError) as db_error:
+            error_message = f"Error connecting to the database: {db_error}"
             logging.error(error_message)
+            logging.warning("Error connecting to the database.")
             raise ValueError(error_message)
 
 class JSONHandler:
@@ -367,10 +370,11 @@ class JSONHandler:
         try:
             with open(file_path, mode) as file:
                 yield file
-        except (PermissionError, IOError, json.JSONDecodeError) as error:
-            error_message = f"Error handling JSON file: {error}"
+        except (PermissionError, IOError, json.JSONDecodeError) as json_error:
+            error_message = f"Error updating JSON data: {json_error}"
             logging.error(error_message)
-            raise RuntimeError(error_message) from error
+            logging.warning("Error updating JSON data.")
+            raise RuntimeError(error_message)
         except Exception as error:
             error_message = "Unexpected error occurred in JSON file operation."
             logging.error(f"{error_message}: {error}")
@@ -401,9 +405,10 @@ class JSONHandler:
             with self.open_json_file('weather_data.json', 'w') as file:
                 json.dump(existing_data, file, indent=4)
 
-        except (PermissionError, IOError, json.JSONDecodeError) as error:
-            error_message = f"Error updating JSON data: {error}"
+        except (PermissionError, IOError, json.JSONDecodeError) as json_error:
+            error_message = f"Error updating JSON data: {json_error}"
             logging.error(error_message)
+            logging.warning("Error updating JSON data.")
             raise RuntimeError(error_message)
         except Exception as error:
             error_message = f"Unexpected error occurred while updating JSON data: {error}"
