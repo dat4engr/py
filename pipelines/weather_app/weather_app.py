@@ -82,10 +82,10 @@ class DatabasePool:
         # Get the database connection pool. If the pool does not exist, creates a new one and returns it.
         if DatabasePool._pool is None:
             DatabasePool._pool = pool.ThreadedConnectionPool(1, 10, 
-                                       user='postgres', 
-                                       password='041688', 
-                                       host='localhost', 
-                                       database='postgres')
+                                       user='', 
+                                       password='', 
+                                       host='', 
+                                       database='')
         return DatabasePool._pool
 
     @staticmethod
@@ -208,14 +208,10 @@ class WeatherDataFetcher:
             error_message = f"Value Error getting coordinates for location: {location}. {value_error}"
             logging.error(error_message)
             raise RuntimeError(error_message)
-        except (GeocoderTimedOut, GeocoderServiceError) as geocoder_error:
-            error_message = f"Error getting coordinates for location: {location}. {geocoder_error}"
+        except (GeocoderTimedOut, GeocoderServiceError, Exception) as api_error:
+            error_message = f"API Error fetching data for location: {location}. {api_error}"
             logging.error(error_message)
             logging.warning("Attempt to retrieve location coordinates timed out or service error.")
-            raise RuntimeError(error_message)
-        except Exception as exception:
-            error_message = f"Unknown error getting coordinates for location: {location}. {exception}"
-            logging.error(error_message)
             raise RuntimeError(error_message)
 
     def get_current_weather(self, latitude: float, longitude: float) -> Tuple[str, str, Any]:
@@ -268,8 +264,8 @@ class WeatherDataFetcher:
             logging.info(f"As of: {weather_data['date']} | {weather_data['time']}")
             logging.info(f"Current weather at {location}: {weather_info}")
 
-        except ValueError as value_error:
-            logging.error(value_error)
+        except (ValueError, RuntimeError) as data_error:
+            logging.error(f"Error fetching weather data: {data_error}")
             raise RuntimeError(value_error)
         except Exception as exception:
             error_message = f"Error fetching weather data for location: {location}. {exception}"
@@ -321,14 +317,16 @@ class DatabaseHandler:
             self.conn = DatabasePool.get_pool().getconn()
             return self
         except (OperationalError, DatabaseError) as db_error:
-            error_message = f"Error connecting to the database: {db_error}"
+            error_message = f"Database connection error: {db_error}"
             logging.error(error_message)
-            logging.warning("Error connecting to the database.")
+            logging.warning("Database connection error.")
             raise ValueError(error_message)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         DatabasePool.get_pool().putconn(self.conn)
         self.conn = None
+        if exc_type:
+            logging.error(f"Database operation error: {exc_type} {exc_val}")
 
     @staticmethod
     def create_cursor(conn):
@@ -353,9 +351,9 @@ class DatabaseHandler:
                 self.conn.commit()
                 logging.info("Data inserted into the database successfully.")
         except (OperationalError, DatabaseError) as db_error:
-            error_message = f"Error connecting to the database: {db_error}"
+            error_message = f"Error inserting to the database: {db_error}"
             logging.error(error_message)
-            logging.warning("Error connecting to the database.")
+            logging.warning("Error inserting to the database.")
             raise ValueError(error_message)
 
 class JSONHandler:
