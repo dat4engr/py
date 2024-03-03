@@ -14,6 +14,8 @@ from cachetools import TTLCache
 from retrying import retry
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 import time
+import threading
+import queue
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 start_time = time.time()
@@ -76,23 +78,38 @@ class LocationData:
 class DatabasePool:
     # Class representing a database connection pool manager.
     _pool = None
+    _pool_mutex = threading.Lock()
+    _connection_queue = queue.Queue(maxsize=10)
 
-    @staticmethod
     def get_pool():
         # Get the database connection pool. If the pool does not exist, creates a new one and returns it.
         if DatabasePool._pool is None:
-            DatabasePool._pool = pool.ThreadedConnectionPool(1, 10, 
-                                       user='', 
-                                       password='', 
-                                       host='', 
-                                       database='')
+            with DatabasePool._pool_mutex:
+                if DatabasePool._pool is None:
+                    config = ConfigParserWrapper('config.ini')
+                    db_credentials = config.get_database_credentials()
+                    DatabasePool._pool = pool.ThreadedConnectionPool(1, 10,
+                                       user=db_credentials.user,
+                                       password=db_credentials.password,
+                                       host=db_credentials.host,
+                                       database=db_credentials.database)
         return DatabasePool._pool
 
-    @staticmethod
+    def get_connection():
+        conn = DatabasePool._connection_queue.get()
+        if conn is None:
+            conn = DatabasePool.get_pool().getconn()
+        return conn
+
+    def release_connection(conn):
+        DatabasePool._connection_queue.put(conn)
+
     def close_all_connections():
         # Close all connections in the database connection pool if it exists.
         if DatabasePool._pool is not None:
-            DatabasePool._pool.closeall()
+            with DatabasePool._pool_mutex:
+                if DatabasePool._pool is not None:
+                    DatabasePool._pool.closeall()
 
 class DatabaseCredentials:
     # Model for database credentials.
@@ -208,10 +225,13 @@ class WeatherDataFetcher:
             error_message = f"Value Error getting coordinates for location: {location}. {value_error}"
             logging.error(error_message)
             raise RuntimeError(error_message)
-        except (GeocoderTimedOut, GeocoderServiceError, Exception) as api_error:
-            error_message = f"API Error fetching data for location: {location}. {api_error}"
+        except (GeocoderTimedOut, GeocoderServiceError) as geocoder_error:
+            error_message = f"Error getting coordinates for location: {location}. {geocoder_error}"
             logging.error(error_message)
-            logging.warning("Attempt to retrieve location coordinates timed out or service error.")
+            raise RuntimeError(error_message)
+        except Exception as exception:
+            error_message = f"Unknown error getting coordinates for location: {location}. {exception}"
+            logging.error(error_message)
             raise RuntimeError(error_message)
 
     def get_current_weather(self, latitude: float, longitude: float) -> Tuple[str, str, Any]:
@@ -264,8 +284,8 @@ class WeatherDataFetcher:
             logging.info(f"As of: {weather_data['date']} | {weather_data['time']}")
             logging.info(f"Current weather at {location}: {weather_info}")
 
-        except (ValueError, RuntimeError) as data_error:
-            logging.error(f"Error fetching weather data: {data_error}")
+        except ValueError as value_error:
+            logging.error(value_error)
             raise RuntimeError(value_error)
         except Exception as exception:
             error_message = f"Error fetching weather data for location: {location}. {exception}"
@@ -316,17 +336,14 @@ class DatabaseHandler:
         try:
             self.conn = DatabasePool.get_pool().getconn()
             return self
-        except (OperationalError, DatabaseError) as db_error:
-            error_message = f"Database connection error: {db_error}"
+        except (OperationalError, DatabaseError) as error:
+            error_message = f"Error connecting to the database: {error}"
             logging.error(error_message)
-            logging.warning("Database connection error.")
             raise ValueError(error_message)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         DatabasePool.get_pool().putconn(self.conn)
         self.conn = None
-        if exc_type:
-            logging.error(f"Database operation error: {exc_type} {exc_val}")
 
     @staticmethod
     def create_cursor(conn):
@@ -350,10 +367,9 @@ class DatabaseHandler:
                 ))
                 self.conn.commit()
                 logging.info("Data inserted into the database successfully.")
-        except (OperationalError, DatabaseError) as db_error:
-            error_message = f"Error inserting to the database: {db_error}"
+        except (OperationalError, DatabaseError) as error:
+            error_message = f"Error inserting data into the database: {error}"
             logging.error(error_message)
-            logging.warning("Error inserting to the database.")
             raise ValueError(error_message)
 
 class JSONHandler:
@@ -368,11 +384,10 @@ class JSONHandler:
         try:
             with open(file_path, mode) as file:
                 yield file
-        except (PermissionError, IOError, json.JSONDecodeError) as json_error:
-            error_message = f"Error updating JSON data: {json_error}"
+        except (PermissionError, IOError, json.JSONDecodeError) as error:
+            error_message = f"Error handling JSON file: {error}"
             logging.error(error_message)
-            logging.warning("Error updating JSON data.")
-            raise RuntimeError(error_message)
+            raise RuntimeError(error_message) from error
         except Exception as error:
             error_message = "Unexpected error occurred in JSON file operation."
             logging.error(f"{error_message}: {error}")
@@ -403,10 +418,9 @@ class JSONHandler:
             with self.open_json_file('weather_data.json', 'w') as file:
                 json.dump(existing_data, file, indent=4)
 
-        except (PermissionError, IOError, json.JSONDecodeError) as json_error:
-            error_message = f"Error updating JSON data: {json_error}"
+        except (PermissionError, IOError, json.JSONDecodeError) as error:
+            error_message = f"Error updating JSON data: {error}"
             logging.error(error_message)
-            logging.warning("Error updating JSON data.")
             raise RuntimeError(error_message)
         except Exception as error:
             error_message = f"Unexpected error occurred while updating JSON data: {error}"
