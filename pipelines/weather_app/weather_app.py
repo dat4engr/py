@@ -16,6 +16,7 @@ from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 import time
 import threading
 import queue
+import re
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 start_time = time.time()
@@ -205,32 +206,34 @@ class WeatherDataFetcher:
 
     @lru_cache(maxsize=128)
     def get_coordinates(self, location: str) -> Union[Tuple[float, float], None]:
-        # Gets the coordinates for a given location.
         try:
-            if location.strip() == "":
+            # Remove special characters and non-alphanumeric characters from the location name
+            cleaned_location = re.sub(r'[^\w\s]', '', location)
+
+            if cleaned_location.strip() == "":
                 raise ValueError("Location cannot be empty or whitespace only.")
 
-            coordinates = self.weather_cache.get(location)
+            coordinates = self.weather_cache.get(cleaned_location)
             if coordinates is not None:
                 return coordinates
 
-            geo_location = geocoder.osm(location)
+            geo_location = geocoder.osm(cleaned_location)
             if geo_location.latlng is None:
                 return None
 
             coordinates = geo_location.latlng
-            self.weather_cache[location] = {'coordinates': coordinates}
-            return coordinates        
+            self.weather_cache[cleaned_location] = {'coordinates': coordinates}
+            return coordinates
         except ValueError as value_error:
-            error_message = f"Value Error getting coordinates for location: {location}. {value_error}"
+            error_message = f"Value Error getting coordinates for location: {cleaned_location}. {value_error}"
             logging.error(error_message)
             raise RuntimeError(error_message)
         except (GeocoderTimedOut, GeocoderServiceError) as geocoder_error:
-            error_message = f"Error getting coordinates for location: {location}. {geocoder_error}"
+            error_message = f"Error getting coordinates for location: {cleaned_location}. {geocoder_error}"
             logging.error(error_message)
             raise RuntimeError(error_message)
         except Exception as exception:
-            error_message = f"Unknown error getting coordinates for location: {location}. {exception}"
+            error_message = f"Unknown error getting coordinates for location: {cleaned_location}. {exception}"
             logging.error(error_message)
             raise RuntimeError(error_message)
 
@@ -255,21 +258,25 @@ class WeatherDataFetcher:
         # Fetches weather data for a given location. Loads from cache if available.
         try:
             logging.info(f"Fetching weather data for location: {location}")
-            if location.strip() == "":
+
+            # Normalize the location name to title case
+            normalized_location = location.title()
+
+            if normalized_location.strip() == "":
                 raise ValueError("Location cannot be empty or whitespace only.")
 
             location_data = None
-            if not lazy_load or location not in self.weather_cache:
-                location_data = self.fetch_weather_data_from_api(location)
+            if not lazy_load or normalized_location not in self.weather_cache:
+                location_data = self.fetch_weather_data_from_api(normalized_location)
             
             if not location_data:
-                error_message = f"Error fetching weather data for location: {location}. Data is None."
+                error_message = f"Error fetching weather data for location: {normalized_location}. Data is None."
                 logging.error(error_message)
                 raise RuntimeError(error_message)
 
             if location_data and not lazy_load:
-                self.weather_cache[location] = location_data.get_additional_info()
-                logging.info(f"Weather data fetched from API and stored in cache for location: {location}")
+                self.weather_cache[normalized_location] = location_data.get_additional_info()
+                logging.info(f"Weather data fetched from API and stored in cache for location: {normalized_location}")
 
             weather_data = location_data.get_additional_info()
             
@@ -288,35 +295,38 @@ class WeatherDataFetcher:
             logging.error(value_error)
             raise RuntimeError(value_error)
         except Exception as exception:
-            error_message = f"Error fetching weather data for location: {location}. {exception}"
+            error_message = f"Error fetching weather data for location: {normalized_location}. {exception}"
             logging.error(error_message)
             raise RuntimeError(error_message)
 
     @retry(stop_max_attempt_number=3, wait_random_min=1000, wait_random_max=3000)
     def fetch_weather_data_from_api(self, location: str) -> Union[LocationData, None]:
-        # Fetch weather data for a given location from the API.
         try:
             coordinates = self.get_coordinates(location)
             if coordinates:
                 latitude, longitude = coordinates
                 current_date, current_time, weather, wind, humidity = self.get_current_weather(latitude, longitude)
                 if weather:
-                    temperature = float(weather.temperature('celsius')['temp'])  # Convert temperature to float
-                    weather_status = weather.status
+                    temperature = float(weather.temperature('celsius')['temp'])
 
-                    # Create a dictionary with weather data
+                    # Data normalization
+                    temperature = self.normalize_temperature(temperature)
+                    humidity = self.normalize_humidity(humidity)
+                    wind_speed = self.normalize_wind_speed(wind['speed'])
+
+                    weather_status = weather.status
                     weather_data = {
                         'date': current_date,
                         'time': current_time,
                         'location': location,
                         'weather_status': weather_status,
                         'temperature': temperature,
-                        'wind_speed': wind['speed'],
+                        'wind_speed': wind_speed,
                         'humidity': humidity,
                     }
-
                     # Create an instance of the WeatherInfo class with the fetched weather data
-                    weather_info = WeatherInfo(weather_data['date'], weather_data['time'], weather_data['temperature'], weather_data['humidity'], weather_data['wind_speed'], weather_data['weather_status'])
+                    weather_info = WeatherInfo(weather_data['date'], weather_data['time'], weather_data['temperature'],
+                                               weather_data['humidity'], weather_data['wind_speed'], weather_data['weather_status'])
 
                     return LocationData(location, latitude, longitude, weather_data)
                 else:
@@ -329,6 +339,18 @@ class WeatherDataFetcher:
             error_message = f"Error fetching weather data from API: {exception}"
             logging.error(error_message)
             raise RuntimeError(error_message)
+        
+    def normalize_temperature(self, temperature: float) -> float:
+        # Normalize temperature to a common scale or range.
+        return round(temperature, 2)  # Example: Rounding to 2 decimal places
+
+    def normalize_humidity(self, humidity: int) -> int:
+        # Normalize humidity to a common scale or range.
+        return max(0, min(humidity, 100))  # Example: Ensure humidity percentage is within [0, 100]
+
+    def normalize_wind_speed(self, wind_speed: float) -> float:
+        # Normalize wind speed to a common unit or scale.
+        return round(wind_speed, 2)  # Example: Rounding to 2 decimal places
 
 class DatabaseHandler:
     # A helper class to interact with a PostgreSQL database.
