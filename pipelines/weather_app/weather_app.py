@@ -261,6 +261,8 @@ class WeatherDataFetcher:
 
             # Normalize the location name to title case
             normalized_location = location.title()
+            normalized_location = self.normalize_text_to_lowercase(normalized_location)  # Convert to lowercase
+
 
             if normalized_location.strip() == "":
                 raise ValueError("Location cannot be empty or whitespace only.")
@@ -339,6 +341,10 @@ class WeatherDataFetcher:
             error_message = f"Error fetching weather data from API: {exception}"
             logging.error(error_message)
             raise RuntimeError(error_message)
+    
+    def normalize_text_to_lowercase(self, text: str) -> str:
+        # Normalize text data to lowercase for uniformity.
+        return text.lower()
         
     def normalize_temperature(self, temperature: float) -> float:
         # Normalize temperature to a common scale or range.
