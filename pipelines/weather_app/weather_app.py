@@ -356,7 +356,7 @@ class WeatherDataFetcher:
         
     def normalize_temperature(self, temperature: float) -> float:
         # Normalize temperature to a common scale or range.
-        return round(temperature, 2)  # Example: Rounding to 2 decimal places
+        return max(-50.0, min(temperature, 50.0))  # Normalize temperature within the range of -50°C to 50°C
 
     def normalize_humidity(self, humidity: int) -> int:
         # Normalize humidity to a common scale or range.
@@ -364,7 +364,7 @@ class WeatherDataFetcher:
 
     def normalize_wind_speed(self, wind_speed: float) -> float:
         # Normalize wind speed to a common unit or scale.
-        return round(wind_speed, 2)  # Example: Rounding to 2 decimal places
+        return max(0.0, round((wind_speed * 0.44704), 2))  # Convert wind speed from mph to m/s with 2 decimal places
 
 class DatabaseHandler:
     # A helper class to interact with a PostgreSQL database.
@@ -497,3 +497,4 @@ if __name__ == "__main__":
         logging.error(f"Runtime Error occurred in main execution: {runtime_error}")
     except Exception as exception:
         logging.exception("Unexpected Error occurred in main execution.", exc_info=True)
+        
