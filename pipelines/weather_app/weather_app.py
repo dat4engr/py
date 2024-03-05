@@ -207,7 +207,7 @@ class WeatherDataFetcher:
     @lru_cache(maxsize=128)
     def get_coordinates(self, location: str) -> Union[Tuple[float, float], None]:
         try:
-            # Remove special characters and non-alphanumeric characters from the location name
+            # Remove special characters and non-alphanumeric characters from the location name.
             cleaned_location = re.sub(r'[^\w\s]', '', location)
 
             if cleaned_location.strip() == "":
@@ -221,7 +221,12 @@ class WeatherDataFetcher:
             if geo_location.latlng is None:
                 return None
 
-            coordinates = geo_location.latlng
+            # Normalize latitude and longitude values to 4 decimal places for precision.
+            latitude, longitude = geo_location.latlng
+            normalized_latitude = round(latitude, 4)
+            normalized_longitude = round(longitude, 4)
+
+            coordinates = (normalized_latitude, normalized_longitude)
             self.weather_cache[cleaned_location] = {'coordinates': coordinates}
             return coordinates
         except ValueError as value_error:
@@ -259,10 +264,10 @@ class WeatherDataFetcher:
         try:
             logging.info(f"Fetching weather data for location: {location}")
 
-            # Normalize the location name to title case
+            # Normalize the location name to title case.
             normalized_location = location.title()
-            normalized_location = self.normalize_text_to_lowercase(normalized_location)  # Convert to lowercase
-
+            # Normalize the location name to lowercase.
+            normalized_location = self.normalize_text_to_lowercase(normalized_location)
 
             if normalized_location.strip() == "":
                 raise ValueError("Location cannot be empty or whitespace only.")
@@ -317,6 +322,9 @@ class WeatherDataFetcher:
                     wind_speed = self.normalize_wind_speed(wind['speed'])
 
                     weather_status = weather.status
+                    # Normalize weather status to lowercase.
+                    weather_status = self.normalize_text_to_lowercase(weather_status)
+
                     weather_data = {
                         'date': current_date,
                         'time': current_time,
