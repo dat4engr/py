@@ -1,4 +1,4 @@
 INSERT INTO public.weather_data ("date","time","location",weather_status,temperature,wind_speed,humidity) VALUES
-	 ('2024-03-06','06:36:17','mabalacat city, ph','clouds',23.22,0.46,78.0),
-	 ('2024-03-06','06:36:18','magalang, ph','clouds',23.62,0.46,78.0),
-	 ('2024-03-06','06:36:18','angeles, ph','clouds',23.25,0.46,78.0);
+	 ('2024-03-07','21:27:14','mabalacat city, ph','clouds',30.22,0.92,58.0),
+	 ('2024-03-07','21:27:14','angeles, ph','clouds',30.25,0.92,58.0),
+	 ('2024-03-07','21:27:14','magalang, ph','clouds',30.62,0.92,58.0);
