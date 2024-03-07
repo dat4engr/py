@@ -281,22 +281,29 @@ class WeatherDataFetcher:
                 logging.error(error_message)
                 raise RuntimeError(error_message)
 
+            # Check for missing or null weather_data before further processing
+            if not location_data.get_additional_info():
+                error_message = f"Weather data missing or null for location: {normalized_location}."
+                logging.error(error_message)
+                raise RuntimeError(error_message)
+
             if location_data and not lazy_load:
                 self.weather_cache[normalized_location] = location_data.get_additional_info()
                 logging.info(f"Weather data fetched from API and stored in cache for location: {normalized_location}")
 
             weather_data = location_data.get_additional_info()
             
-            with DatabaseHandler() as database_handler:
-                database_handler.insert_data(weather_data)
-
-            with JSONHandler() as json_handler:
-                json_handler.update_json_data(weather_data)
 
             weather_info = WeatherInfo(weather_data['date'], weather_data['time'], weather_data['temperature'], weather_data['humidity'], weather_data['wind_speed'], weather_data['weather_status'])
 
             logging.info(f"As of: {weather_data['date']} | {weather_data['time']}")
             logging.info(f"Current weather at {location}: {weather_info}")
+
+            with DatabaseHandler() as database_handler:
+                database_handler.insert_data(weather_data)
+
+            with JSONHandler() as json_handler:
+                json_handler.update_json_data(weather_data)
 
         except ValueError as value_error:
             logging.error(value_error)
@@ -402,7 +409,7 @@ class DatabaseHandler:
                     data['humidity']
                 ))
                 self.conn.commit()
-                logging.info("Data inserted into the database successfully.")
+                logging.info("Weather data collected was inserted into the database successfully.")
         except (OperationalError, DatabaseError) as error:
             error_message = f"Error inserting data into the database: {error}"
             logging.error(error_message)
@@ -497,4 +504,3 @@ if __name__ == "__main__":
         logging.error(f"Runtime Error occurred in main execution: {runtime_error}")
     except Exception as exception:
         logging.exception("Unexpected Error occurred in main execution.", exc_info=True)
-        
