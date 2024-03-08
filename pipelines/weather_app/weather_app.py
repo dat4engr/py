@@ -11,8 +11,8 @@ from pyowm import OWM
 import geocoder
 from contextlib import contextmanager
 from cachetools import TTLCache
-from retrying import retry
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
+import backoff
 import time
 import threading
 import queue
@@ -242,6 +242,7 @@ class WeatherDataFetcher:
             logging.error(error_message)
             raise RuntimeError(error_message)
 
+    @backoff.on_exception(backoff.expo, (Exception,), max_tries=3)
     def get_current_weather(self, latitude: float, longitude: float) -> Tuple[str, str, Any]:
         # Gets the current weather data for a given latitude and longitude.
         try:
@@ -277,15 +278,11 @@ class WeatherDataFetcher:
                 location_data = self.fetch_weather_data_from_api(normalized_location)
 
             if not location_data:
-                error_message = f"Error fetching weather data for location: {normalized_location}. Data is None."
-                logging.error(error_message)
-                raise RuntimeError(error_message)
+                raise ValueError(f"Error fetching weather data for location: {normalized_location}. Data is None.")
 
             # Check for missing or null weather_data before further processing
             if not location_data.get_additional_info() or not self.validate_weather_data(location_data.get_additional_info()):
-                error_message = f"Weather data missing or invalid for location: {normalized_location}."
-                logging.error(error_message)
-                raise RuntimeError(error_message)
+                raise RuntimeError(f"Weather data missing or invalid for location: {normalized_location}.")
 
             if location_data and not lazy_load:
                 self.weather_cache[normalized_location] = location_data.get_additional_info()
@@ -307,10 +304,27 @@ class WeatherDataFetcher:
         except ValueError as value_error:
             logging.error(value_error)
             raise RuntimeError(value_error)
+        
+        except (GeocoderTimedOut, GeocoderServiceError) as geocoder_error:
+            error_message = f"Error getting coordinates for location: {normalized_location}. {geocoder_error}"
+            logging.error(error_message)
+            raise RuntimeError(error_message)
+
+        except OperationalError as operation_error:
+            logging.error(f"Operational error occurred: {operation_error}")
+            raise RuntimeError(operation_error)
+
+        except DatabaseError as db_error:
+            logging.error(f"Database error occurred: {db_error}")
+            raise RuntimeError(db_error)
+
         except Exception as exception:
             error_message = f"Error fetching weather data for location: {normalized_location}. {exception}"
             logging.error(error_message)
             raise RuntimeError(error_message)
+
+        finally:
+            logging.info(f"Finished processing location: {location}")
 
     def validate_weather_data(self, data: dict) -> bool:
         # Verify the retrieved weather data for consistency and validity.
@@ -321,7 +335,7 @@ class WeatherDataFetcher:
                     return True
         return False
 
-    @retry(stop_max_attempt_number=3, wait_random_min=1000, wait_random_max=3000)
+    @backoff.on_exception(backoff.expo, (Exception,), max_tries=3)
     def fetch_weather_data_from_api(self, location: str) -> Union[LocationData, None]:
         try:
             coordinates = self.get_coordinates(location)
@@ -352,7 +366,6 @@ class WeatherDataFetcher:
                     # Create an instance of the WeatherInfo class with the fetched weather data
                     weather_info = WeatherInfo(weather_data['date'], weather_data['time'], weather_data['temperature'],
                                                weather_data['humidity'], weather_data['wind_speed'], weather_data['weather_status'])
-
                     return LocationData(location, latitude, longitude, weather_data)
                 else:
                     logging.error(f"Unable to fetch weather data for {location}.")
