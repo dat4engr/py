@@ -275,15 +275,15 @@ class WeatherDataFetcher:
             location_data = None
             if not lazy_load or normalized_location not in self.weather_cache:
                 location_data = self.fetch_weather_data_from_api(normalized_location)
-            
+
             if not location_data:
                 error_message = f"Error fetching weather data for location: {normalized_location}. Data is None."
                 logging.error(error_message)
                 raise RuntimeError(error_message)
 
             # Check for missing or null weather_data before further processing
-            if not location_data.get_additional_info():
-                error_message = f"Weather data missing or null for location: {normalized_location}."
+            if not location_data.get_additional_info() or not self.validate_weather_data(location_data.get_additional_info()):
+                error_message = f"Weather data missing or invalid for location: {normalized_location}."
                 logging.error(error_message)
                 raise RuntimeError(error_message)
 
@@ -292,7 +292,6 @@ class WeatherDataFetcher:
                 logging.info(f"Weather data fetched from API and stored in cache for location: {normalized_location}")
 
             weather_data = location_data.get_additional_info()
-            
 
             weather_info = WeatherInfo(weather_data['date'], weather_data['time'], weather_data['temperature'], weather_data['humidity'], weather_data['wind_speed'], weather_data['weather_status'])
 
@@ -312,6 +311,15 @@ class WeatherDataFetcher:
             error_message = f"Error fetching weather data for location: {normalized_location}. {exception}"
             logging.error(error_message)
             raise RuntimeError(error_message)
+
+    def validate_weather_data(self, data: dict) -> bool:
+        # Verify the retrieved weather data for consistency and validity.
+        required_keys = ['date', 'time', 'temperature', 'humidity', 'wind_speed', 'weather_status']
+        if all(key in data for key in required_keys):
+            if all([isinstance(data[key], str) for key in ['date', 'time', 'weather_status']]):
+                if all([isinstance(data[key], (int, float)) for key in ['temperature', 'humidity', 'wind_speed']]):
+                    return True
+        return False
 
     @retry(stop_max_attempt_number=3, wait_random_min=1000, wait_random_max=3000)
     def fetch_weather_data_from_api(self, location: str) -> Union[LocationData, None]:
