@@ -12,13 +12,19 @@ import geocoder
 from contextlib import contextmanager
 from cachetools import TTLCache
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
-import backoff
+from tenacity import retry, stop_after_attempt, wait_exponential
 import time
 import threading
 import queue
 import re
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    handlers=[
+                        logging.FileHandler('app.log'),
+                        logging.StreamHandler()
+                    ])
+
 start_time = time.time()
 
 class APIConfig:
@@ -242,7 +248,7 @@ class WeatherDataFetcher:
             logging.error(error_message)
             raise RuntimeError(error_message)
 
-    @backoff.on_exception(backoff.expo, (Exception,), max_tries=3)
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     def get_current_weather(self, latitude: float, longitude: float) -> Tuple[str, str, Any]:
         # Gets the current weather data for a given latitude and longitude.
         try:
@@ -335,7 +341,7 @@ class WeatherDataFetcher:
                     return True
         return False
 
-    @backoff.on_exception(backoff.expo, (Exception,), max_tries=3)
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     def fetch_weather_data_from_api(self, location: str) -> Union[LocationData, None]:
         try:
             coordinates = self.get_coordinates(location)
