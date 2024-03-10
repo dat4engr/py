@@ -17,11 +17,12 @@ import time
 import threading
 import queue
 import re
+import traceback
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     handlers=[
-                        logging.FileHandler('app.log'),
+                        logging.FileHandler('app_run.log'),
                         logging.StreamHandler()
                     ])
 
@@ -525,9 +526,15 @@ if __name__ == "__main__":
 
     except ValueError as value_error:
         logging.error(f"Value Error occurred in main execution: {value_error}")
+        traceback.print_exc()
+
     except ImportError as import_error:
         logging.error(f"Import Error occurred in main execution: {import_error}")
+        traceback.print_exc()
+
     except (RuntimeError, KeyboardInterrupt) as runtime_error:
         logging.error(f"Runtime Error occurred in main execution: {runtime_error}")
+        traceback.print_exc()
+
     except Exception as exception:
-        logging.exception("Unexpected Error occurred in main execution.", exc_info=True)
+        logging.exception("Unexpected Error occurred in main execution.")
