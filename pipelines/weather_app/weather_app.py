@@ -6,7 +6,7 @@ import json
 import logging
 from typing import Union, Tuple, Any
 
-from psycopg2 import OperationalError, DatabaseError, pool
+from psycopg2 import OperationalError, DatabaseError, pool, sql
 from pyowm import OWM
 import geocoder
 from contextlib import contextmanager
@@ -103,15 +103,18 @@ class DatabasePool:
                                        database=db_credentials.database)
         return DatabasePool._pool
 
+    @staticmethod
     def get_connection():
         conn = DatabasePool._connection_queue.get()
         if conn is None:
             conn = DatabasePool.get_pool().getconn()
         return conn
-
+    
+    @staticmethod
     def release_connection(conn):
         DatabasePool._connection_queue.put(conn)
 
+    @staticmethod
     def close_all_connections():
         # Close all connections in the database connection pool if it exists.
         if DatabasePool._pool is not None:
@@ -292,8 +295,10 @@ class WeatherDataFetcher:
                 raise RuntimeError(f"Weather data missing or invalid for location: {normalized_location}.")
 
             if location_data and not lazy_load:
-                self.weather_cache[normalized_location] = location_data.get_additional_info()
-                logging.info(f"Weather data fetched from API and stored in cache for location: {normalized_location}")
+                # Protect access to the shared weather_cache with a lock
+                with threading.Lock():
+                    self.weather_cache[normalized_location] = location_data.get_additional_info()
+                    logging.info(f"Weather data fetched from API and stored in cache for location: {normalized_location}")
 
             weather_data = location_data.get_additional_info()
 
@@ -419,6 +424,22 @@ class DatabaseHandler:
     @staticmethod
     def create_cursor(conn):
         return conn.cursor()
+    
+    def create_indexes(self):
+        try:
+            with self.create_cursor(self.conn) as cursor:
+                cursor.execute(sql.SQL('CREATE INDEX idx_date ON weather_data (date);'))
+                cursor.execute(sql.SQL('CREATE INDEX idx_location ON weather_data (location);'))
+                cursor.execute(sql.SQL('CREATE INDEX idx_temperature ON weather_data (temperature);'))
+                cursor.execute(sql.SQL('CREATE INDEX idx_weather_status ON weather_data (weather_status);'))
+                
+                self.conn.commit()
+                
+                logging.info("Indexes created for improved query performance.")
+        except (OperationalError, DatabaseError) as error:
+            error_message = f"Error creating indexes: {error}"
+            logging.error(error_message)
+            raise ValueError(error_message)
 
     def insert_data(self, data: dict) -> None:
         try:
@@ -507,17 +528,16 @@ if __name__ == "__main__":
         
         logging.info(f"Script execution started at {datetime.now().replace(microsecond=0)}.")
 
-        fetcher = WeatherDataFetcher(api_config)
-
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = [executor.submit(fetcher.fetch_weather_data, location) for location in locations]
+            fetcher = WeatherDataFetcher(api_config)
+            futures = {executor.submit(fetcher.fetch_weather_data, location) for location in locations}
 
             for future in concurrent.futures.as_completed(futures):
                 try:
                     future.result()
                 except Exception as error:
                     logging.error(f"An error occurred in thread execution: {error}")
-
+        
         logging.info(f"Script execution completed at {datetime.now().replace(microsecond=0)}.")
 
         end_time = time.time()
