@@ -191,6 +191,7 @@ class WeatherDataFetcher:
     def __init__(self, api_config: APIConfig) -> None:
         # Initializes the WeatherDataFetcher with the specified API configuration.
         self.weather_cache = TTLCache(maxsize=self.CACHE_SIZE, ttl=self.CACHE_TTL)
+        self.cache_lock = threading.Lock()  # Add lock for the cache
         if self.validate_api_key(api_config.api_key):
             self.api_key = api_config.api_key
         else:
@@ -223,9 +224,10 @@ class WeatherDataFetcher:
             if cleaned_location.strip() == "":
                 raise ValueError("Location cannot be empty or whitespace only.")
 
-            coordinates = self.weather_cache.get(cleaned_location)
-            if coordinates is not None:
-                return coordinates
+            with self.cache_lock:
+                coordinates = self.weather_cache.get(cleaned_location)
+                if coordinates is not None:
+                    return coordinates
 
             geo_location = geocoder.osm(cleaned_location)
             if geo_location.latlng is None:
@@ -237,7 +239,9 @@ class WeatherDataFetcher:
             normalized_longitude = round(longitude, 4)
 
             coordinates = (normalized_latitude, normalized_longitude)
-            self.weather_cache[cleaned_location] = {'coordinates': coordinates}
+
+            with self.cache_lock:
+                self.weather_cache[cleaned_location] = {'coordinates': coordinates}
             return coordinates
         except ValueError as value_error:
             error_message = f"Value Error getting coordinates for location: {cleaned_location}. {value_error}"
