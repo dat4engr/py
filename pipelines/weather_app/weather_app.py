@@ -243,6 +243,7 @@ class WeatherDataFetcher:
             with self.cache_lock:
                 self.weather_cache[cleaned_location] = {'coordinates': coordinates}
             return coordinates
+        
         except ValueError as value_error:
             error_message = f"Value Error getting coordinates for location: {cleaned_location}. {value_error}"
             logging.error(error_message)
@@ -300,7 +301,7 @@ class WeatherDataFetcher:
 
             if location_data and not lazy_load:
                 # Protect access to the shared weather_cache with a lock
-                with threading.Lock():
+                with self.cache_lock:
                     self.weather_cache[normalized_location] = location_data.get_additional_info()
                     logging.info(f"Weather data fetched from API and stored in cache for location: {normalized_location}")
 
@@ -320,25 +321,20 @@ class WeatherDataFetcher:
         except ValueError as value_error:
             logging.error(value_error)
             raise RuntimeError(value_error)
-        
         except (GeocoderTimedOut, GeocoderServiceError) as geocoder_error:
             error_message = f"Error getting coordinates for location: {normalized_location}. {geocoder_error}"
             logging.error(error_message)
             raise RuntimeError(error_message)
-
         except OperationalError as operation_error:
             logging.error(f"Operational error occurred: {operation_error}")
             raise RuntimeError(operation_error)
-
         except DatabaseError as db_error:
             logging.error(f"Database error occurred: {db_error}")
             raise RuntimeError(db_error)
-
         except Exception as exception:
             error_message = f"Error fetching weather data for location: {normalized_location}. {exception}"
             logging.error(error_message)
             raise RuntimeError(error_message)
-
         finally:
             logging.info(f"Finished processing location: {location}")
 
@@ -357,35 +353,37 @@ class WeatherDataFetcher:
             coordinates = self.get_coordinates(location)
             if coordinates:
                 latitude, longitude = coordinates
-                current_date, current_time, weather, wind, humidity = self.get_current_weather(latitude, longitude)
-                if weather:
-                    temperature = float(weather.temperature('celsius')['temp'])
 
-                    # Data normalization
-                    temperature = self.normalize_temperature(temperature)
-                    humidity = self.normalize_humidity(humidity)
-                    wind_speed = self.normalize_wind_speed(wind['speed'])
+                with self.cache_lock:
+                    current_date, current_time, weather, wind, humidity = self.get_current_weather(latitude, longitude)
+                    if weather:
+                        temperature = float(weather.temperature('celsius')['temp'])
 
-                    weather_status = weather.status
-                    # Normalize weather status to lowercase.
-                    weather_status = self.normalize_text_to_lowercase(weather_status)
+                        # Data normalization
+                        temperature = self.normalize_temperature(temperature)
+                        humidity = self.normalize_humidity(humidity)
+                        wind_speed = self.normalize_wind_speed(wind['speed'])
 
-                    weather_data = {
-                        'date': current_date,
-                        'time': current_time,
-                        'location': location,
-                        'weather_status': weather_status,
-                        'temperature': temperature,
-                        'wind_speed': wind_speed,
-                        'humidity': humidity,
-                    }
-                    # Create an instance of the WeatherInfo class with the fetched weather data
-                    weather_info = WeatherInfo(weather_data['date'], weather_data['time'], weather_data['temperature'],
-                                               weather_data['humidity'], weather_data['wind_speed'], weather_data['weather_status'])
-                    return LocationData(location, latitude, longitude, weather_data)
-                else:
-                    logging.error(f"Unable to fetch weather data for {location}.")
-                    raise RuntimeError(f"Unable to fetch weather data for {location}.")
+                        weather_status = weather.status
+                        # Normalize weather status to lowercase.
+                        weather_status = self.normalize_text_to_lowercase(weather_status)
+
+                        weather_data = {
+                            'date': current_date,
+                            'time': current_time,
+                            'location': location,
+                            'weather_status': weather_status,
+                            'temperature': temperature,
+                            'wind_speed': wind_speed,
+                            'humidity': humidity,
+                        }
+                        # Create an instance of the WeatherInfo class with the fetched weather data
+                        weather_info = WeatherInfo(weather_data['date'], weather_data['time'], weather_data['temperature'],
+                                                weather_data['humidity'], weather_data['wind_speed'], weather_data['weather_status'])
+                        return LocationData(location, latitude, longitude, weather_data)
+                    else:
+                        logging.error(f"Unable to fetch weather data for {location}.")
+                        raise RuntimeError(f"Unable to fetch weather data for {location}.")
             else:
                 logging.error(f"Unable to fetch coordinates for {location}.")
                 raise RuntimeError(f"Unable to fetch coordinates for {location}.")
@@ -471,15 +469,26 @@ class DatabaseHandler:
 class JSONHandler:
     # Context manager class responsible for handling JSON file operations.
     def __init__(self):
+        self.lock = threading.Lock()
         # Constructor for JSONHandler class.
         self.file = None
+    
+    @contextmanager
+    def lock_acquire(self):
+        try:
+            self.lock.acquire()
+            yield
+        finally:
+            self.lock.release()
 
     @contextmanager
-    # Open the JSON file in the given mode.
     def open_json_file(self, file_path: str, mode: str) -> Any:
+    # Open the JSON file in the given mode.
         try:
-            with open(file_path, mode) as file:
-                yield file
+            with self.lock_acquire():
+                with open(file_path, mode) as file:
+                    self.file = file
+                    yield self.file
         except (PermissionError, IOError, json.JSONDecodeError) as error:
             error_message = f"Error handling JSON file: {error}"
             logging.error(error_message)
