@@ -320,7 +320,7 @@ class WeatherDataFetcher:
 
         except ValueError as value_error:
             logging.error(value_error)
-            raise RuntimeError(value_error)
+            raise RuntimeError(value_error, f"Error fetching weather data for location: {normalized_location}")
         except (GeocoderTimedOut, GeocoderServiceError) as geocoder_error:
             error_message = f"Error getting coordinates for location: {normalized_location}. {geocoder_error}"
             logging.error(error_message)
@@ -333,7 +333,7 @@ class WeatherDataFetcher:
             raise RuntimeError(db_error)
         except Exception as exception:
             error_message = f"Error fetching weather data for location: {normalized_location}. {exception}"
-            logging.error(error_message)
+            logging.exception(error_message)
             raise RuntimeError(error_message)
         finally:
             logging.info(f"Finished processing location: {location}")
@@ -450,19 +450,27 @@ class DatabaseHandler:
                 INSERT INTO weather_data (date, time, location, weather_status, temperature, wind_speed, humidity) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s);
                 '''
-                cursor.execute(insert_query, (
-                    data['date'],
-                    data['time'],
-                    data['location'],
-                    data['weather_status'],
-                    data['temperature'],
-                    data['wind_speed'],
-                    data['humidity']
-                ))
-                self.conn.commit()
-                logging.info("Weather data collected was inserted into the database successfully.")
-        except (OperationalError, DatabaseError) as error:
-            error_message = f"Error inserting data into the database: {error}"
+                try:
+                    cursor.execute(insert_query, (
+                        data['date'],
+                        data['time'],
+                        data['location'],
+                        data['weather_status'],
+                        data['temperature'],
+                        data['wind_speed'],
+                        data['humidity']
+                    ))
+                    self.conn.commit()
+                    logging.info("Weather data collected was inserted into the database successfully.") 
+                except DatabaseError as db_error:
+                    logging.error(f"Database error occurred during insertion: {db_error}")
+                    self.conn.rollback()
+                    raise ValueError(db_error)
+        except OperationalError as operation_error:
+            logging.error(f"Operational error occurred during insertion: {operation_error}")
+            raise ValueError(operation_error)
+        except Exception as exception:
+            error_message = f"Error inserting data into the database: {exception}"
             logging.error(error_message)
             raise ValueError(error_message)
 
