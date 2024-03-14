@@ -82,6 +82,11 @@ class LocationData:
 
     def __str__(self):
         return f"Location Name: {self.location_name}, Latitude: {self.latitude}, Longitude: {self.longitude}, Additional Info: {self.additional_info}"
+    
+    def validate_data(self):
+    # Check if required fields are not empty and have the correct type
+        if not isinstance(self.location_name, str) or not isinstance(self.latitude, (int, float)) or not isinstance(self.longitude, (int, float)) or not isinstance(self.additional_info, dict):
+            raise ValueError("Invalid data in LocationData object. Please provide valid data for insertion.")
 
 class DatabasePool:
     # Class representing a database connection pool manager.
@@ -306,8 +311,14 @@ class WeatherDataFetcher:
                     logging.info(f"Weather data fetched from API and stored in cache for location: {normalized_location}")
 
             weather_data = location_data.get_additional_info()
-
             weather_info = WeatherInfo(weather_data['date'], weather_data['time'], weather_data['temperature'], weather_data['humidity'], weather_data['wind_speed'], weather_data['weather_status'])
+
+            try:
+            # Validate the data before insertion
+                location_data.validate_data()
+            except ValueError as value_error:
+                logging.error(value_error)
+                raise RuntimeError(value_error)
 
             logging.info(f"As of: {weather_data['date']} | {weather_data['time']}")
             logging.info(f"Current weather at {location}: {weather_info}")
@@ -445,30 +456,38 @@ class DatabaseHandler:
 
     def insert_data(self, data: dict) -> None:
         try:
+            # Missing data handling and normalization
+            cleaned_data = {k: data[k].strip() if isinstance(data[k], str) else data[k] for k in data}
+            
+            # Check for missing or null data
+            required_keys = ['date', 'time', 'location', 'weather_status', 'temperature', 'wind_speed', 'humidity']
+            if any(key not in cleaned_data for key in required_keys):
+                raise ValueError("One or more weather data fields are missing.")
+
             with self.create_cursor(self.conn) as cursor:
-                insert_query = '''
+                query = '''
                 INSERT INTO weather_data (date, time, location, weather_status, temperature, wind_speed, humidity) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s);
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
                 '''
-                try:
-                    cursor.execute(insert_query, (
-                        data['date'],
-                        data['time'],
-                        data['location'],
-                        data['weather_status'],
-                        data['temperature'],
-                        data['wind_speed'],
-                        data['humidity']
-                    ))
-                    self.conn.commit()
-                    logging.info("Weather data collected was inserted into the database successfully.") 
-                except DatabaseError as db_error:
-                    logging.error(f"Database error occurred during insertion: {db_error}")
-                    self.conn.rollback()
-                    raise ValueError(db_error)
+                cursor.execute(query, (
+                    cleaned_data['date'],
+                    cleaned_data['time'],
+                    cleaned_data['location'],
+                    cleaned_data['weather_status'],
+                    cleaned_data['temperature'],
+                    cleaned_data['wind_speed'],
+                    cleaned_data['humidity']
+                ))
+                self.conn.commit()
+                
+                logging.info("Weather data inserted into the database successfully.")
+        
         except OperationalError as operation_error:
             logging.error(f"Operational error occurred during insertion: {operation_error}")
             raise ValueError(operation_error)
+        except DatabaseError as db_error:
+            logging.error(f"Database error occurred: {db_error}")
+            raise ValueError(db_error)
         except Exception as exception:
             error_message = f"Error inserting data into the database: {exception}"
             logging.error(error_message)
@@ -521,12 +540,15 @@ class JSONHandler:
             self.file = None
 
     def update_json_data(self, weather_data: dict) -> None:
-        # Update the JSON file with the new weather data.
         try:
+            # Cleanse data before updating JSON file
+            cleaned_data = {k: weather_data[k].strip() if isinstance(weather_data[k], str) else weather_data[k] for k in weather_data}
+            
             with self.open_json_file('weather_data.json', 'r') as file:
                 existing_data = json.load(file)
 
-            existing_data.append(weather_data)
+            # Update with normalized, cleaned data
+            existing_data.append(cleaned_data)
 
             with self.open_json_file('weather_data.json', 'w') as file:
                 json.dump(existing_data, file, indent=4)
@@ -536,7 +558,7 @@ class JSONHandler:
             logging.error(error_message)
             raise RuntimeError(error_message)
         except Exception as error:
-            error_message = f"Unexpected error occurred while updating JSON data: {error}"
+            error_message = f"Unexpected error occurred while updating JSON: {error}"
             logging.error(error_message)
             raise RuntimeError(error_message)
         
