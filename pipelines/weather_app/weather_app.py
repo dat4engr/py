@@ -13,9 +13,9 @@ from contextlib import contextmanager
 from cachetools import TTLCache
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 from tenacity import retry, stop_after_attempt, wait_exponential
+from queue import LifoQueue
 import time
 import threading
-import queue
 import re
 import traceback
 
@@ -92,7 +92,7 @@ class DatabasePool:
     # Class representing a database connection pool manager.
     _pool = None
     _pool_mutex = threading.Lock()
-    _connection_queue = queue.Queue(maxsize=10)
+    _connection_queue = LifoQueue(maxsize=10)  # updated to LIFO queue
 
     def get_pool():
         # Get the database connection pool. If the pool does not exist, creates a new one and returns it.
