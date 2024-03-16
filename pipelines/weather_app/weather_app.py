@@ -445,9 +445,10 @@ class DatabaseHandler:
                 cursor.execute(sql.SQL('CREATE INDEX idx_location ON weather_data (location);'))
                 cursor.execute(sql.SQL('CREATE INDEX idx_temperature ON weather_data (temperature);'))
                 cursor.execute(sql.SQL('CREATE INDEX idx_weather_status ON weather_data (weather_status);'))
+                cursor.execute(sql.SQL('CREATE INDEX idx_climate_data ON weather_data USING GIN (climate_data);'))  # GIN index on the jsonb column
                 
                 self.conn.commit()
-                
+
                 logging.info("Indexes created for improved query performance.")
         except (OperationalError, DatabaseError) as error:
             error_message = f"Error creating indexes: {error}"
@@ -466,8 +467,8 @@ class DatabaseHandler:
 
             with self.create_cursor(self.conn) as cursor:
                 query = '''
-                INSERT INTO weather_data (date, time, location, weather_status, temperature, wind_speed, humidity) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO weather_data (date, time, location, weather_status, temperature, wind_speed, humidity, climate_data) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 '''
                 cursor.execute(query, (
                     cleaned_data['date'],
@@ -476,10 +477,11 @@ class DatabaseHandler:
                     cleaned_data['weather_status'],
                     cleaned_data['temperature'],
                     cleaned_data['wind_speed'],
-                    cleaned_data['humidity']
+                    cleaned_data['humidity'],
+                    json.dumps(cleaned_data)  # Convert dictionary to JSON string for insertion into the jsonb column
                 ))
                 self.conn.commit()
-                
+
                 logging.info("Weather data inserted into the database successfully.")
         
         except OperationalError as operation_error:
