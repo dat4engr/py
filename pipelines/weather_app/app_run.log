@@ -1,33 +1,33 @@
-2024-03-16 17:48:45,479 - INFO - Script execution started at 2024-03-16 17:48:45.
-2024-03-16 17:48:45,480 - INFO - Fetching weather data for location: Angeles, PH
-2024-03-16 17:48:45,480 - INFO - Fetching weather data for location: Mabalacat City, PH
-2024-03-16 17:48:45,481 - INFO - Fetching weather data for location: Magalang, PH
-2024-03-16 17:48:45,735 - DEBUG - Starting new HTTPS connection (1): nominatim.openstreetmap.org:443
-2024-03-16 17:48:45,735 - DEBUG - Starting new HTTPS connection (1): nominatim.openstreetmap.org:443
-2024-03-16 17:48:45,735 - DEBUG - Starting new HTTPS connection (1): nominatim.openstreetmap.org:443
-2024-03-16 17:48:46,848 - DEBUG - https://nominatim.openstreetmap.org:443 "GET /search?q=mabalacat+city+ph&format=jsonv2&addressdetails=1&limit=1 HTTP/1.1" 200 885
-2024-03-16 17:48:46,849 - INFO - Requested https://nominatim.openstreetmap.org/search?q=mabalacat+city+ph&format=jsonv2&addressdetails=1&limit=1
-2024-03-16 17:48:46,871 - DEBUG - Starting new HTTPS connection (1): api.openweathermap.org:443
-2024-03-16 17:48:47,304 - DEBUG - https://nominatim.openstreetmap.org:443 "GET /search?q=magalang+ph&format=jsonv2&addressdetails=1&limit=1 HTTP/1.1" 200 647
-2024-03-16 17:48:47,305 - INFO - Requested https://nominatim.openstreetmap.org/search?q=magalang+ph&format=jsonv2&addressdetails=1&limit=1
-2024-03-16 17:48:47,770 - DEBUG - https://nominatim.openstreetmap.org:443 "GET /search?q=angeles+ph&format=jsonv2&addressdetails=1&limit=1 HTTP/1.1" 200 564
-2024-03-16 17:48:47,771 - INFO - Requested https://nominatim.openstreetmap.org/search?q=angeles+ph&format=jsonv2&addressdetails=1&limit=1
-2024-03-16 17:48:48,176 - DEBUG - https://api.openweathermap.org:443 "GET /data/2.5/weather?APPID=5c9026775828973746c850fa10e2f45c&lang=en&lon=120.5789&lat=15.2108 HTTP/1.1" 200 480
-2024-03-16 17:48:48,181 - INFO - As of: 2024-03-16 | 17:48:48
-2024-03-16 17:48:48,182 - INFO - Current weather at Mabalacat City, PH: Date: 2024-03-16, Time: 17:48:48, Temperature: 32.22°C, Humidity: 51%, Wind Speed: 1.84 m/s, Weather Status: clouds
-2024-03-16 17:48:48,189 - DEBUG - Starting new HTTPS connection (1): api.openweathermap.org:443
-2024-03-16 17:48:48,229 - INFO - Weather data inserted into the database successfully.
-2024-03-16 17:48:48,230 - INFO - Finished processing location: Mabalacat City, PH
-2024-03-16 17:48:49,535 - DEBUG - https://api.openweathermap.org:443 "GET /data/2.5/weather?APPID=5c9026775828973746c850fa10e2f45c&lang=en&lon=120.6616&lat=15.2141 HTTP/1.1" 200 479
-2024-03-16 17:48:49,540 - INFO - As of: 2024-03-16 | 17:48:49
-2024-03-16 17:48:49,541 - INFO - Current weather at Magalang, PH: Date: 2024-03-16, Time: 17:48:49, Temperature: 32.62°C, Humidity: 51%, Wind Speed: 1.84 m/s, Weather Status: clouds
-2024-03-16 17:48:49,544 - DEBUG - Starting new HTTPS connection (1): api.openweathermap.org:443
-2024-03-16 17:48:49,545 - INFO - Weather data inserted into the database successfully.
-2024-03-16 17:48:49,546 - INFO - Finished processing location: Magalang, PH
-2024-03-16 17:48:50,878 - DEBUG - https://api.openweathermap.org:443 "GET /data/2.5/weather?APPID=5c9026775828973746c850fa10e2f45c&lang=en&lon=120.5875&lat=15.1389 HTTP/1.1" 200 480
-2024-03-16 17:48:50,884 - INFO - As of: 2024-03-16 | 17:48:50
-2024-03-16 17:48:50,884 - INFO - Current weather at Angeles, PH: Date: 2024-03-16, Time: 17:48:50, Temperature: 32.25°C, Humidity: 51%, Wind Speed: 1.84 m/s, Weather Status: clouds
-2024-03-16 17:48:50,888 - INFO - Weather data inserted into the database successfully.
-2024-03-16 17:48:50,889 - INFO - Finished processing location: Angeles, PH
-2024-03-16 17:48:50,889 - INFO - Script execution completed at 2024-03-16 17:48:50.
-2024-03-16 17:48:50,889 - INFO - Total time taken is 5.41 seconds.
+2024-03-17 11:38:03,928 - INFO - Script execution started at 2024-03-17 11:38:03.
+2024-03-17 11:38:03,929 - INFO - Fetching weather data for location: Angeles, PH
+2024-03-17 11:38:03,929 - INFO - Fetching weather data for location: Mabalacat City, PH
+2024-03-17 11:38:03,929 - INFO - Fetching weather data for location: Magalang, PH
+2024-03-17 11:38:03,954 - DEBUG - Starting new HTTPS connection (1): nominatim.openstreetmap.org:443
+2024-03-17 11:38:03,954 - DEBUG - Starting new HTTPS connection (1): nominatim.openstreetmap.org:443
+2024-03-17 11:38:03,954 - DEBUG - Starting new HTTPS connection (1): nominatim.openstreetmap.org:443
+2024-03-17 11:38:05,186 - DEBUG - https://nominatim.openstreetmap.org:443 "GET /search?q=magalang+ph&format=jsonv2&addressdetails=1&limit=1 HTTP/1.1" 200 647
+2024-03-17 11:38:05,187 - INFO - Requested https://nominatim.openstreetmap.org/search?q=magalang+ph&format=jsonv2&addressdetails=1&limit=1
+2024-03-17 11:38:05,194 - DEBUG - Starting new HTTPS connection (1): api.openweathermap.org:443
+2024-03-17 11:38:05,723 - DEBUG - https://nominatim.openstreetmap.org:443 "GET /search?q=mabalacat+city+ph&format=jsonv2&addressdetails=1&limit=1 HTTP/1.1" 200 885
+2024-03-17 11:38:05,724 - INFO - Requested https://nominatim.openstreetmap.org/search?q=mabalacat+city+ph&format=jsonv2&addressdetails=1&limit=1
+2024-03-17 11:38:06,152 - DEBUG - https://nominatim.openstreetmap.org:443 "GET /search?q=angeles+ph&format=jsonv2&addressdetails=1&limit=1 HTTP/1.1" 200 564
+2024-03-17 11:38:06,153 - INFO - Requested https://nominatim.openstreetmap.org/search?q=angeles+ph&format=jsonv2&addressdetails=1&limit=1
+2024-03-17 11:38:06,413 - DEBUG - https://api.openweathermap.org:443 "GET /data/2.5/weather?APPID=5c9026775828973746c850fa10e2f45c&lang=en&lon=120.6616&lat=15.2141 HTTP/1.1" 200 474
+2024-03-17 11:38:06,420 - INFO - As of: 2024-03-17 | 11:38:06
+2024-03-17 11:38:06,420 - INFO - Current weather at Magalang, PH: Date: 2024-03-17, Time: 11:38:06, Temperature: 28.62°C, Humidity: 61%, Wind Speed: 0.92 m/s, Weather Status: clouds
+2024-03-17 11:38:06,430 - DEBUG - Starting new HTTPS connection (1): api.openweathermap.org:443
+2024-03-17 11:38:06,468 - INFO - Weather data inserted into the database successfully.
+2024-03-17 11:38:06,469 - INFO - Finished processing location: Magalang, PH
+2024-03-17 11:38:08,771 - DEBUG - https://api.openweathermap.org:443 "GET /data/2.5/weather?APPID=5c9026775828973746c850fa10e2f45c&lang=en&lon=120.5789&lat=15.2108 HTTP/1.1" 200 475
+2024-03-17 11:38:08,777 - INFO - As of: 2024-03-17 | 11:38:08
+2024-03-17 11:38:08,777 - INFO - Current weather at Mabalacat City, PH: Date: 2024-03-17, Time: 11:38:08, Temperature: 28.22°C, Humidity: 61%, Wind Speed: 0.92 m/s, Weather Status: clouds
+2024-03-17 11:38:08,781 - DEBUG - Starting new HTTPS connection (1): api.openweathermap.org:443
+2024-03-17 11:38:08,782 - INFO - Weather data inserted into the database successfully.
+2024-03-17 11:38:08,783 - INFO - Finished processing location: Mabalacat City, PH
+2024-03-17 11:38:10,748 - DEBUG - https://api.openweathermap.org:443 "GET /data/2.5/weather?APPID=5c9026775828973746c850fa10e2f45c&lang=en&lon=120.5875&lat=15.1389 HTTP/1.1" 200 474
+2024-03-17 11:38:10,755 - INFO - As of: 2024-03-17 | 11:38:10
+2024-03-17 11:38:10,755 - INFO - Current weather at Angeles, PH: Date: 2024-03-17, Time: 11:38:10, Temperature: 28.25°C, Humidity: 61%, Wind Speed: 0.92 m/s, Weather Status: clouds
+2024-03-17 11:38:10,760 - INFO - Weather data inserted into the database successfully.
+2024-03-17 11:38:10,761 - INFO - Finished processing location: Angeles, PH
+2024-03-17 11:38:10,761 - INFO - Script execution completed at 2024-03-17 11:38:10.
+2024-03-17 11:38:10,761 - INFO - Total time taken is 6.83 seconds.
