@@ -94,7 +94,7 @@ class LocationData:
         return f"Location Name: {self.location_name}, Latitude: {self.latitude}, Longitude: {self.longitude}, Additional Info: {self.additional_info}"
     
     def validate_data(self):
-    # Check if required fields are not empty and have the correct type
+    # Check if required fields are not empty and have the correct type.
         if not isinstance(self.location_name, str) or not isinstance(self.latitude, (int, float)) or not isinstance(self.longitude, (int, float)) or not isinstance(self.additional_info, dict):
             raise ValueError("Invalid data in LocationData object. Please provide valid data for insertion.")
 
@@ -102,7 +102,7 @@ class DatabasePool:
     # Class representing a database connection pool manager.
     _pool = None
     _pool_mutex = threading.Lock()
-    _connection_queue = LifoQueue(maxsize=10)  # updated to LIFO queue
+    _connection_queue = LifoQueue(maxsize=10)  # Updated to LIFO queue.
 
     def get_pool():
         # Get the database connection pool. If the pool does not exist, creates a new one and returns it.
@@ -209,13 +209,13 @@ class WeatherInfo:
 
 class WeatherDataFetcher:
     # Class responsible for fetching weather data.
-    CACHE_SIZE = 256 # Adjust based on memory availability and access patterns
-    CACHE_TTL = 7200 # Adjust the TTL in seconds based on data freshness requirements
+    CACHE_SIZE = 256 # Adjust based on memory availability and access patterns.
+    CACHE_TTL = 7200 # Adjust the TTL in seconds based on data freshness requirements.
     
     def __init__(self, api_config: APIConfig) -> None:
         # Initializes the WeatherDataFetcher with the specified API configuration.
         self.weather_cache = TTLCache(maxsize=self.CACHE_SIZE, ttl=self.CACHE_TTL)
-        self.cache_lock = threading.Lock()  # Add lock for the cache
+        self.cache_lock = threading.Lock()  # Add lock for the cache.
         
         if self.validate_api_key(api_config.api_key):
             self.api_key = api_config.api_key
@@ -319,18 +319,22 @@ class WeatherDataFetcher:
                 raise ValueError("Location cannot be empty or whitespace only.")
 
             location_data = None
+            
             if not lazy_load or normalized_location not in self.weather_cache:
                 location_data = self.fetch_weather_data_from_api(normalized_location)
+            else:
+                with self.cache_lock:
+                    location_data = self.weather_cache.get(normalized_location)
 
             if not location_data:
                 raise ValueError(f"Error fetching weather data for location: {normalized_location}. Data is None.")
 
-            # Check for missing or null weather_data before further processing
+            # Check for missing or null weather_data before further processing.
             if not location_data.get_additional_info() or not self.validate_weather_data(location_data.get_additional_info()):
                 raise RuntimeError(f"Weather data missing or invalid for location: {normalized_location}.")
 
             if location_data and not lazy_load:
-                # Protect access to the shared weather_cache with a lock
+                # Protect access to the shared weather_cache with a lock.
                 with self.cache_lock:
                     self.weather_cache[normalized_location] = location_data.get_additional_info()
                     logging.info(f"Weather data fetched from API and stored in cache for location: {normalized_location}")
@@ -339,7 +343,7 @@ class WeatherDataFetcher:
             weather_info = WeatherInfo(weather_data['date'], weather_data['time'], weather_data['temperature'], weather_data['humidity'], weather_data['wind_speed'], weather_data['weather_status'])
 
             try:
-            # Validate the data before insertion
+            # Validate the data before insertion.
                 location_data.validate_data()
 
             except ValueError as value_error:
@@ -402,7 +406,7 @@ class WeatherDataFetcher:
                     if weather:
                         temperature = float(weather.temperature('celsius')['temp'])
 
-                        # Data normalization
+                        # Data normalization.
                         temperature = self.normalize_temperature(temperature)
                         humidity = self.normalize_humidity(humidity)
                         wind_speed = self.normalize_wind_speed(wind['speed'])
@@ -420,7 +424,7 @@ class WeatherDataFetcher:
                             'wind_speed': wind_speed,
                             'humidity': humidity,
                         }
-                        # Create an instance of the WeatherInfo class with the fetched weather data
+                        # Create an instance of the WeatherInfo class with the fetched weather data.
                         weather_info = WeatherInfo(weather_data['date'], weather_data['time'], weather_data['temperature'],
                                                 weather_data['humidity'], weather_data['wind_speed'], weather_data['weather_status'])
                         return LocationData(location, latitude, longitude, weather_data)
@@ -442,15 +446,15 @@ class WeatherDataFetcher:
         
     def normalize_temperature(self, temperature: float) -> float:
         # Normalize temperature to a common scale or range.
-        return max(-50.0, min(temperature, 50.0))  # Normalize temperature within the range of -50°C to 50°C
+        return max(-50.0, min(temperature, 50.0))  # Normalize temperature within the range of -50°C to 50°C.
 
     def normalize_humidity(self, humidity: int) -> int:
         # Normalize humidity to a common scale or range.
-        return max(0, min(humidity, 100))  # Example: Ensure humidity percentage is within [0, 100]
+        return max(0, min(humidity, 100))  # Example: Ensure humidity percentage is within [0, 100].
 
     def normalize_wind_speed(self, wind_speed: float) -> float:
         # Normalize wind speed to a common unit or scale.
-        return max(0.0, round((wind_speed * 0.44704), 2))  # Convert wind speed from mph to m/s with 2 decimal places
+        return max(0.0, round((wind_speed * 0.44704), 2))  # Convert wind speed from mph to m/s with 2 decimal places.
 
 class DatabaseHandler:
     # A helper class to interact with a PostgreSQL database.
@@ -483,7 +487,7 @@ class DatabaseHandler:
                 cursor.execute(sql.SQL('CREATE INDEX idx_location ON weather_data (location);'))
                 cursor.execute(sql.SQL('CREATE INDEX idx_temperature ON weather_data (temperature);'))
                 cursor.execute(sql.SQL('CREATE INDEX idx_weather_status ON weather_data (weather_status);'))
-                cursor.execute(sql.SQL('CREATE INDEX idx_climate_data ON weather_data USING GIN (climate_data);'))  # GIN index on the jsonb column
+                cursor.execute(sql.SQL('CREATE INDEX idx_climate_data ON weather_data USING GIN (climate_data);'))  # GIN index on the jsonb column.
                 
                 self.conn.commit()
 
@@ -495,10 +499,10 @@ class DatabaseHandler:
 
     def insert_data(self, data: dict) -> None:
         try:
-            # Missing data handling and normalization
+            # Missing data handling and normalization.
             cleaned_data = {k: data[k].strip() if isinstance(data[k], str) else data[k] for k in data}
             
-            # Check for missing or null data
+            # Check for missing or null data.
             required_keys = ['date', 'time', 'location', 'weather_status', 'temperature', 'wind_speed', 'humidity']
             if any(key not in cleaned_data for key in required_keys):
                 raise ValueError("One or more weather data fields are missing.")
@@ -516,7 +520,7 @@ class DatabaseHandler:
                     cleaned_data['temperature'],
                     cleaned_data['wind_speed'],
                     cleaned_data['humidity'],
-                    json.dumps(cleaned_data)  # Convert dictionary to JSON string for insertion into the jsonb column
+                    json.dumps(cleaned_data)  # Convert dictionary to JSON string for insertion into the jsonb column.
                 )
                 cursor.execute(query, values)
                 self.conn.commit()
@@ -589,13 +593,13 @@ class JSONHandler:
 
     def update_json_data(self, weather_data: dict) -> None:
         try:
-            # Cleanse data before updating JSON file
+            # Cleanse data before updating JSON file.
             cleaned_data = {k: weather_data[k].strip() if isinstance(weather_data[k], str) else weather_data[k] for k in weather_data}
             
             with self.open_json_file('weather_data.json', 'r') as file:
                 existing_data = json.load(file)
 
-            # Update with normalized, cleaned data
+            # Update with normalized, cleaned data.
             existing_data.append(cleaned_data)
 
             with self.open_json_file('weather_data.json', 'w') as file:
@@ -612,7 +616,7 @@ class JSONHandler:
             raise RuntimeError(error_message)
         
 def main():
-    # Main function that fetches weather data from API for multiple locations concurrently
+    # Main function that fetches weather data from API for multiple locations concurrently.
     try:
         config = ConfigParserWrapper('config.ini')
         api_key = config.get_value('API', 'api_key')
@@ -621,8 +625,8 @@ def main():
 
         logging.info(f"Script execution started at {datetime.now().replace(microsecond=0)}.")
 
-        # Configure the ThreadPoolExecutor with a specific number of threads
-        max_threads = 5  # Define the maximum number of threads
+        # Configure the ThreadPoolExecutor with a specific number of threads.
+        max_threads = 5  # Define the maximum number of threads.
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
             fetcher = WeatherDataFetcher(api_config)
             futures = {executor.submit(fetcher.fetch_weather_data, location) for location in locations}
