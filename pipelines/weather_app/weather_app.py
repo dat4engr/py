@@ -508,7 +508,7 @@ class DatabaseHandler:
                 INSERT INTO weather_data (date, time, location, weather_status, temperature, wind_speed, humidity, climate_data) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 '''
-                cursor.execute(query, (
+                values = (
                     cleaned_data['date'],
                     cleaned_data['time'],
                     cleaned_data['location'],
@@ -517,11 +517,12 @@ class DatabaseHandler:
                     cleaned_data['wind_speed'],
                     cleaned_data['humidity'],
                     json.dumps(cleaned_data)  # Convert dictionary to JSON string for insertion into the jsonb column
-                ))
+                )
+                cursor.execute(query, values)
                 self.conn.commit()
 
                 logging.info("Weather data inserted into the database successfully.")
-        
+            
         except OperationalError as operation_error:
             logging.error(f"Operational error occurred during insertion: {operation_error}")
             raise ValueError(operation_error)
@@ -534,7 +535,7 @@ class DatabaseHandler:
             error_message = f"Error inserting data into the database: {exception}"
             logging.error(error_message)
             raise ValueError(error_message)
-
+        
 class JSONHandler:
     # Context manager class responsible for handling JSON file operations.
     def __init__(self):
@@ -631,7 +632,6 @@ def main():
                     future.result()
                 except Exception as error:
                     logging.error(f"An error occurred in thread execution: {error}")
-
 
         logging.info(f"Script execution completed at {datetime.now().replace(microsecond=0)}.")
 
