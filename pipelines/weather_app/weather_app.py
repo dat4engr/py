@@ -31,21 +31,25 @@ start_time = time.time()
 class APIConfig:
     # Model for storing API related configuration data.
     def __init__(self, api_key: str, config_file: str):
+        # Initialize APIConfig with API key and configuration file.
         if not api_key or api_key.isspace():
             error_message = "API key cannot be empty or whitespace only."
             logging.error(error_message)
             raise ValueError(error_message)
+        
         self.api_key = api_key
         self.config_file = config_file
 
 class ErrorResult:
     # Model for error results with error code, message, and details.
     def __init__(self, error_code: int, error_message: str, error_details=None):
+        # Initialize ErrorResult object with error code, error message, and optional error details.
         self.error_code = error_code
         self.error_message = error_message
         self.error_details = error_details if error_details else {}
 
     def __str__(self):
+        # Override the string representation of the object.
         return f"Error Code: {self.error_code}. Error Message: {self.error_message}, Error Details: {self.error_details}"
 
 class ErrorCode:
@@ -63,24 +67,30 @@ class ErrorCode:
 class LocationData:
     # Data class for storing location information.
     def __init__(self, location_name: str, latitude: float, longitude: float, additional_info: dict):
+        # Initialize LocationData object with provided data.
         self.location_name = location_name
         self.latitude = latitude
         self.longitude = longitude
         self.additional_info = additional_info
 
     def get_location_name(self):
+    # Return the name of the location.
         return self.location_name
 
     def get_latitude(self):
+    # Return the latitude coordinate of the location.
         return self.latitude
 
     def get_longitude(self):
+    # Return the longitude coordinate of the location.
         return self.longitude
 
     def get_additional_info(self):
+    # Return the additional information about the location.
         return self.additional_info
 
     def __str__(self):
+    # Return a formatted string representation of the LocationData object.
         return f"Location Name: {self.location_name}, Latitude: {self.latitude}, Longitude: {self.longitude}, Additional Info: {self.additional_info}"
     
     def validate_data(self):
@@ -110,6 +120,7 @@ class DatabasePool:
 
     @staticmethod
     def get_connection():
+        # Get a database connection from the connection pool.
         conn = DatabasePool._connection_queue.get()
         if conn is None:
             conn = DatabasePool.get_pool().getconn()
@@ -117,6 +128,7 @@ class DatabasePool:
     
     @staticmethod
     def release_connection(conn):
+        # Release a connection back to the connection pool.
         DatabasePool._connection_queue.put(conn)
 
     @staticmethod
@@ -136,6 +148,7 @@ class DatabaseCredentials:
         self.password = password
 
     def __str__(self):
+        # Returns a string representation of the database credentials.
         return f"Host: {self.host}, Database: {self.database}, User: {self.user}"
 
 class ConfigParserWrapper:
@@ -146,30 +159,34 @@ class ConfigParserWrapper:
         self.config_parser.read(config_file)
 
     def get_value(self, section: str, key: str) -> str:
-        # Get the value from the config file for the given section and key.
+        # Gets the value from the config file for the given section and key.
         try:
             return self.config_parser.get(section, key)
+        
         except (configparser.NoSectionError, configparser.NoOptionError) as config_parser_error:
             error_message = f"Error while reading config file: {config_parser_error}"
             logging.error(error_message)
             raise ValueError(error_message)
 
     def get_database_credentials(self) -> DatabaseCredentials:
-        # Get the database credentials from the config file.
+        # Gets the database credentials from the config file.
         try:
             host = self.get_value('Database', 'host')
             database = self.get_value('Database', 'database')
             user = self.get_value('Database', 'user')
             password = self.get_value('Database', 'password')
             return DatabaseCredentials(host, database, user, password)
+        
         except ValueError as value_error:
             error_message = f"Value Error fetching database credentials: {value_error}"
             logging.error(error_message)
             raise RuntimeError(error_message)
+        
         except configparser.NoSectionError as section_error:
             error_message = f"No Section Error fetching database credentials: {section_error}"
             logging.error(error_message)
             raise RuntimeError(error_message)
+        
         except configparser.NoOptionError as option_error:
             error_message = f"No Option Error fetching database credentials: {option_error}"
             logging.error(error_message)
@@ -178,6 +195,7 @@ class ConfigParserWrapper:
 class WeatherInfo:
     # Model for storing weather information for a location.
     def __init__(self, date: str, time: str, temperature: float, humidity: int, wind_speed: float, weather_status: str):
+        # Initialize a WeatherInfo object.
         self.date = date
         self.time = time
         self.temperature = temperature
@@ -186,17 +204,19 @@ class WeatherInfo:
         self.weather_status = weather_status
 
     def __str__(self):
+        # Get a string representation of the WeatherInfo object.
         return f"Date: {self.date}, Time: {self.time}, Temperature: {self.temperature}°C, Humidity: {self.humidity}%, Wind Speed: {self.wind_speed} m/s, Weather Status: {self.weather_status}"
 
 class WeatherDataFetcher:
     # Class responsible for fetching weather data.
-    CACHE_SIZE = 128
-    CACHE_TTL = 3600
+    CACHE_SIZE = 256 # Adjust based on memory availability and access patterns
+    CACHE_TTL = 7200 # Adjust the TTL in seconds based on data freshness requirements
     
     def __init__(self, api_config: APIConfig) -> None:
         # Initializes the WeatherDataFetcher with the specified API configuration.
         self.weather_cache = TTLCache(maxsize=self.CACHE_SIZE, ttl=self.CACHE_TTL)
         self.cache_lock = threading.Lock()  # Add lock for the cache
+        
         if self.validate_api_key(api_config.api_key):
             self.api_key = api_config.api_key
         else:
@@ -215,6 +235,7 @@ class WeatherDataFetcher:
         try:
             config = ConfigParserWrapper('config.ini')
             return config.get_value('API', key)
+        
         except ValueError as error:
             error_message = f"Configuration error: {error}"
             logging.error(error_message)
@@ -222,6 +243,7 @@ class WeatherDataFetcher:
 
     @lru_cache(maxsize=128)
     def get_coordinates(self, location: str) -> Union[Tuple[float, float], None]:
+        # Fetches the latitude and longitude coordinates for a given location.
         try:
             # Remove special characters and non-alphanumeric characters from the location name.
             cleaned_location = re.sub(r'[^\w\s]', '', location)
@@ -253,10 +275,12 @@ class WeatherDataFetcher:
             error_message = f"Value Error getting coordinates for location: {cleaned_location}. {value_error}"
             logging.error(error_message)
             raise RuntimeError(error_message)
+        
         except (GeocoderTimedOut, GeocoderServiceError) as geocoder_error:
             error_message = f"Error getting coordinates for location: {cleaned_location}. {geocoder_error}"
             logging.error(error_message)
             raise RuntimeError(error_message)
+        
         except Exception as exception:
             error_message = f"Unknown error getting coordinates for location: {cleaned_location}. {exception}"
             logging.error(error_message)
@@ -275,13 +299,14 @@ class WeatherDataFetcher:
             wind = weather.wind()
             humidity = weather.humidity
             return current_date, current_time, weather, wind, humidity
+
         except Exception as exception:
             error_message = f"Error getting current weather: {exception}"
             logging.error(error_message)
             raise RuntimeError(error_message)
 
     def fetch_weather_data(self, location: str, lazy_load: bool = True) -> None:
-        # Fetches weather data for a given location. Loads from cache if available.
+        # Fetches weather data for a given location and stores it in the cache.
         try:
             logging.info(f"Fetching weather data for location: {location}")
 
@@ -316,6 +341,7 @@ class WeatherDataFetcher:
             try:
             # Validate the data before insertion
                 location_data.validate_data()
+
             except ValueError as value_error:
                 logging.error(value_error)
                 raise RuntimeError(value_error)
@@ -332,20 +358,25 @@ class WeatherDataFetcher:
         except ValueError as value_error:
             logging.error(value_error)
             raise RuntimeError(value_error, f"Error fetching weather data for location: {normalized_location}")
+        
         except (GeocoderTimedOut, GeocoderServiceError) as geocoder_error:
             error_message = f"Error getting coordinates for location: {normalized_location}. {geocoder_error}"
             logging.error(error_message)
             raise RuntimeError(error_message)
+        
         except OperationalError as operation_error:
             logging.error(f"Operational error occurred: {operation_error}")
             raise RuntimeError(operation_error)
+        
         except DatabaseError as db_error:
             logging.error(f"Database error occurred: {db_error}")
             raise RuntimeError(db_error)
+        
         except Exception as exception:
             error_message = f"Error fetching weather data for location: {normalized_location}. {exception}"
             logging.exception(error_message)
             raise RuntimeError(error_message)
+        
         finally:
             logging.info(f"Finished processing location: {location}")
 
@@ -360,6 +391,7 @@ class WeatherDataFetcher:
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     def fetch_weather_data_from_api(self, location: str) -> Union[LocationData, None]:
+        # Fetches weather data for a location from the API.
         try:
             coordinates = self.get_coordinates(location)
             if coordinates:
@@ -398,6 +430,7 @@ class WeatherDataFetcher:
             else:
                 logging.error(f"Unable to fetch coordinates for {location}.")
                 raise RuntimeError(f"Unable to fetch coordinates for {location}.")
+        
         except Exception as exception:
             error_message = f"Error fetching weather data from API: {exception}"
             logging.error(error_message)
@@ -422,23 +455,28 @@ class WeatherDataFetcher:
 class DatabaseHandler:
     # A helper class to interact with a PostgreSQL database.
     def __enter__(self):
+        # Get a connection from the database pool when entering the context.
         try:
             self.conn = DatabasePool.get_pool().getconn()
             return self
+        
         except (OperationalError, DatabaseError) as error:
             error_message = f"Error connecting to the database: {error}"
             logging.error(error_message)
             raise ValueError(error_message)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        # Put the database connection back to the pool when exiting the context.
         DatabasePool.get_pool().putconn(self.conn)
         self.conn = None
 
     @staticmethod
     def create_cursor(conn):
+        # Create and return a cursor object for database interaction.
         return conn.cursor()
     
     def create_indexes(self):
+        # Create necessary indexes on the weather_data table for improved query performance.
         try:
             with self.create_cursor(self.conn) as cursor:
                 cursor.execute(sql.SQL('CREATE INDEX idx_date ON weather_data (date);'))
@@ -487,9 +525,11 @@ class DatabaseHandler:
         except OperationalError as operation_error:
             logging.error(f"Operational error occurred during insertion: {operation_error}")
             raise ValueError(operation_error)
+
         except DatabaseError as db_error:
             logging.error(f"Database error occurred: {db_error}")
             raise ValueError(db_error)
+
         except Exception as exception:
             error_message = f"Error inserting data into the database: {exception}"
             logging.error(error_message)
@@ -498,15 +538,17 @@ class DatabaseHandler:
 class JSONHandler:
     # Context manager class responsible for handling JSON file operations.
     def __init__(self):
-        self.lock = threading.Lock()
         # Constructor for JSONHandler class.
+        self.lock = threading.Lock()
         self.file = None
     
     @contextmanager
     def lock_acquire(self):
+        # Acquires the lock.
         try:
             self.lock.acquire()
             yield
+        
         finally:
             self.lock.release()
 
@@ -518,10 +560,12 @@ class JSONHandler:
                 with open(file_path, mode) as file:
                     self.file = file
                     yield self.file
+
         except (PermissionError, IOError, json.JSONDecodeError) as error:
             error_message = f"Error handling JSON file: {error}"
             logging.error(error_message)
             raise RuntimeError(error_message) from error
+        
         except Exception as error:
             error_message = "Unexpected error occurred in JSON file operation."
             logging.error(f"{error_message}: {error}")
@@ -536,6 +580,7 @@ class JSONHandler:
         if self.file:
             try:
                 self.file.close()
+
             except Exception as exception:
                 error_message = f"Error closing the JSON file: {exception}"
                 logging.error(error_message)
@@ -559,21 +604,25 @@ class JSONHandler:
             error_message = f"Error updating JSON data: {error}"
             logging.error(error_message)
             raise RuntimeError(error_message)
+        
         except Exception as error:
             error_message = f"Unexpected error occurred while updating JSON: {error}"
             logging.error(error_message)
             raise RuntimeError(error_message)
         
-if __name__ == "__main__":      
+def main():
+    # Main function that fetches weather data from API for multiple locations concurrently
     try:
         config = ConfigParserWrapper('config.ini')
         api_key = config.get_value('API', 'api_key')
         api_config = APIConfig(api_key, 'config.ini')
         locations = sorted(["Angeles, PH", "Mabalacat City, PH", "Magalang, PH"])
-        
+
         logging.info(f"Script execution started at {datetime.now().replace(microsecond=0)}.")
 
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Configure the ThreadPoolExecutor with a specific number of threads
+        max_threads = 5  # Define the maximum number of threads
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
             fetcher = WeatherDataFetcher(api_config)
             futures = {executor.submit(fetcher.fetch_weather_data, location) for location in locations}
 
@@ -582,7 +631,8 @@ if __name__ == "__main__":
                     future.result()
                 except Exception as error:
                     logging.error(f"An error occurred in thread execution: {error}")
-        
+
+
         logging.info(f"Script execution completed at {datetime.now().replace(microsecond=0)}.")
 
         end_time = time.time()
@@ -603,3 +653,6 @@ if __name__ == "__main__":
 
     except Exception as exception:
         logging.exception("Unexpected Error occurred in main execution.")
+
+if __name__ == "__main__": 
+    main()
