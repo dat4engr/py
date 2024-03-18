@@ -142,6 +142,7 @@ class DatabasePool:
 class DatabaseCredentials:
     # Model for database credentials.
     def __init__(self, host: str, database: str, user: str, password: str):
+        # Initialize the DatabaseCredentials object with host, database, user, and password.
         self.host = host
         self.database = database
         self.user = user
@@ -456,6 +457,56 @@ class WeatherDataFetcher:
         # Normalize wind speed to a common unit or scale.
         return max(0.0, round((wind_speed * 0.44704), 2))  # Convert wind speed from mph to m/s with 2 decimal places.
 
+class SchemaManager:
+    @staticmethod
+    def create_weather_data_table():
+        # Create the initial schema for the weather data table.
+        create_table_query = '''
+        CREATE TABLE IF NOT EXISTS weather_data (
+            id SERIAL PRIMARY KEY,
+            date DATE,
+            time TIME,
+            location VARCHAR(255),
+            weather_status VARCHAR(50),
+            temperature NUMERIC,
+            wind_speed NUMERIC,
+            humidity INTEGER,
+            climate_data JSONB
+        );
+        '''
+        try:
+            with DatabaseHandler() as database_handler:
+                database_handler.create_cursor(database_handler.conn).execute(create_table_query)
+                database_handler.conn.commit()
+                logging.info("Created weather_data table successfully.")
+        except (OperationalError, DatabaseError) as error:
+            error_message = f"Error creating weather_data table: {error}"
+            logging.error(error_message)
+            raise ValueError(error_message)
+
+    @staticmethod
+    def alter_weather_data_table():
+        # Alter the schema of the weather data table as needed.
+        alter_table_query = '''
+        ALTER TABLE weather_data ADD COLUMN IF NOT EXISTS temperature_upper_limit NUMERIC;
+        '''
+        try:
+            with DatabaseHandler() as database_handler:
+                database_handler.create_cursor(database_handler.conn).execute(alter_table_query)
+                database_handler.conn.commit()
+                logging.info("Altered weather_data table successfully.")
+        except (OperationalError, DatabaseError) as error:
+            error_message = f"Error altering weather_data table: {error}"
+            logging.error(error_message)
+            raise ValueError(error_message)
+
+    @staticmethod
+    def optimize_query_performance():
+        # Perform optimizations like creating indexes and analyzing table data for the weather data table.
+        with DatabaseHandler() as database_handler:
+            database_handler.create_indexes()
+            logging.info("Database query performance optimizations completed.")
+
 class DatabaseHandler:
     # A helper class to interact with a PostgreSQL database.
     def __enter__(self):
@@ -539,6 +590,10 @@ class DatabaseHandler:
             error_message = f"Error inserting data into the database: {exception}"
             logging.error(error_message)
             raise ValueError(error_message)
+    
+    def create_schema(self):
+        # Create the initial schema for the application.
+        SchemaManager.create_weather_data_table()
         
 class JSONHandler:
     # Context manager class responsible for handling JSON file operations.
@@ -624,6 +679,11 @@ def main():
         locations = sorted(["Angeles, PH", "Mabalacat City, PH", "Magalang, PH"])
 
         logging.info(f"Script execution started at {datetime.now().replace(microsecond=0)}.")
+    
+        with DatabaseHandler() as database_handler:
+            database_handler.create_schema()
+
+        SchemaManager.optimize_query_performance()
 
         # Configure the ThreadPoolExecutor with a specific number of threads.
         max_threads = 5  # Define the maximum number of threads.
