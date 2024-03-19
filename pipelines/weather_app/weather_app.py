@@ -155,6 +155,7 @@ class DatabaseCredentials:
 class ConfigParserWrapper:
     # Wrapper class for configparser to read config values.
     def __init__(self, config_file: str) -> None:
+        # Initialize the ConfigParserWrapper object with the config file.
         self.config_file = config_file
         self.config_parser = configparser.ConfigParser()
         self.config_parser.read(config_file)
@@ -534,11 +535,21 @@ class DatabaseHandler:
         # Create necessary indexes on the weather_data table for improved query performance.
         try:
             with self.create_cursor(self.conn) as cursor:
-                cursor.execute(sql.SQL('CREATE INDEX idx_date ON weather_data (date);'))
-                cursor.execute(sql.SQL('CREATE INDEX idx_location ON weather_data (location);'))
-                cursor.execute(sql.SQL('CREATE INDEX idx_temperature ON weather_data (temperature);'))
-                cursor.execute(sql.SQL('CREATE INDEX idx_weather_status ON weather_data (weather_status);'))
-                cursor.execute(sql.SQL('CREATE INDEX idx_climate_data ON weather_data USING GIN (climate_data);'))  # GIN index on the jsonb column.
+                indexes = [
+                    'idx_date',
+                    'idx_location',
+                    'idx_temperature',
+                    'idx_weather_status',
+                    'idx_climate_data'
+                ]
+                
+                for index_name in indexes:
+                    # Check if the index already exists
+                    cursor.execute(sql.SQL('SELECT count(*) FROM pg_indexes WHERE indexname = %s;'), (index_name,))
+                    count = cursor.fetchone()[0]
+
+                    if count == 0:
+                        cursor.execute(sql.SQL('CREATE INDEX {} ON weather_data ({});').format(sql.Identifier(index_name), sql.Identifier(index_name.lower())))
                 
                 self.conn.commit()
 
@@ -669,6 +680,13 @@ class JSONHandler:
             error_message = f"Unexpected error occurred while updating JSON: {error}"
             logging.error(error_message)
             raise RuntimeError(error_message)
+
+def process_location(fetcher, location):
+    # Helper method to process weather data fetching for a single location.
+    try:
+        fetcher.fetch_weather_data(location)
+    except Exception as error:
+        logging.error(f"Error processing location {location}: {error}")
         
 def main():
     # Main function that fetches weather data from API for multiple locations concurrently.
@@ -679,29 +697,29 @@ def main():
         locations = sorted(["Angeles, PH", "Mabalacat City, PH", "Magalang, PH"])
 
         logging.info(f"Script execution started at {datetime.now().replace(microsecond=0)}.")
-    
+
         with DatabaseHandler() as database_handler:
             database_handler.create_schema()
 
         SchemaManager.optimize_query_performance()
 
-        # Configure the ThreadPoolExecutor with a specific number of threads.
-        max_threads = 5  # Define the maximum number of threads.
+        max_threads = 5  # Maximum number of threads for concurrent processing
+
+        # Create a ThreadPoolExecutor with a specific number of threads.
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
             fetcher = WeatherDataFetcher(api_config)
-            futures = {executor.submit(fetcher.fetch_weather_data, location) for location in locations}
 
-            for future in concurrent.futures.as_completed(futures):
-                try:
-                    future.result()
-                except Exception as error:
-                    logging.error(f"An error occurred in thread execution: {error}")
+            # Process each location concurrently using threads
+            futures = [executor.submit(process_location, fetcher, location) for location in locations]
+
+            # Wait for all threads to complete
+            concurrent.futures.wait(futures)
 
         logging.info(f"Script execution completed at {datetime.now().replace(microsecond=0)}.")
 
         end_time = time.time()
         total_time = end_time - start_time
-        logging.info(f"Total time taken is {total_time:.2f} seconds.")
+        logging.info(f'Total time taken is {total_time:.2f} seconds.')
 
     except ValueError as value_error:
         logging.error(f"Value Error occurred in main execution: {value_error}")
