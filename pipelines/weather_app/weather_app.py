@@ -1,11 +1,11 @@
 import configparser
-import concurrent.futures
 from datetime import datetime
 from functools import lru_cache
 import json
 import logging
 from typing import Union, Tuple, Any
 
+import dask
 from psycopg2 import OperationalError, DatabaseError, pool, sql
 from pyowm import OWM
 import geocoder
@@ -459,6 +459,7 @@ class WeatherDataFetcher:
         return max(0.0, round((wind_speed * 0.44704), 2))  # Convert wind speed from mph to m/s with 2 decimal places.
 
 class SchemaManager:
+    # A class to manage the schema of the weather data table.
     @staticmethod
     def create_weather_data_table():
         # Create the initial schema for the weather data table.
@@ -703,17 +704,13 @@ def main():
 
         SchemaManager.optimize_query_performance()
 
-        max_threads = 5  # Maximum number of threads for concurrent processing
+        # Fetch weather data concurrently for each location using Dask parallel processing.
+        futures = []
+        for location in locations:
+            future = dask.delayed(process_location)(WeatherDataFetcher(api_config), location)
+            futures.append(future)
 
-        # Create a ThreadPoolExecutor with a specific number of threads.
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
-            fetcher = WeatherDataFetcher(api_config)
-
-            # Process each location concurrently using threads
-            futures = [executor.submit(process_location, fetcher, location) for location in locations]
-
-            # Wait for all threads to complete
-            concurrent.futures.wait(futures)
+        dask.compute(*futures)
 
         logging.info(f"Script execution completed at {datetime.now().replace(microsecond=0)}.")
 
