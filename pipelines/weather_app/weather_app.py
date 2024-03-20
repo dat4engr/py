@@ -5,7 +5,7 @@ import json
 import logging
 from typing import Union, Tuple, Any
 
-import dask
+from dask import delayed, compute
 from psycopg2 import OperationalError, DatabaseError, pool, sql
 from pyowm import OWM
 import geocoder
@@ -626,7 +626,7 @@ class JSONHandler:
 
     @contextmanager
     def open_json_file(self, file_path: str, mode: str) -> Any:
-    # Open the JSON file in the given mode.
+        # Open the JSON file in the given mode.
         try:
             with self.lock_acquire():
                 with open(file_path, mode) as file:
@@ -704,13 +704,11 @@ def main():
 
         SchemaManager.optimize_query_performance()
 
-        # Fetch weather data concurrently for each location using Dask parallel processing.
-        futures = []
-        for location in locations:
-            future = dask.delayed(process_location)(WeatherDataFetcher(api_config), location)
-            futures.append(future)
-
-        dask.compute(*futures)
+        # Create delayed tasks for each location processing.
+        delayed_tasks = [delayed(process_location)(WeatherDataFetcher(api_config), location) for location in locations]
+        
+        # Execute the delayed tasks concurrently using Dask.
+        compute(*delayed_tasks)
 
         logging.info(f"Script execution completed at {datetime.now().replace(microsecond=0)}.")
 
