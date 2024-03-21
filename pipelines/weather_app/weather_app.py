@@ -609,18 +609,18 @@ class DatabaseHandler:
         
 class JSONHandler:
     # Context manager class responsible for handling JSON file operations.
-    def __init__(self):
+    def __init__(self) -> None:
         # Constructor for JSONHandler class.
         self.lock = threading.Lock()
         self.file = None
-    
+
     @contextmanager
     def lock_acquire(self):
         # Acquires the lock.
         try:
             self.lock.acquire()
             yield
-        
+
         finally:
             self.lock.release()
 
@@ -633,15 +633,20 @@ class JSONHandler:
                     self.file = file
                     yield self.file
 
-        except (PermissionError, IOError, json.JSONDecodeError) as error:
-            error_message = f"Error handling JSON file: {error}"
+        except (PermissionError, IOError) as file_error:
+            error_message = f"Error handling JSON file: {file_error}"
             logging.error(error_message)
-            raise RuntimeError(error_message) from error
-        
-        except Exception as error:
+            raise RuntimeError(error_message)
+
+        except json.JSONDecodeError as decode_error:
+            error_message = f"Error decoding JSON file: {decode_error}"
+            logging.error(error_message)
+            raise RuntimeError(error_message)
+
+        except Exception as exception:
             error_message = "Unexpected error occurred in JSON file operation."
-            logging.error(f"{error_message}: {error}")
-            raise RuntimeError(f"{error_message}: {error}")
+            logging.error(f"{error_message}: {exception}")
+            raise RuntimeError(error_message)
 
     def __enter__(self):
         # Context manager enter method.
@@ -659,10 +664,24 @@ class JSONHandler:
             self.file = None
 
     def update_json_data(self, weather_data: dict) -> None:
+        # Update JSON data with the provided weather data dictionary after validating the data.
         try:
             # Cleanse data before updating JSON file.
-            cleaned_data = {k: weather_data[k].strip() if isinstance(weather_data[k], str) else weather_data[k] for k in weather_data}
-            
+            cleaned_data = {k: str(weather_data[k]).strip() if isinstance(weather_data[k], str) else weather_data[k] for k in weather_data}
+
+            # Validate the data before writing to the JSON file.
+            if 'date' not in cleaned_data or 'time' not in cleaned_data or 'location' not in cleaned_data or 'weather_status' not in cleaned_data \
+                or 'temperature' not in cleaned_data or 'wind_speed' not in cleaned_data or 'humidity' not in cleaned_data:
+                raise ValueError("One or more required fields missing in the weather data.")
+
+            for key in ['date', 'time', 'location', 'weather_status']:
+                if not cleaned_data[key]:
+                    raise ValueError(f"Invalid value for field '{key}' in weather data.")
+
+            for key in ['temperature', 'wind_speed', 'humidity']:
+                if not isinstance(cleaned_data[key], (int, float)) or not 0 <= cleaned_data[key] <= 100:
+                    raise ValueError(f"Invalid value for field '{key}' in weather data. Must be a number between 0 and 100.")
+
             with self.open_json_file('weather_data.json', 'r') as file:
                 existing_data = json.load(file)
 
@@ -672,15 +691,18 @@ class JSONHandler:
             with self.open_json_file('weather_data.json', 'w') as file:
                 json.dump(existing_data, file, indent=4)
 
-        except (PermissionError, IOError, json.JSONDecodeError) as error:
-            error_message = f"Error updating JSON data: {error}"
-            logging.error(error_message)
-            raise RuntimeError(error_message)
-        
+        except ValueError as value_error:
+            logging.error(f"Value Error occurred while updating JSON data: {value_error}")
+            raise ValueError("JSON update failed due to invalid weather data.")
+
+        except RuntimeError as run_error:
+            logging.error(f"Runtime Error occurred while updating JSON data: {run_error}")
+            raise RuntimeError("JSON update operation failed.")
+
         except Exception as error:
-            error_message = f"Unexpected error occurred while updating JSON: {error}"
+            error_message = f"Unexpected error occurred while updating JSON data: {error}"
             logging.error(error_message)
-            raise RuntimeError(error_message)
+            raise RuntimeError("An unexpected error occurred during JSON update.")
 
 def process_location(fetcher, location):
     # Helper method to process weather data fetching for a single location.
