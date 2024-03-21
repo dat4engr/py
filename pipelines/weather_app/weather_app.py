@@ -74,27 +74,27 @@ class LocationData:
         self.additional_info = additional_info
 
     def get_location_name(self):
-    # Return the name of the location.
+        # Return the name of the location.
         return self.location_name
 
     def get_latitude(self):
-    # Return the latitude coordinate of the location.
+        # Return the latitude coordinate of the location.
         return self.latitude
 
     def get_longitude(self):
-    # Return the longitude coordinate of the location.
+        # Return the longitude coordinate of the location.
         return self.longitude
 
     def get_additional_info(self):
-    # Return the additional information about the location.
+        # Return the additional information about the location.
         return self.additional_info
 
     def __str__(self):
-    # Return a formatted string representation of the LocationData object.
+        # Return a formatted string representation of the LocationData object.
         return f"Location Name: {self.location_name}, Latitude: {self.latitude}, Longitude: {self.longitude}, Additional Info: {self.additional_info}"
     
     def validate_data(self):
-    # Check if required fields are not empty and have the correct type.
+        # Check if required fields are not empty and have the correct type.
         if not isinstance(self.location_name, str) or not isinstance(self.latitude, (int, float)) or not isinstance(self.longitude, (int, float)) or not isinstance(self.additional_info, dict):
             raise ValueError("Invalid data in LocationData object. Please provide valid data for insertion.")
 
@@ -631,6 +631,10 @@ class JSONHandler:
             with self.lock_acquire():
                 with open(file_path, mode) as file:
                     self.file = file
+                    if mode == 'r':
+                        logging.info(f"INFO - Opened JSON file: {file_path} in mode: {mode}")
+                    elif mode == 'w':
+                        logging.info(f"INFO - Opened JSON file: {file_path} in mode: {mode}")
                     yield self.file
 
         except (PermissionError, IOError) as file_error:
@@ -653,10 +657,11 @@ class JSONHandler:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # Context manager exit method.
+    # Context manager exit method.
         if self.file:
             try:
                 self.file.close()
+                logging.info("INFO - Closed JSON file")
 
             except Exception as exception:
                 error_message = f"Error closing the JSON file: {exception}"
@@ -690,6 +695,7 @@ class JSONHandler:
 
             with self.open_json_file('weather_data.json', 'w') as file:
                 json.dump(existing_data, file, indent=4)
+                logging.info("INFO - Updated JSON data with weather information.")
 
         except ValueError as value_error:
             logging.error(f"Value Error occurred while updating JSON data: {value_error}")
