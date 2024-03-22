@@ -632,9 +632,9 @@ class JSONHandler:
                 with open(file_path, mode) as file:
                     self.file = file
                     if mode == 'r':
-                        logging.info(f"INFO - Opened JSON file: {file_path} in mode: {mode}")
+                        logging.info(f"Reading JSON file: {file_path}")
                     elif mode == 'w':
-                        logging.info(f"INFO - Opened JSON file: {file_path} in mode: {mode}")
+                        logging.info(f"Opening JSON file: {file_path}")
                     yield self.file
 
         except (PermissionError, IOError) as file_error:
@@ -657,11 +657,11 @@ class JSONHandler:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-    # Context manager exit method.
+        # Context manager exit method.
         if self.file:
             try:
                 self.file.close()
-                logging.info("INFO - Closed JSON file")
+                logging.info("Closing JSON file.")
 
             except Exception as exception:
                 error_message = f"Error closing the JSON file: {exception}"
@@ -689,6 +689,8 @@ class JSONHandler:
 
             with self.open_json_file('weather_data.json', 'r') as file:
                 existing_data = json.load(file)
+
+            cleaned_data['version'] = 2  # Update the version number
 
             # Update with normalized, cleaned data.
             existing_data.append(cleaned_data)
