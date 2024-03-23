@@ -607,8 +607,9 @@ class DatabaseHandler:
         # Create the initial schema for the application.
         SchemaManager.create_weather_data_table()
         
-class JSONHandler:
+class JSONHandler:    
     # Context manager class responsible for handling JSON file operations.
+    version = 1  # Initial version
     def __init__(self) -> None:
         # Constructor for JSONHandler class.
         self.lock = threading.Lock()
@@ -690,14 +691,17 @@ class JSONHandler:
             with self.open_json_file('weather_data.json', 'r') as file:
                 existing_data = json.load(file)
 
-            cleaned_data['version'] = 2  # Update the version number
+            cleaned_data['version'] = self.version  # Update the version number
 
             # Update with normalized, cleaned data.
             existing_data.append(cleaned_data)
 
             with self.open_json_file('weather_data.json', 'w') as file:
                 json.dump(existing_data, file, indent=4)
-                logging.info("INFO - Updated JSON data with weather information.")
+                logging.info("Updated JSON data with weather data.")
+
+            # Increment the version after successful update
+            self.version += 1
 
         except ValueError as value_error:
             logging.error(f"Value Error occurred while updating JSON data: {value_error}")
