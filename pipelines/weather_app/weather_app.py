@@ -609,7 +609,6 @@ class DatabaseHandler:
         
 class JSONHandler:    
     # Context manager class responsible for handling JSON file operations.
-    version = 1  # Initial version
     def __init__(self) -> None:
         # Constructor for JSONHandler class.
         self.lock = threading.Lock()
@@ -691,7 +690,7 @@ class JSONHandler:
             with self.open_json_file('weather_data.json', 'r') as file:
                 existing_data = json.load(file)
 
-            cleaned_data['version'] = self.version  # Update the version number
+            cleaned_data['version'] = 2  # Update the version number
 
             # Update with normalized, cleaned data.
             existing_data.append(cleaned_data)
@@ -699,9 +698,6 @@ class JSONHandler:
             with self.open_json_file('weather_data.json', 'w') as file:
                 json.dump(existing_data, file, indent=4)
                 logging.info("Updated JSON data with weather data.")
-
-            # Increment the version after successful update
-            self.version += 1
 
         except ValueError as value_error:
             logging.error(f"Value Error occurred while updating JSON data: {value_error}")
@@ -733,6 +729,9 @@ def main():
 
         logging.info(f"Script execution started at {datetime.now().replace(microsecond=0)}.")
 
+        chunk_size = 1000  # Adjust chunk size based on data characteristics and resource availability.
+        location_chunks = [locations[i:i + chunk_size] for i in range(0, len(locations), chunk_size)]
+
         with DatabaseHandler() as database_handler:
             database_handler.create_schema()
 
@@ -742,7 +741,10 @@ def main():
         delayed_tasks = [delayed(process_location)(WeatherDataFetcher(api_config), location) for location in locations]
         
         # Execute the delayed tasks concurrently using Dask.
-        compute(*delayed_tasks)
+        results = []
+        for chunk in location_chunks:
+            delayed_tasks = [delayed(process_location)(WeatherDataFetcher(api_config), location) for location in chunk]
+            results.extend(compute(*delayed_tasks))
 
         logging.info(f"Script execution completed at {datetime.now().replace(microsecond=0)}.")
 
