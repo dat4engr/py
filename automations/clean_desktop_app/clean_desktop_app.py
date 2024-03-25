@@ -51,10 +51,15 @@ def get_confirmation(number_of_files):
         print("Invalid input. Please enter 'y' for yes or 'n' for no.")
 
 if __name__ == "__main__":
-    logging.basicConfig(filename="delete_files.log", level=logging.INFO)
+    logging.basicConfig(filename="deleted_files.log", level=logging.INFO)
     desktop_path = get_desktop_path()
-    confirmation = get_confirmation(10)  # Pass the number of files to be deleted
-    if confirmation:
-        delete_files(desktop_path)
+    
+    # Check if the desktop directory exists before proceeding
+    if os.path.exists(desktop_path):
+        confirmation = get_confirmation(10)  # Pass the number of files to be deleted
+        if confirmation:
+            delete_files(desktop_path)
+        else:
+            logging.info("Deletion process cancelled by user.")
     else:
-        logging.info("Deletion process cancelled by user.")
+        logging.error("Desktop directory not found. Deletion process aborted.")
