@@ -1,1 +1,9 @@
+23:36:21: Deleted file - .DS_Store (/Users/carlo/Desktop/.DS_Store)
+23:36:21: Deleted file - Screenshot 2023-09-21 at 7.45.46 AM.png (/Users/carlo/Desktop/Screenshot 2023-09-21 at 7.45.46 AM.png)
+23:36:21: Deleted file - thesis-main-contents.docx (/Users/carlo/Desktop/thesis-main-contents.docx)
+23:36:21: Deleted file - ~$ver Letter.docx (/Users/carlo/Desktop/~$ver Letter.docx)
+23:36:21: Deleted file - Screenshot 2023-09-21 at 7.45.27 AM.png (/Users/carlo/Desktop/Screenshot 2023-09-21 at 7.45.27 AM.png)
+23:36:21: Deleted file - cheatsheet.pdf (/Users/carlo/Desktop/cheatsheet.pdf)
+23:36:21: Deleted file - thesis.zip (/Users/carlo/Desktop/thesis.zip)
+23:36:21: Deleted file - Screenshot 2024-03-25 at 23.28.57.png (/Users/carlo/Desktop/Screenshot 2024-03-25 at 23.28.57.png)
 
