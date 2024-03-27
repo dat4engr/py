@@ -603,7 +603,7 @@ class DatabaseHandler:
             logging.error(error_message)
             raise ValueError(error_message)
     
-    def create_schema(self):
+    def create_initial_schema(self):
         # Create the initial schema for the application.
         SchemaManager.create_weather_data_table()
         
@@ -718,7 +718,7 @@ def process_location(fetcher, location):
         fetcher.fetch_weather_data(location)
     except Exception as error:
         logging.error(f"Error processing location {location}: {error}")
-        
+
 def main():
     # Main function that fetches weather data from API for multiple locations concurrently.
     try:
@@ -729,17 +729,18 @@ def main():
 
         logging.info(f"Script execution started at {datetime.now().replace(microsecond=0)}.")
 
-        chunk_size = 1000  # Adjust chunk size based on data characteristics and resource availability.
+        # Adjusted chunk size for optimized concurrent processing
+        chunk_size = 1  # Update chunk size based on resource availability and processing requirements
         location_chunks = [locations[i:i + chunk_size] for i in range(0, len(locations), chunk_size)]
 
         with DatabaseHandler() as database_handler:
-            database_handler.create_schema()
+            database_handler.create_initial_schema()
 
         SchemaManager.optimize_query_performance()
 
         # Create delayed tasks for each location processing.
         delayed_tasks = [delayed(process_location)(WeatherDataFetcher(api_config), location) for location in locations]
-        
+
         # Execute the delayed tasks concurrently using Dask.
         results = []
         for chunk in location_chunks:
@@ -767,5 +768,5 @@ def main():
     except Exception as exception:
         logging.exception("Unexpected Error occurred in main execution.")
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     main()
