@@ -1,32 +1,32 @@
 [
     {
-        "date": "2024-03-24",
-        "time": "14:17:43",
-        "location": "mabalacat city, ph",
-        "weather_status": "clouds",
-        "temperature": 33.22,
-        "wind_speed": 1.84,
-        "humidity": 49,
-        "version": 2
-    },
-    {
-        "date": "2024-03-24",
-        "time": "14:17:43",
-        "location": "magalang, ph",
-        "weather_status": "clouds",
-        "temperature": 33.62,
-        "wind_speed": 1.84,
-        "humidity": 49,
-        "version": 2
-    },
-    {
-        "date": "2024-03-24",
-        "time": "14:17:44",
+        "date": "2024-03-27",
+        "time": "21:45:48",
         "location": "angeles, ph",
-        "weather_status": "clouds",
-        "temperature": 33.25,
+        "weather_status": "rain",
+        "temperature": 26.25,
         "wind_speed": 1.84,
-        "humidity": 49,
+        "humidity": 89,
+        "version": 2
+    },
+    {
+        "date": "2024-03-27",
+        "time": "21:45:51",
+        "location": "mabalacat city, ph",
+        "weather_status": "rain",
+        "temperature": 26.22,
+        "wind_speed": 1.84,
+        "humidity": 89,
+        "version": 2
+    },
+    {
+        "date": "2024-03-27",
+        "time": "21:45:53",
+        "location": "magalang, ph",
+        "weather_status": "rain",
+        "temperature": 26.62,
+        "wind_speed": 1.84,
+        "humidity": 89,
         "version": 2
     }
 ]
