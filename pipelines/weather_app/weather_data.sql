@@ -1,4 +1,4 @@
 INSERT INTO public.weather_data ("date","time","location",weather_status,temperature,wind_speed,humidity,climate_data) VALUES
-	 ('2024-03-27','21:45:48','angeles, ph','rain',26.25,1.84,89.0,'{"date": "2024-03-27", "time": "21:45:48", "humidity": 89, "location": "angeles, ph", "wind_speed": 1.84, "temperature": 26.25, "weather_status": "rain"}'),
-	 ('2024-03-27','21:45:51','mabalacat city, ph','rain',26.22,1.84,89.0,'{"date": "2024-03-27", "time": "21:45:51", "humidity": 89, "location": "mabalacat city, ph", "wind_speed": 1.84, "temperature": 26.22, "weather_status": "rain"}'),
-	 ('2024-03-27','21:45:53','magalang, ph','rain',26.62,1.84,89.0,'{"date": "2024-03-27", "time": "21:45:53", "humidity": 89, "location": "magalang, ph", "wind_speed": 1.84, "temperature": 26.62, "weather_status": "rain"}');
+	 ('2024-03-28','12:20:26','angeles, ph','clouds',30.25,0.46,62.0,'{"date": "2024-03-28", "time": "12:20:26", "humidity": 62, "location": "angeles, ph", "wind_speed": 0.46, "temperature": 30.25, "weather_status": "clouds"}'),
+	 ('2024-03-28','12:20:29','mabalacat city, ph','clouds',30.22,0.46,62.0,'{"date": "2024-03-28", "time": "12:20:29", "humidity": 62, "location": "mabalacat city, ph", "wind_speed": 0.46, "temperature": 30.22, "weather_status": "clouds"}'),
+	 ('2024-03-28','12:20:31','magalang, ph','clouds',30.62,0.46,62.0,'{"date": "2024-03-28", "time": "12:20:31", "humidity": 62, "location": "magalang, ph", "wind_speed": 0.46, "temperature": 30.62, "weather_status": "clouds"}');
