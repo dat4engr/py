@@ -16,19 +16,24 @@ def delete_files(desktop_path):
 
     number_of_files = 0
     try:
-        with open(log_file_path, 'a') as log_file:
-            for entry in os.scandir(desktop_path):
-                item_type = "file" if os.path.isfile(os.path.join(desktop_path, entry.name)) else "folder"
-                file_path = os.path.join(desktop_path, entry.name)
+        if os.path.exists(log_file_path):
+            with open(log_file_path, 'a') as log_file:
+                for root, dirs, files in os.walk(desktop_path, topdown=False):
+                    for name in files:
+                        file_path = os.path.join(root, name)
+                        os.remove(file_path)
+                        number_of_files += 1
+                        log_text = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}: Deleted file - {name} ({file_path})\n"
+                        log_file.write(log_text)
 
-                if os.path.isfile(file_path):
-                    os.remove(file_path)
-                elif os.path.isdir(file_path):
-                    os.rmdir(file_path)
-
-                number_of_files += 1
-                log_text = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}: Deleted {item_type} - {entry.name} ({file_path})\n"
-                log_file.write(log_text)
+                for name in dirs:
+                    folder_path = os.path.join(root, name)
+                    os.rmdir(folder_path)
+                    number_of_files += 1
+                    log_text = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}: Deleted folder - {name} ({folder_path})\n"
+                    log_file.write(log_text)
+        else:
+            logging.error("Log file not found. Aborting deletion process.")
     except OSError as e:
         logging.error(f"Error scanning the desktop directory: {str(e)}")
 
