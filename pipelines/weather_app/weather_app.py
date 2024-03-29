@@ -6,7 +6,6 @@ import logging
 from typing import Union, Tuple, Any
 
 from dask import delayed, compute
-from dask.distributed import Client
 from psycopg2 import OperationalError, DatabaseError, pool, sql
 from pyowm import OWM
 import geocoder
@@ -19,6 +18,7 @@ import time
 import threading
 import re
 import traceback
+import atexit
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -104,7 +104,6 @@ class DatabasePool:
     _pool = None
     _pool_mutex = threading.Lock()
     _connection_queue = LifoQueue(maxsize=10)  # Updated to LIFO queue.
-    _connection_queue_mutex = threading.Lock()  # Add a lock for the connection queue.
 
     def get_pool():
         # Get the database connection pool. If the pool does not exist, creates a new one and returns it.
@@ -123,17 +122,15 @@ class DatabasePool:
     @staticmethod
     def get_connection():
         # Get a database connection from the connection pool.
-        with DatabasePool._connection_queue_mutex:
-            conn = DatabasePool._connection_queue.get()
-            if conn is None:
-                conn = DatabasePool.get_pool().getconn()
-            return conn
+        conn = DatabasePool._connection_queue.get()
+        if conn is None:
+            conn = DatabasePool.get_pool().getconn()
+        return conn
     
     @staticmethod
     def release_connection(conn):
         # Release a connection back to the connection pool.
-        with DatabasePool._connection_queue_mutex:
-            DatabasePool._connection_queue.put(conn)
+        DatabasePool._connection_queue.put(conn)
 
     @staticmethod
     def close_all_connections():
@@ -141,11 +138,10 @@ class DatabasePool:
         if DatabasePool._pool is not None:
             with DatabasePool._pool_mutex:
                 if DatabasePool._pool is not None:
-                    while not DatabasePool._connection_queue.empty():
-                        conn = DatabasePool._connection_queue.get()
-                        if conn:
-                            DatabasePool._pool.putconn(conn)
                     DatabasePool._pool.closeall()
+
+    def cleanup():
+        DatabasePool.close_all_connections()
 
 class DatabaseCredentials:
     # Model for database credentials.
@@ -219,8 +215,8 @@ class WeatherInfo:
 
 class WeatherDataFetcher:
     # Class responsible for fetching weather data.
-    CACHE_SIZE = 256 # Adjust based on memory availability and access patterns.
-    CACHE_TTL = 7200 # Adjust the TTL in seconds based on data freshness requirements.
+    CACHE_SIZE = 128  # Adjust based on memory availability and access patterns.
+    CACHE_TTL = 3600  # Adjust the TTL in seconds based on data freshness requirements.
     
     def __init__(self, api_config: APIConfig) -> None:
         # Initializes the WeatherDataFetcher with the specified API configuration.
@@ -532,8 +528,13 @@ class DatabaseHandler:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Put the database connection back to the pool when exiting the context.
-        DatabasePool.get_pool().putconn(self.conn)
-        self.conn = None
+        if self.conn:
+            try:
+                self.conn.close()
+                logging.info("Closing database connection.")
+            except Exception as e:
+                logging.error(f"Error closing database connection: {e}")
+            self.conn = None
 
     @staticmethod
     def create_cursor(conn):
@@ -553,7 +554,7 @@ class DatabaseHandler:
                 ]
                 
                 for index_name in indexes:
-                    # Check if the index already exists
+                    # Check if the index already exists.
                     cursor.execute(sql.SQL('SELECT count(*) FROM pg_indexes WHERE indexname = %s;'), (index_name,))
                     count = cursor.fetchone()[0]
 
@@ -698,7 +699,7 @@ class JSONHandler:
             with self.open_json_file('weather_data.json', 'r') as file:
                 existing_data = json.load(file)
 
-            cleaned_data['version'] = 2  # Update the version number
+            cleaned_data['version'] = 2  # Update the version number.
 
             # Update with normalized, cleaned data.
             existing_data.append(cleaned_data)
@@ -734,12 +735,17 @@ def main():
         api_key = config.get_value('API', 'api_key')
         api_config = APIConfig(api_key, 'config.ini')
         locations = sorted(["Angeles, PH", "Mabalacat City, PH", "Magalang, PH"])
-
+        atexit.register(DatabasePool.cleanup)  # Register the cleanup function to run on normal program termination.
         logging.info(f"Script execution started at {datetime.now().replace(microsecond=0)}.")
 
         # Adjusted chunk size for optimized concurrent processing.
         chunk_size = 1  # Update chunk size based on resource availability and processing requirements.
         location_chunks = [locations[i:i + chunk_size] for i in range(0, len(locations), chunk_size)]
+
+        with DatabaseHandler() as database_handler:
+            database_handler.create_initial_schema()
+
+        SchemaManager.optimize_query_performance()
 
         # Create delayed tasks for each location processing.
         delayed_tasks = [delayed(process_location)(WeatherDataFetcher(api_config), location) for location in locations]
@@ -749,11 +755,6 @@ def main():
         for chunk in location_chunks:
             delayed_tasks = [delayed(process_location)(WeatherDataFetcher(api_config), location) for location in chunk]
             results.extend(compute(*delayed_tasks))
-
-        with DatabaseHandler() as database_handler:
-            database_handler.create_initial_schema()
-
-        SchemaManager.optimize_query_performance()
 
         logging.info(f"Script execution completed at {datetime.now().replace(microsecond=0)}.")
 
