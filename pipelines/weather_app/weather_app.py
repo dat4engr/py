@@ -104,6 +104,7 @@ class DatabasePool:
     _pool = None
     _pool_mutex = threading.Lock()
     _connection_queue = LifoQueue(maxsize=10)  # Updated to LIFO queue.
+    _active_connections = []
 
     def get_pool():
         # Get the database connection pool. If the pool does not exist, creates a new one and returns it.
@@ -122,9 +123,14 @@ class DatabasePool:
     @staticmethod
     def get_connection():
         # Get a database connection from the connection pool.
-        conn = DatabasePool._connection_queue.get()
-        if conn is None:
+        conn = None
+        
+        if not DatabasePool._connection_queue.empty():  # Check if there's an available connection in the queue.
+            conn = DatabasePool._connection_queue.get()
+        else:
             conn = DatabasePool.get_pool().getconn()
+            DatabasePool._active_connections.append(conn)  # Add to the active connections list.
+        
         return conn
     
     @staticmethod
@@ -135,12 +141,12 @@ class DatabasePool:
     @staticmethod
     def close_all_connections():
         # Close all connections in the database connection pool if it exists.
-        if DatabasePool._pool is not None:
-            with DatabasePool._pool_mutex:
-                if DatabasePool._pool is not None:
-                    DatabasePool._pool.closeall()
+        for conn in DatabasePool._active_connections:
+            DatabasePool._pool.putconn(conn)
+        DatabasePool._active_connections.clear()
 
     def cleanup():
+        # Perform cleanup tasks by closing all connections.
         DatabasePool.close_all_connections()
 
 class DatabaseCredentials:
@@ -528,6 +534,10 @@ class DatabaseHandler:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Put the database connection back to the pool when exiting the context.
+        DatabasePool.get_pool().putconn(self.conn)
+        self.conn = None
+        
+        # Close the database connection if it's not None.
         if self.conn:
             try:
                 self.conn.close()
