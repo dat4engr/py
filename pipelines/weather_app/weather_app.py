@@ -737,6 +737,9 @@ def process_location(fetcher, location):
         fetcher.fetch_weather_data(location)
     except Exception as error:
         logging.error(f"Error processing location {location}: {error}")
+    finally:
+        if DatabasePool._active_connections and fetcher:
+            DatabasePool.release_connection(fetcher)
 
 def main():
     # Main function that fetches weather data from API for multiple locations concurrently.
@@ -746,6 +749,7 @@ def main():
         api_config = APIConfig(api_key, 'config.ini')
         locations = sorted(["Angeles, PH", "Mabalacat City, PH", "Magalang, PH"])
         atexit.register(DatabasePool.cleanup)  # Register the cleanup function to run on normal program termination.
+        
         logging.info(f"Script execution started at {datetime.now().replace(microsecond=0)}.")
 
         # Adjusted chunk size for optimized concurrent processing.
