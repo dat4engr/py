@@ -19,6 +19,7 @@ import threading
 import re
 import traceback
 import atexit
+import psutil
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -28,6 +29,8 @@ logging.basicConfig(level=logging.DEBUG,
                     ])
 
 start_time = time.time()
+
+weather_data_collection_completed = False
 
 class APIConfig:
     # Model for storing API related configuration data.
@@ -741,6 +744,18 @@ def process_location(fetcher, location):
         if DatabasePool._active_connections and fetcher:
             DatabasePool.release_connection(fetcher)
 
+def monitor_resources():
+    # Monitor system resources during script execution.
+    process = psutil.Process()
+    logging.info("Resource Usage Monitoring:")
+    while not weather_data_collection_completed:
+        cpu_percent = process.cpu_percent()
+        memory_percent = process.memory_percent()
+        logging.info(f"CPU Usage: {cpu_percent}% | Memory Usage: {memory_percent}%")
+        time.sleep(5) # Adjust the interval for monitoring based on performance metrics.
+
+    logging.info("Weather data collection completed. Terminating resource monitoring.")
+
 def main():
     # Main function that fetches weather data from API for multiple locations concurrently.
     try:
@@ -748,9 +763,11 @@ def main():
         api_key = config.get_value('API', 'api_key')
         api_config = APIConfig(api_key, 'config.ini')
         locations = sorted(["Angeles, PH", "Mabalacat City, PH", "Magalang, PH"])
+        resource_monitor_thread = threading.Thread(target=monitor_resources)
         atexit.register(DatabasePool.cleanup)  # Register the cleanup function to run on normal program termination.
         
         logging.info(f"Script execution started at {datetime.now().replace(microsecond=0)}.")
+        resource_monitor_thread.start()
 
         # Adjusted chunk size for optimized concurrent processing.
         chunk_size = 1  # Update chunk size based on resource availability and processing requirements.
@@ -769,6 +786,10 @@ def main():
         for chunk in location_chunks:
             delayed_tasks = [delayed(process_location)(WeatherDataFetcher(api_config), location) for location in chunk]
             results.extend(compute(*delayed_tasks))
+
+        # Set the flag to indicate weather data collection is completed.
+        global weather_data_collection_completed
+        weather_data_collection_completed = True
 
         logging.info(f"Script execution completed at {datetime.now().replace(microsecond=0)}.")
 
