@@ -11,16 +11,20 @@ winning_conditions = {
 }
 
 def get_player_choice():
-    player_choice = input("Enter a choice (rock, paper, scissors): ")
-    while player_choice not in options:
-        print("Invalid choice. Please enter rock, paper, or scissors.")
-        player_choice = input("Enter a choice (rock, paper, scissors): ")
-    return player_choice
+    # Ask the player to input a choice (rock, paper, scissors) and validate the input.
+    while True:
+        player_choice = input("Enter a choice (rock, paper, scissors): ").lower()
+        if player_choice in options:
+            return player_choice
+        else:
+            print("Invalid choice. Please enter rock, paper, or scissors.")
 
 def generate_computer_choice():
+    # Randomly selects a choice from the options for the computer.
     return random.choice(options)
 
 def check_win(player, computer):
+    # Check who won the game based on player and computer choices.
     if player == computer:
         return "It's a tie!"
     elif winning_conditions[player] == computer:
@@ -29,6 +33,7 @@ def check_win(player, computer):
         return "Computer wins!"
 
 def play_game():
+    # Play a game of Rock, Paper, Scissors.
     player_choice = get_player_choice()
     computer_choice = generate_computer_choice()
 
@@ -49,5 +54,5 @@ def play_game():
 play_again = 'yes'
 while play_again.lower() == 'yes':
     play_game()
-    play_again = input("Do you want to play again? (yes/no): ")
+    play_again = input("Do you want to play again? (yes/no): ").lower()
     os.system('cls' if os.name == 'nt' else 'clear')
