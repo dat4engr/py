@@ -231,6 +231,10 @@ class WeatherDataFetcher:
         # Initializes the WeatherDataFetcher with the specified API configuration.
         self.weather_cache = TTLCache(maxsize=self.CACHE_SIZE, ttl=self.CACHE_TTL)
         self.cache_lock = threading.Lock()  # Add lock for the cache.
+        self.cache_hits = 0
+        self.cache_misses = 0
+        self.total_accesses = 0
+        self.cache_hit_rate_threshold = 0.7  # Adjust the threshold appropriately.
         
         if self.validate_api_key(api_config.api_key):
             self.api_key = api_config.api_key
@@ -238,6 +242,35 @@ class WeatherDataFetcher:
             error_message = "Invalid API Key"
             logging.error(error_message)
             raise ValueError(error_message)
+
+    def calculate_cache_hit_rate(self) -> float:
+        # Calculate the cache hit rate by dividing the number of cache hits by the total number of accesses.
+        if self.total_accesses == 0:
+            return 0
+        return self.cache_hits / self.total_accesses
+
+    def adjust_cache_size(self):
+        # Adjust the size of the cache based on the cache hit rate.
+        hit_rate = self.calculate_cache_hit_rate()
+        if hit_rate > self.cache_hit_rate_threshold:
+            # Increase cache size if hit rate is high
+            self.weather_cache = TTLCache(maxsize=min(256, self.weather_cache.maxsize * 2), ttl=3600)
+        else:
+            # Decrease cache size if hit rate is low
+            self.weather_cache = TTLCache(maxsize=max(32, self.weather_cache.maxsize // 2), ttl=3600)
+
+    def get_weather_data(self, location: str) -> dict:
+        # Retrieve weather data for a given location from the cache or API.
+        self.total_accesses += 1
+        with self.cache_lock:
+            if location in self.weather_cache:
+                self.cache_hits += 1
+                return self.weather_cache[location]
+            else:
+                self.cache_misses += 1
+                data = self.fetch_weather_data_from_api(location)
+                self.weather_cache[location] = data
+                return data
 
     @staticmethod
     def validate_api_key(api_key: str) -> bool:
