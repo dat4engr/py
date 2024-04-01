@@ -10,20 +10,17 @@ winning_conditions = {
     "paper": "rock"
 }
 
-def get_choices():
-    # Function to take input from the player and generate random choice for the computer.
+def get_player_choice():
     player_choice = input("Enter a choice (rock, paper, scissors): ")
     while player_choice not in options:
         print("Invalid choice. Please enter rock, paper, or scissors.")
         player_choice = input("Enter a choice (rock, paper, scissors): ")
-    
-    computer_choice = random.choice(options)
-    print(f"You chose {player_choice}, computer chose {computer_choice}")
-    
-    return {"player": player_choice, "computer": computer_choice}
+    return player_choice
+
+def generate_computer_choice():
+    return random.choice(options)
 
 def check_win(player, computer):
-    # Function that determines the winner based on the choices made.
     if player == computer:
         return "It's a tie!"
     elif winning_conditions[player] == computer:
@@ -31,13 +28,16 @@ def check_win(player, computer):
     else:
         return "Computer wins!"
 
-play_again = 'yes'
+def play_game():
+    player_choice = get_player_choice()
+    computer_choice = generate_computer_choice()
 
-while play_again.lower() == 'yes':
-    choices = get_choices()
-    result = check_win(choices["player"], choices["computer"])
+    print(f"You chose {player_choice}, computer chose {computer_choice}")
+
+    result = check_win(player_choice, computer_choice)
     print(result)
 
+    global player_wins, computer_wins
     if result == "You win!":
         player_wins += 1
     elif result == "Computer wins!":
@@ -46,5 +46,8 @@ while play_again.lower() == 'yes':
     print(f"Player wins: {player_wins}")
     print(f"Computer wins: {computer_wins}")
 
+play_again = 'yes'
+while play_again.lower() == 'yes':
+    play_game()
     play_again = input("Do you want to play again? (yes/no): ")
     os.system('cls' if os.name == 'nt' else 'clear')
