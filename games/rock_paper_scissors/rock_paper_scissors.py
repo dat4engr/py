@@ -1,5 +1,7 @@
+from colorama import Fore, Style
 import random
 import os
+from emoji import emojize
 
 PLAYER_WINS = 0
 COMPUTER_WINS = 0
@@ -26,14 +28,14 @@ def generate_computer_choice():
 def check_win(player, computer):
     # Check who won the game based on player and computer choices.
     if player == computer:
-        return "It's a tie!"
+        return f"{Fore.WHITE}It's a tie! {emojize(':neutral_face:', use_aliases=True)}{Style.RESET_ALL}"
     elif WINNING_CONDITIONS[player] == computer:
-        return "You win!"
+        return f"{Fore.GREEN}You win! {emojize(':smiley:', use_aliases=True)}{Style.RESET_ALL}"
     else:
-        return "Computer wins!"
+        return f"{Fore.RED}Computer wins! {emojize(':squinting_face_with_tongue:', use_aliases=True)}{Style.RESET_ALL}"
 
 def play_game():
-    # Play a game of Rock, Paper, Scissors.
+    # Plays a game of Rock, Paper, Scissors and updates the win count for the player and computer.
     player_choice = get_player_choice()
     computer_choice = generate_computer_choice()
 
@@ -43,15 +45,16 @@ def play_game():
     print(result)
 
     global PLAYER_WINS, COMPUTER_WINS
-    if result == "You win!":
+    if result == f"{Fore.GREEN}You win! {emojize(':smiley:', use_aliases=True)}{Style.RESET_ALL}":
         PLAYER_WINS += 1
-    elif result == "Computer wins!":
+    elif result == f"{Fore.RED}Computer wins! {emojize(':disappointed:', use_aliases=True)}{Style.RESET_ALL}":
         COMPUTER_WINS += 1
 
     print(f"Player wins: {PLAYER_WINS}")
     print(f"Computer wins: {COMPUTER_WINS}")
 
 def main():
+    # Controls the flow of the game and allows the player to play multiple rounds.
     play_again = 'yes'
     while play_again.lower() == 'yes':
         play_game()
