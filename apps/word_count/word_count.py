@@ -13,7 +13,16 @@ def load_spacy_model(model_name):
 def validate_word(text, nlp):
     # Validate the input text to ensure it is a valid English word.
     try:
+        if not isinstance(text, str):
+            logging.error("Invalid input: Input must be a string.")
+            return False
+        
+        if len(text) == 0:
+            logging.error("Invalid input: Empty input string.")
+            return False
+        
         doc = nlp(text)
+        
         if all(token.is_alpha or token.text in [' ', '-'] for token in doc):
             return True
         else:
