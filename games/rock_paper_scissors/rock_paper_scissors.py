@@ -15,11 +15,15 @@ WINNING_CONDITIONS = {
 def get_player_choice():
     # Ask the player to input a choice (rock, paper, scissors) and validate the input.
     while True:
-        player_choice = input("Enter a choice (rock, paper, scissors): ").lower()
-        if player_choice in OPTIONS:
-            return player_choice
-        else:
-            print("Invalid choice. Please enter rock, paper, or scissors.")
+        try:
+            player_choice = input("Enter a choice (rock, paper, scissors): ").lower()
+            if player_choice in OPTIONS:
+                return player_choice
+            else:
+                print("Invalid choice. Please enter rock, paper, or scissors.")
+        except KeyboardInterrupt:
+            print("\nGame interrupted. Exiting.")
+            exit()
 
 def generate_computer_choice():
     # Randomly selects a choice from the options for the computer.
@@ -36,30 +40,38 @@ def check_win(player, computer):
 
 def play_game():
     # Plays a game of Rock, Paper, Scissors and updates the win count for the player and computer.
-    player_choice = get_player_choice()
-    computer_choice = generate_computer_choice()
+    try:
+        player_choice = get_player_choice()
+        computer_choice = generate_computer_choice()
 
-    print(f"You chose {player_choice}, computer chose {computer_choice}")
+        print(f"You chose {player_choice}, computer chose {computer_choice}")
 
-    result = check_win(player_choice, computer_choice)
-    print(result)
+        result = check_win(player_choice, computer_choice)
+        print(result)
 
-    global PLAYER_WINS, COMPUTER_WINS
-    if result == f"{Fore.GREEN}You win! {emojize(':smiley:', use_aliases=True)}{Style.RESET_ALL}":
-        PLAYER_WINS += 1
-    elif result == f"{Fore.RED}Computer wins! {emojize(':disappointed:', use_aliases=True)}{Style.RESET_ALL}":
-        COMPUTER_WINS += 1
+        global PLAYER_WINS, COMPUTER_WINS
+        if result == f"{Fore.GREEN}You win! {emojize(':smiley:', use_aliases=True)}{Style.RESET_ALL}":
+            PLAYER_WINS += 1
+        elif result == f"{Fore.RED}Computer wins! {emojize(':squinting_face_with_tongue:', use_aliases=True)}{Style.RESET_ALL}":
+            COMPUTER_WINS += 1
 
-    print(f"Player wins: {PLAYER_WINS}")
-    print(f"Computer wins: {COMPUTER_WINS}")
+        print(f"Player wins: {PLAYER_WINS}")
+        print(f"Computer wins: {COMPUTER_WINS}")
+    except KeyboardInterrupt:
+        print("\nGame interrupted. Exiting...")
+        exit()
 
 def main():
     # Controls the flow of the game and allows the player to play multiple rounds.
     play_again = 'yes'
     while play_again.lower() == 'yes':
         play_game()
-        play_again = input("Do you want to play again? (yes/no): ").lower()
-        os.system('cls' if os.name == 'nt' else 'clear')
+        try:
+            play_again = input("Do you want to play again? (yes/no): ").lower()
+            os.system('cls' if os.name == 'nt' else 'clear')
+        except KeyboardInterrupt:
+            print("\nGame interrupted. Exiting game.")
+            exit()
 
 if __name__ == "__main__":
     main()
