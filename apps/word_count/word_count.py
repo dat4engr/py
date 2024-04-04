@@ -58,13 +58,20 @@ def get_user_input():
             print("Invalid input. Please enter a valid English word or sentence or 'q' to quit.")
 
 def word_type(token):
-    # Determine the word type (Noun, Verb, Adjective) for a given token.
+    # Determine the word type (Noun, Verb, Adjective, Preposition) for a given token.
     if token.pos_ == 'NOUN':
         return 'Noun'
     elif token.pos_ == 'VERB':
         return 'Verb'
     elif token.pos_ == 'ADJ':
         return 'Adjective'
+    elif token.pos_ == 'ADP':  # ADP represents prepositions in Spacy
+        if any(token.text.lower() == preposition.lower() for preposition in ['about', 'above', 'across', 'after', 'against', 'along', 'amid', 'among', 'around', 'as', 'at', 'before', 'behind', 'below', 'beneath', 'beside', 'between', 'beyond', 'but', 'by', 'concerning', 'considering', 'despite', 'down', 'during', 'except', 'for', 'from', 'in', 'inside', 'into', 'like', 'near', 'of', 'off', 'on', 'onto', 'out', 'outside', 'over', 'past', 'regarding', 'round', 'since', 'through', 'throughout', 'till', 'to', 'toward', 'under', 'underneath', 'until', 'up', 'upon', 'with', 'within', 'without']):
+            return 'Complex Preposition'
+        elif token.text.lower() in ['up to', 'next to', 'in front of', 'in spite of', 'in addition to']:  # Two-word complex prepositions
+            return 'Complex Preposition'
+        else:
+            return 'Simple Preposition'
     else:
         return 'Other'
 
