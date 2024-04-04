@@ -2,13 +2,14 @@ import logging
 import spacy
 
 def load_spacy_model(model_name):
-    # Load a Spacy model with the given model name.
-    try:
-        nlp = spacy.load(model_name)
-        return nlp
-    except OSError as error:
-        logging.error(f"Failed to load Spacy model: {error}")
-        return None
+    # Load a Spacy model with the given model name and cache it.
+    if not hasattr(load_spacy_model, "nlp"):
+        try:
+            load_spacy_model.nlp = spacy.load(model_name)
+        except OSError as error:
+            logging.error(f"Failed to load Spacy model: {error}")
+            load_spacy_model.nlp = None
+    return load_spacy_model.nlp
 
 def validate_word(text, nlp):
     # Validate the input text to ensure it is a valid English word.
