@@ -1,5 +1,6 @@
 import logging
 import spacy
+from transformers import BartForConditionalGeneration, BartTokenizer
 
 def load_spacy_model(model_name):
     # Load a Spacy model with the given model name and cache it.
@@ -10,6 +11,17 @@ def load_spacy_model(model_name):
             logging.error(f"Failed to load Spacy model: {error}")
             load_spacy_model.nlp = None
     return load_spacy_model.nlp
+
+def generate_summary(text):
+    # Generate a summary of the input text using the BART model.
+    model = BartForConditionalGeneration.from_pretrained('facebook/bart-large-cnn')
+    tokenizer = BartTokenizer.from_pretrained('facebook/bart-large-cnn')
+    
+    inputs = tokenizer([text], max_length=1024, return_tensors='pt', truncation=True)
+    summary_ids = model.generate(inputs['input_ids'], num_beams=4, max_length=150, early_stopping=True)
+    summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+    
+    return summary
 
 def validate_word(text, nlp):
     # Validate the input text to ensure it is a valid English word.
@@ -76,7 +88,7 @@ def word_type(token):
         return 'Other'
 
 def process_text(input_text, nlp):
-    # Process the input text using the Spacy model and print relevant information.
+    # Process the input text using the Spacy model, generate summary and print relevant information.
     try:
         doc = nlp(input_text)
         word_count = len(doc)
@@ -89,30 +101,18 @@ def process_text(input_text, nlp):
           else:
               word_types[wt] = [token.text]
 
-        sentence_structure = {}
-        for sent in doc.sents:
-            for token in sent:
-                if token.dep_ in sentence_structure:
-                    sentence_structure[token.dep_] += 1
-                else:
-                    sentence_structure[token.dep_] = 1
-
-        readability_suggestions = []
-        if word_count > 20:
-            readability_suggestions.append("Consider breaking down the text into shorter sentences.")
-
+        summary = generate_summary(input_text)
+        
         print(f"Number of words: {word_count}")
         for wt, words in word_types.items():
             print(f"{wt}s: {words}")
-        print(f"Sentence Structure: {sentence_structure}")
-        print("Readability Suggestions:")
-        for suggestion in readability_suggestions:
-            print(suggestion)
+        print("Summary:")
+        print(summary)
     except ValueError as value_error:
         logging.error(f"ValueError occurred while processing text: {value_error}")
     except spacy.errors.UserWarning as warning:
         logging.warning(f"UserWarning occurred while processing text: {warning}")
-
+        
 def main():
     # The main function to run the Word Count App and handle user input.
     try:
