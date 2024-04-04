@@ -2,6 +2,7 @@ from colorama import Fore, Style
 import random
 import os
 from emoji import emojize
+import time
 
 PLAYER_WINS = 0
 COMPUTER_WINS = 0
@@ -27,6 +28,11 @@ def get_player_choice():
 
 def generate_computer_choice():
     # Randomly selects a choice from the options for the computer.
+    print("The computer is choosing. Please wait: ", end="", flush=True)
+    for i in range(3, 0, -1):
+        print(f"\rThe computer is choosing. Please wait: {i}.", end="", flush=True)
+        time.sleep(1)
+    print("\r ", end="", flush=True)
     return random.choice(OPTIONS)
 
 def check_win(player, computer):
