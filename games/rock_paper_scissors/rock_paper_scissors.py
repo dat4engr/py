@@ -50,10 +50,7 @@ def play_game():
         print(result)
 
         global PLAYER_WINS, COMPUTER_WINS
-        if result == f"{Fore.GREEN}You win! {emojize(':smiley:', use_aliases=True)}{Style.RESET_ALL}":
-            PLAYER_WINS += 1
-        elif result == f"{Fore.RED}Computer wins! {emojize(':squinting_face_with_tongue:', use_aliases=True)}{Style.RESET_ALL}":
-            COMPUTER_WINS += 1
+        update_score(result)
 
         print(f"Player wins: {PLAYER_WINS}")
         print(f"Computer wins: {COMPUTER_WINS}")
@@ -61,18 +58,21 @@ def play_game():
         print("\nGame interrupted. Exiting game.")
         exit()
 
+def update_score(result):
+    # Update the score based on the result of the game.
+    global PLAYER_WINS, COMPUTER_WINS
+    if result == f"{Fore.GREEN}You win! {emojize(':smiley:', use_aliases=True)}{Style.RESET_ALL}":
+        PLAYER_WINS += 1
+    elif result == f"{Fore.RED}Computer wins! {emojize(':squinting_face_with_tongue:', use_aliases=True)}{Style.RESET_ALL}":
+        COMPUTER_WINS += 1
+
 def main():
     # Controls the flow of the game and allows the player to play multiple rounds.
     play_again = 'yes'
-    rounds_to_play = -1  # Set default value to play an unlimited number of rounds
+    rounds_to_play = get_rounds_to_play()
 
-    try:
-        rounds_to_play = int(input("Enter the number of rounds you want to play (enter -1 for unlimited rounds): "))
-    except ValueError:
-        print("Invalid input. Playing unlimited rounds.")
-    
     current_round = 0
-    while (play_again.lower() == 'yes') and (current_round != rounds_to_play):
+    while (play_again.lower() in ['yes', 'y']) and (current_round != rounds_to_play):
         play_game()
         current_round += 1
 
@@ -80,12 +80,19 @@ def main():
             print(f"Reached the specified number of rounds ({rounds_to_play}). Game over.")
             break
 
-        try:
-            play_again = input("Do you want to play again? (yes/no): ").lower()
-            os.system('cls' if os.name == 'nt' else 'clear')
-        except KeyboardInterrupt:
-            print("\nGame interrupted. Exiting game.")
-            exit()
+        play_again = input("Do you want to play again? (yes/no): ").lower()
+        clear_screen()
+
+def get_rounds_to_play():
+    # Get the number of rounds the player wants to play.
+    try:
+        return int(input("Enter the number of rounds you want to play (enter -1 for unlimited rounds): "))
+    except ValueError:
+        print("Invalid input. Playing unlimited rounds.")
+        return -1
+
+def clear_screen():
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 if __name__ == "__main__":
     try:
