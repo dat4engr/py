@@ -16,6 +16,28 @@ def log_action(action, name, path):
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     return f"{timestamp}: {action} - {name} ({path})"
 
+def move_file_to_recycle_bin(file_path, log_file):
+    # Move a file to the recycling bin.
+    try:
+        send2trash.send2trash(file_path)  # Move file to recycling bin
+        log_text = log_action("Moved file to recycling bin", os.path.basename(file_path), file_path)
+        log_file.write(log_text + "\n")
+        return 1
+    except OSError as e:
+        logging.error(f"Error moving file to recycling bin: {str(e)}")
+        return 0
+
+def move_folder_to_recycle_bin(folder_path, log_file):
+    # Move a folder to the recycling bin.
+    try:
+        send2trash.send2trash(folder_path)  # Move folder to recycling bin
+        log_text = log_action("Moved folder to recycling bin", os.path.basename(folder_path), folder_path)
+        log_file.write(log_text + "\n")
+        return 1
+    except OSError as e:
+        logging.error(f"Error moving folder to recycling bin: {str(e)}")
+        return 0
+
 def delete_files(desktop_path):
     # Delete files and folders from the Desktop directory and move them to the recycling bin.
     if not os.path.isdir(desktop_path):
@@ -31,24 +53,13 @@ def delete_files(desktop_path):
                 for root, _, files in os.walk(desktop_path, topdown=False):
                     for name in files:
                         file_path = os.path.join(root, name)
-                        try:
-                            send2trash.send2trash(file_path)  # Move file to recycling bin
-                            number_of_files += 1
-                            log_text = log_action("Moved file to recycling bin", name, file_path)
-                            log_file.write(log_text + "\n")
-                        except OSError as e:
-                            logging.error(f"Error moving file to recycling bin: {str(e)}")
+                        number_of_files += move_file_to_recycle_bin(file_path, log_file)
 
                 for root, dirs, _ in os.walk(desktop_path, topdown=False):
                     for name in dirs:
                         folder_path = os.path.join(root, name)
-                        try:
-                            send2trash.send2trash(folder_path)  # Move folder to recycling bin
-                            number_of_files += 1
-                            log_text = log_action("Moved folder to recycling bin", name, folder_path)
-                            log_file.write(log_text + "\n")
-                        except OSError as e:
-                            logging.error(f"Error moving folder to recycling bin: {str(e)}")
+                        number_of_files += move_folder_to_recycle_bin(folder_path, log_file)
+
         else:
             logging.error("Log file not found. Aborting deletion process.")
     except OSError as e:
