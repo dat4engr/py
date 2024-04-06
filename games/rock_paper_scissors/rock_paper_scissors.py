@@ -2,7 +2,6 @@ from colorama import Fore, Style
 import random
 import os
 from emoji import emojize
-import time
 
 PLAYER_WINS = 0
 COMPUTER_WINS = 0
@@ -23,16 +22,11 @@ def get_player_choice():
             else:
                 print("Invalid choice. Please enter rock, paper, or scissors.")
         except KeyboardInterrupt:
-            print("\nGame interrupted. Exiting.")
+            print("\nGame interrupted. Exiting game.")
             exit()
 
 def generate_computer_choice():
     # Randomly selects a choice from the options for the computer.
-    print("The computer is choosing. Please wait: ", end="", flush=True)
-    for i in range(3, 0, -1):
-        print(f"\rThe computer is choosing. Please wait: {i}.", end="", flush=True)
-        time.sleep(1)
-    print("\r ", end="", flush=True)
     return random.choice(OPTIONS)
 
 def check_win(player, computer):
@@ -64,14 +58,28 @@ def play_game():
         print(f"Player wins: {PLAYER_WINS}")
         print(f"Computer wins: {COMPUTER_WINS}")
     except KeyboardInterrupt:
-        print("\nGame interrupted. Exiting...")
+        print("\nGame interrupted. Exiting game.")
         exit()
 
 def main():
     # Controls the flow of the game and allows the player to play multiple rounds.
     play_again = 'yes'
-    while play_again.lower() == 'yes':
+    rounds_to_play = -1  # Set default value to play an unlimited number of rounds
+
+    try:
+        rounds_to_play = int(input("Enter the number of rounds you want to play (enter -1 for unlimited rounds): "))
+    except ValueError:
+        print("Invalid input. Playing unlimited rounds.")
+    
+    current_round = 0
+    while (play_again.lower() == 'yes') and (current_round != rounds_to_play):
         play_game()
+        current_round += 1
+
+        if rounds_to_play != -1 and current_round == rounds_to_play:
+            print(f"Reached the specified number of rounds ({rounds_to_play}). Game over.")
+            break
+
         try:
             play_again = input("Do you want to play again? (yes/no): ").lower()
             os.system('cls' if os.name == 'nt' else 'clear')
@@ -80,4 +88,8 @@ def main():
             exit()
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nGame interrupted. Exiting game.")
+        exit()
