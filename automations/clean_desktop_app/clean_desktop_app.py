@@ -39,7 +39,7 @@ def delete_files(desktop_path):
                         except OSError as e:
                             logging.error(f"Error moving file to recycling bin: {str(e)}")
 
-                for _, dirs, _ in os.walk(desktop_path, topdown=False):
+                for root, dirs, _ in os.walk(desktop_path, topdown=False):
                     for name in dirs:
                         folder_path = os.path.join(root, name)
                         try:
@@ -69,14 +69,17 @@ if __name__ == "__main__":
     logging.basicConfig(filename="deleted_files.log", level=logging.INFO)
     desktop_path = get_desktop_path()
 
-    if os.path.exists(desktop_path):
-        if check_permission(desktop_path):
-            confirmation = get_confirmation(10)
-            if confirmation:
-                delete_files(desktop_path)
+    try:
+        if os.path.exists(desktop_path):
+            if check_permission(desktop_path):
+                confirmation = get_confirmation(10)
+                if confirmation:
+                    delete_files(desktop_path)
+                else:
+                    logging.info("Deletion process cancelled by user.")
             else:
-                logging.info("Deletion process cancelled by user.")
+                logging.error("User does not have permission to delete files and folders in the desktop directory.")
         else:
-            logging.error("User does not have permission to delete files and folders in the desktop directory.")
-    else:
-        logging.error("Desktop directory not found. Deletion process aborted.")
+            logging.error("Desktop directory not found. Deletion process aborted.")
+    except Exception as e:
+        logging.error(f"An error occurred: {str(e)}")
