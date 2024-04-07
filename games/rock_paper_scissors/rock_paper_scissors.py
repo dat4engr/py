@@ -81,7 +81,12 @@ def main():
             break
 
         play_again = input("Do you want to play again? (yes/no): ").lower()
-        clear_screen()
+
+        while play_again.lower() not in ['yes', 'no', 'y', 'n']:
+            play_again = input("Invalid response. Do you want to play again? (yes/no): ").lower()
+
+        if play_again.lower() in ['yes', 'y']:
+            clear_screen()
 
 def get_rounds_to_play():
     # Get the number of rounds the player wants to play.
@@ -92,6 +97,7 @@ def get_rounds_to_play():
         return -1
 
 def clear_screen():
+    # Clears the screen of the terminal window.
     os.system('cls' if os.name == 'nt' else 'clear')
 
 if __name__ == "__main__":
