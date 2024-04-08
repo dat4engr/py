@@ -22,8 +22,11 @@ def get_player_choice():
             else:
                 print("Invalid choice. Please enter rock, paper, or scissors.")
         except KeyboardInterrupt:
-            print("\nGame interrupted. Exiting game.")
-            exit()
+            response = input("\nGame interrupted. Do you want to continue playing? (yes/no): ")
+            if response.lower() in ['no', 'n']:
+                exit()
+            else:
+                continue
 
 def generate_computer_choice():
     # Randomly selects a choice from the options for the computer.
@@ -55,8 +58,9 @@ def play_game():
         print(f"Player wins: {PLAYER_WINS}")
         print(f"Computer wins: {COMPUTER_WINS}")
     except KeyboardInterrupt:
-        print("\nGame interrupted. Exiting game.")
-        exit()
+        response = input("\nGame interrupted. Do you want to continue playing? (yes/no): ")
+        if response.lower() in ['no', 'n']:
+            exit()
 
 def update_score(result):
     # Update the score based on the result of the game.
@@ -104,5 +108,6 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\nGame interrupted. Exiting game.")
-        exit()
+        response = input("\nGame interrupted. Do you want to continue playing? (yes/no): ")
+        if response.lower() in ['no', 'n']:
+            exit()
