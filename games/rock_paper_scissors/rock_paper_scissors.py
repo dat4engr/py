@@ -26,6 +26,7 @@ def get_player_choice():
             if response.lower() in ['no', 'n']:
                 exit()
             else:
+                print("Resuming the game...")
                 continue
 
 def generate_computer_choice():
@@ -61,6 +62,8 @@ def play_game():
         response = input("\nGame interrupted. Do you want to continue playing? (yes/no): ")
         if response.lower() in ['no', 'n']:
             exit()
+        else:
+            print("Resuming the game...")
 
 def update_score(result):
     # Update the score based on the result of the game.
