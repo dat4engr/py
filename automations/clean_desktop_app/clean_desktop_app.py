@@ -3,6 +3,9 @@ import logging
 import send2trash
 from datetime import datetime
 
+# Update the logging configuration to capture additional log messages
+logging.basicConfig(filename="deleted_files.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 def get_desktop_path():
     # Get the path of the Desktop directory.
     return os.path.join(os.path.expanduser('~'), 'Desktop')
@@ -34,8 +37,8 @@ def move_folder_to_recycle_bin(folder_path, log_file):
         log_text = log_action("Moved folder to recycling bin", os.path.basename(folder_path), folder_path)
         log_file.write(log_text + "\n")
         return 1
-    except OSError as e:
-        logging.error(f"Error moving folder to recycling bin: {str(e)}")
+    except OSError as error:
+        logging.error(f"Error moving folder to recycling bin: {str(error)}")
         return 0
 
 def delete_files(desktop_path):
@@ -53,7 +56,8 @@ def delete_files(desktop_path):
                 for root, _, files in os.walk(desktop_path, topdown=False):
                     for name in files:
                         file_path = os.path.join(root, name)
-                        number_of_files += move_file_to_recycle_bin(file_path, log_file)
+                        if os.path.isfile(file_path):
+                            number_of_files += move_file_to_recycle_bin(file_path, log_file)
 
                 for root, dirs, _ in os.walk(desktop_path, topdown=False):
                     for name in dirs:
@@ -62,11 +66,11 @@ def delete_files(desktop_path):
 
         else:
             logging.error("Log file not found. Aborting deletion process.")
-    except OSError as e:
-        logging.error(f"Error scanning the desktop directory: {str(e)}")
+    except OSError as error:
+        logging.error(f"Error scanning the desktop directory: {str(error)}")
 
     logging.info("Files and folders moved to recycling bin successfully!")
-    logging.info(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}: Moved {number_of_files} items to the recycling bin on the desktop.")
+    logging.info(f"Moved {number_of_files} items to the recycling bin on the desktop.")
 
 def get_confirmation(number_of_files):
     # Get user confirmation for moving files and folders to the recycling bin.
@@ -77,7 +81,6 @@ def get_confirmation(number_of_files):
         print("Invalid input. Please enter 'y' for yes or 'n' for no.")
 
 if __name__ == "__main__":
-    logging.basicConfig(filename="deleted_files.log", level=logging.INFO)
     desktop_path = get_desktop_path()
 
     try:
@@ -92,5 +95,5 @@ if __name__ == "__main__":
                 logging.error("User does not have permission to delete files and folders in the desktop directory.")
         else:
             logging.error("Desktop directory not found. Deletion process aborted.")
-    except Exception as e:
-        logging.error(f"An error occurred: {str(e)}")
+    except Exception as error:
+        logging.error(f"An error occurred: {str(error)}")
