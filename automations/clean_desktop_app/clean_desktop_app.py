@@ -20,29 +20,45 @@ def log_action(action, name, path):
     return f"{timestamp}: {action} - {name} ({path})"
 
 def move_file_to_recycle_bin(file_path, log_file):
-    # Move a file to the recycling bin.
+    # Move a file to the recycling bin with confirmation prompt.
     try:
-        send2trash.send2trash(file_path)  # Move file to recycling bin
-        log_text = log_action("Moved file to recycling bin", os.path.basename(file_path), file_path)
-        log_file.write(log_text + "\n")
-        return 1
+        confirmation = input(f"Are you sure you want to move the file {os.path.basename(file_path)} to the recycling bin? (y/n): ")
+        
+        if confirmation.lower() == 'y':
+            send2trash.send2trash(file_path)  # Move file to recycling bin
+            log_text = log_action("Moved file to recycling bin", os.path.basename(file_path), file_path)
+            log_file.write(log_text + "\n")
+            return 1
+        elif confirmation.lower() == 'n':
+            return 0
+        else:
+            logging.error("Invalid input. Skipping file deletion.")
+            return 0
     except OSError as e:
         logging.error(f"Error moving file to recycling bin: {str(e)}")
         return 0
 
 def move_folder_to_recycle_bin(folder_path, log_file):
-    # Move a folder to the recycling bin.
+    # Move a folder to the recycling bin with confirmation prompt.
     try:
-        send2trash.send2trash(folder_path)  # Move folder to recycling bin
-        log_text = log_action("Moved folder to recycling bin", os.path.basename(folder_path), folder_path)
-        log_file.write(log_text + "\n")
-        return 1
+        confirmation = input(f"Are you sure you want to move the folder {os.path.basename(folder_path)} to the recycling bin? (y/n): ")
+        
+        if confirmation.lower() == 'y':
+            send2trash.send2trash(folder_path)  # Move folder to recycling bin
+            log_text = log_action("Moved folder to recycling bin", os.path.basename(folder_path), folder_path)
+            log_file.write(log_text + "\n")
+            return 1
+        elif confirmation.lower() == 'n':
+            return 0
+        else:
+            logging.error("Invalid input. Skipping folder deletion.")
+            return 0
     except OSError as error:
         logging.error(f"Error moving folder to recycling bin: {str(error)}")
         return 0
 
-def delete_files(desktop_path):
-    # Delete files and folders from the Desktop directory and move them to the recycling bin.
+def delete_files(desktop_path, max_file_size=None, file_type=None, days_since_modified=None):
+    # Delete files based on specified criteria from the Desktop directory and move them to the recycling bin.
     if not os.path.isdir(desktop_path):
         logging.error("Desktop directory not found!")
         return
@@ -57,7 +73,10 @@ def delete_files(desktop_path):
                     for name in files:
                         file_path = os.path.join(root, name)
                         if os.path.isfile(file_path):
-                            number_of_files += move_file_to_recycle_bin(file_path, log_file)
+                            if (max_file_size is None or os.path.getsize(file_path) <= max_file_size) and \
+                               (file_type is None or file_path.endswith(file_type)) and \
+                               (days_since_modified is None or (datetime.now() - datetime.fromtimestamp(os.path.getmtime(file_path))).days <= days_since_modified):
+                                number_of_files += move_file_to_recycle_bin(file_path, log_file)
 
                 for root, dirs, _ in os.walk(desktop_path, topdown=False):
                     for name in dirs:
