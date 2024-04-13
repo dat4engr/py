@@ -4,3 +4,5 @@
 2024-04-12 12:25:41: Moved file to recycling bin - CC Payments.xlsx (/Users/carlo/Desktop/CC Payments.xlsx)
 2024-04-12 12:25:41: Moved file to recycling bin - ro-slayers-accounts.txt (/Users/carlo/Desktop/ro-slayers-accounts.txt)
 2024-04-12 12:25:42: Moved file to recycling bin - advanced quantum technology tips.png (/Users/carlo/Desktop/advanced quantum technology tips.png)
+2024-04-13 22:21:25: Moved folder to recycling bin - untitled folder (/Users/carlo/Desktop/untitled folder)
+2024-04-13 22:21:29: Moved folder to recycling bin - aaa (/Users/carlo/Desktop/aaa)
