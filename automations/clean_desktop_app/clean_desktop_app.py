@@ -107,7 +107,8 @@ if __name__ == "__main__":
             if check_permission(desktop_path):
                 confirmation = get_confirmation(10)
                 if confirmation:
-                    delete_files(desktop_path)
+                    # Delete files smaller than 1MB, with .txt extension, and modified in the last 30 days
+                    delete_files(desktop_path, max_file_size=1024*1024, file_type=".txt", days_since_modified=30)
                 else:
                     logging.info("Deletion process cancelled by user.")
             else:
