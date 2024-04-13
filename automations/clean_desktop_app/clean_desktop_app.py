@@ -57,6 +57,25 @@ def move_folder_to_recycle_bin(folder_path, log_file):
         logging.error(f"Error moving folder to recycling bin: {str(error)}")
         return 0
 
+def restore_item_from_recycle_bin(item_path, log_file):
+    # Restore a file or folder from the recycling bin with confirmation prompt.
+    try:
+        confirmation = input(f"Are you sure you want to restore the item {os.path.basename(item_path)} from the recycling bin? (y/n): ")
+        
+        if confirmation.lower() == 'y':
+            send2trash.send2trash(item_path, restore=True)  # Restore item from recycling bin
+            log_text = log_action("Restored file from recycling bin", os.path.basename(item_path), item_path)
+            log_file.write(log_text + "\n")
+            return 1
+        elif confirmation.lower() == 'n':
+            return 0
+        else:
+            logging.error("Invalid input. Skipping item restoration.")
+            return 0
+    except OSError as error:
+        logging.error(f"Error restoring item from recycling bin: {str(error)}")
+        return 0
+
 def delete_files(desktop_path, max_file_size=None, file_type=None, days_since_modified=None):
     # Delete files based on specified criteria from the Desktop directory and move them to the recycling bin.
     if not os.path.isdir(desktop_path):
@@ -65,7 +84,8 @@ def delete_files(desktop_path, max_file_size=None, file_type=None, days_since_mo
 
     log_file_path = "deleted_files.txt"
 
-    number_of_files = 0
+    number_of_files_deleted = 0
+    number_of_files_restored = 0
     try:
         if os.path.exists(log_file_path):
             with open(log_file_path, 'a') as log_file:
@@ -76,20 +96,20 @@ def delete_files(desktop_path, max_file_size=None, file_type=None, days_since_mo
                             if (max_file_size is None or os.path.getsize(file_path) <= max_file_size) and \
                                (file_type is None or file_path.endswith(file_type)) and \
                                (days_since_modified is None or (datetime.now() - datetime.fromtimestamp(os.path.getmtime(file_path))).days <= days_since_modified):
-                                number_of_files += move_file_to_recycle_bin(file_path, log_file)
+                                number_of_files_deleted += move_file_to_recycle_bin(file_path, log_file)
 
                 for root, dirs, _ in os.walk(desktop_path, topdown=False):
                     for name in dirs:
                         folder_path = os.path.join(root, name)
-                        number_of_files += move_folder_to_recycle_bin(folder_path, log_file)
+                        number_of_files_deleted += move_folder_to_recycle_bin(folder_path, log_file)
 
         else:
             logging.error("Log file not found. Aborting deletion process.")
     except OSError as error:
         logging.error(f"Error scanning the desktop directory: {str(error)}")
 
-    logging.info("Files and folders moved to recycling bin successfully!")
-    logging.info(f"Moved {number_of_files} items to the recycling bin on the desktop.")
+    logging.info("Files and folders moved to the recycling bin successfully!")
+    logging.info(f"Moved {number_of_files_deleted} items to the recycling bin on the desktop.")
 
 def get_confirmation(number_of_files):
     # Get user confirmation for moving files and folders to the recycling bin.
@@ -107,8 +127,7 @@ if __name__ == "__main__":
             if check_permission(desktop_path):
                 confirmation = get_confirmation(10)
                 if confirmation:
-                    # Delete files smaller than 1MB, with .txt extension, and modified in the last 30 days
-                    delete_files(desktop_path, max_file_size=1024*1024, file_type=".txt", days_since_modified=30)
+                    delete_files(desktop_path)
                 else:
                     logging.info("Deletion process cancelled by user.")
             else:
