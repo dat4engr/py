@@ -1,8 +1,10 @@
-2024-04-14 06:58:39: Moved file to recycling bin - .DS_Store (/Users/carlo/Desktop/.DS_Store)
-2024-04-14 06:58:41: Moved file to recycling bin - Screenshot 2023-09-21 at 7.45.46 AM.png (/Users/carlo/Desktop/Screenshot 2023-09-21 at 7.45.46 AM.png)
-2024-04-14 06:58:41: Moved file to recycling bin - metamask-pvu.txt (/Users/carlo/Desktop/metamask-pvu.txt)
-2024-04-14 06:58:41: Moved file to recycling bin - CC Payments.xlsx (/Users/carlo/Desktop/CC Payments.xlsx)
-2024-04-14 06:58:42: Moved file to recycling bin - advanced quantum technology tips.png (/Users/carlo/Desktop/advanced quantum technology tips.png)
-2024-04-14 06:58:43: Moved folder to recycling bin - untitled folder (/Users/carlo/Desktop/untitled folder)
-2024-04-14 06:58:43: Moved folder to recycling bin - untitled folder 2 (/Users/carlo/Desktop/untitled folder 2)
-2024-04-14 06:58:44: Moved folder to recycling bin - untitled folder 3 (/Users/carlo/Desktop/untitled folder 3)
+2024-04-15 05:47:43: Moved file to recycling bin - website-lists.xlsx (/Users/carlo/Desktop/website-lists.xlsx) - Result: Success
+2024-04-15 05:47:44: Moved file to recycling bin - .DS_Store (/Users/carlo/Desktop/.DS_Store) - Result: Success
+2024-04-15 05:47:45: Moved file to recycling bin - advanced quantum technology relations.png (/Users/carlo/Desktop/advanced quantum technology relations.png) - Result: Success
+2024-04-15 05:47:45: Moved file to recycling bin - wishlist.txt (/Users/carlo/Desktop/wishlist.txt) - Result: Success
+2024-04-15 05:47:45: Moved file to recycling bin - Screenshot 2023-09-21 at 7.45.27 AM.png (/Users/carlo/Desktop/Screenshot 2023-09-21 at 7.45.27 AM.png) - Result: Success
+2024-04-15 05:47:46: Moved file to recycling bin - new-metamask.txt (/Users/carlo/Desktop/new-metamask.txt) - Result: Success
+2024-04-15 05:47:46: Moved file to recycling bin - CC Payments.xlsx (/Users/carlo/Desktop/CC Payments.xlsx) - Result: Success
+2024-04-15 05:47:46: Moved file to recycling bin - advanced quantum technology tips.png (/Users/carlo/Desktop/advanced quantum technology tips.png) - Result: Success
+2024-04-15 05:47:47: Moved folder to recycling bin - untitled folder (/Users/carlo/Desktop/untitled folder) - Result: Success
+2024-04-15 05:47:47: Moved folder to recycling bin - untitled folder 2 (/Users/carlo/Desktop/untitled folder 2) - Result: Success
