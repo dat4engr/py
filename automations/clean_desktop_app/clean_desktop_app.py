@@ -14,10 +14,10 @@ def check_permission(directory):
     # Check if the user has write permissions for a given directory.
     return os.access(directory, os.W_OK)
 
-def log_action(action, name, path):
-    # Create a log message for an action taken on a file or folder.
+def log_action(action, name, path, result):
+    # Create a log message for an action taken on a file or folder including the result.
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    return f"{timestamp}: {action} - {name} ({path})"
+    return f"{timestamp}: {action} - {name} ({path}) - Result: {result}"
 
 def move_file_to_recycle_bin(file_path, log_file):
     # Move a file to the recycling bin with confirmation prompt.
@@ -25,8 +25,8 @@ def move_file_to_recycle_bin(file_path, log_file):
         confirmation = input(f"Are you sure you want to move the file {os.path.basename(file_path)} to the recycling bin? (y/n): ")
         
         if confirmation.lower() == 'y':
-            send2trash.send2trash(file_path)  # Move file to recycling bin
-            log_text = log_action("Moved file to recycling bin", os.path.basename(file_path), file_path)
+            send2trash.send2trash(file_path)  # Move file to recycling bin.
+            log_text = log_action("Moved file to recycling bin", os.path.basename(file_path), file_path, "Success")
             log_file.write(log_text + "\n")
             return 1
         elif confirmation.lower() == 'n':
@@ -45,7 +45,7 @@ def move_folder_to_recycle_bin(folder_path, log_file):
         
         if confirmation.lower() == 'y':
             send2trash.send2trash(folder_path)  # Move folder to recycling bin
-            log_text = log_action("Moved folder to recycling bin", os.path.basename(folder_path), folder_path)
+            log_text = log_action("Moved folder to recycling bin", os.path.basename(folder_path), folder_path, "Success")
             log_file.write(log_text + "\n")
             return 1
         elif confirmation.lower() == 'n':
@@ -64,7 +64,7 @@ def restore_item_from_recycle_bin(item_path, log_file):
         
         if confirmation.lower() == 'y':
             send2trash.send2trash(item_path, restore=True)  # Restore item from recycling bin
-            log_text = log_action("Restored file from recycling bin", os.path.basename(item_path), item_path)
+            log_text = log_action("Restored file from recycling bin", os.path.basename(item_path), item_path, "Success")
             log_file.write(log_text + "\n")
             return 1
         elif confirmation.lower() == 'n':
