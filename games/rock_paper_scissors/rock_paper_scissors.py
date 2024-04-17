@@ -12,6 +12,11 @@ WINNING_CONDITIONS = {
     "paper": "rock"
 }
 
+class GameResult:
+    Tie = 0
+    PlayerWins = 1
+    ComputerWins = 2
+
 def get_player_choice():
     # Ask the player to input a choice (rock, paper, scissors) and validate the input.
     while True:
@@ -36,11 +41,11 @@ def generate_computer_choice():
 def check_win(player, computer):
     # Check who won the game based on player and computer choices.
     if player == computer:
-        return f"{Fore.WHITE}It's a tie! {emojize(':neutral_face:', use_aliases=True)}{Style.RESET_ALL}"
+        return GameResult.Tie
     elif WINNING_CONDITIONS[player] == computer:
-        return f"{Fore.GREEN}You win! {emojize(':smiley:', use_aliases=True)}{Style.RESET_ALL}"
+        return GameResult.PlayerWins
     else:
-        return f"{Fore.RED}Computer wins! {emojize(':squinting_face_with_tongue:', use_aliases=True)}{Style.RESET_ALL}"
+        return GameResult.ComputerWins
 
 def play_game():
     # Plays a game of Rock, Paper, Scissors and updates the win count for the player and computer.
@@ -51,7 +56,7 @@ def play_game():
         print(f"You chose {player_choice}, computer chose {computer_choice}")
 
         result = check_win(player_choice, computer_choice)
-        print(result)
+        print_result(result)
 
         global PLAYER_WINS, COMPUTER_WINS
         update_score(result)
@@ -68,10 +73,19 @@ def play_game():
 def update_score(result):
     # Update the score based on the result of the game.
     global PLAYER_WINS, COMPUTER_WINS
-    if result == f"{Fore.GREEN}You win! {emojize(':smiley:', use_aliases=True)}{Style.RESET_ALL}":
+    if result == GameResult.PlayerWins:
         PLAYER_WINS += 1
-    elif result == f"{Fore.RED}Computer wins! {emojize(':squinting_face_with_tongue:', use_aliases=True)}{Style.RESET_ALL}":
+    elif result == GameResult.ComputerWins:
         COMPUTER_WINS += 1
+
+def print_result(result):
+    # Print the result of the game based on the GameResult enum value.
+    if result == GameResult.Tie:
+        print(f"{Fore.WHITE}It's a tie! {emojize(':neutral_face:', use_aliases=True)}{Style.RESET_ALL}")
+    elif result == GameResult.PlayerWins:
+        print(f"{Fore.GREEN}You win! {emojize(':smiley:', use_aliases=True)}{Style.RESET_ALL}")
+    else:
+        print(f"{Fore.RED}Computer wins! {emojize(':squinting_face_with_tongue:', use_aliases=True)}{Style.RESET_ALL}")
 
 def main():
     # Controls the flow of the game and allows the player to play multiple rounds.
