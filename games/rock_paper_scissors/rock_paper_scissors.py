@@ -27,12 +27,7 @@ def get_player_choice():
             else:
                 print("Invalid choice. Please enter rock, paper, or scissors.")
         except KeyboardInterrupt:
-            response = input("\nGame interrupted. Do you want to continue playing? (yes/no): ")
-            if response.lower() in ['no', 'n']:
-                exit()
-            else:
-                print("Resuming the game...")
-                continue
+            handle_keyboard_interrupt()
 
 def generate_computer_choice():
     # Randomly selects a choice from the options for the computer.
@@ -58,17 +53,12 @@ def play_game():
         result = check_win(player_choice, computer_choice)
         print_result(result)
 
-        global PLAYER_WINS, COMPUTER_WINS
         update_score(result)
 
         print(f"Player wins: {PLAYER_WINS}")
         print(f"Computer wins: {COMPUTER_WINS}")
     except KeyboardInterrupt:
-        response = input("\nGame interrupted. Do you want to continue playing? (yes/no): ")
-        if response.lower() in ['no', 'n']:
-            exit()
-        else:
-            print("Resuming the game...")
+        handle_keyboard_interrupt()
 
 def update_score(result):
     # Update the score based on the result of the game.
@@ -86,6 +76,13 @@ def print_result(result):
         print(f"{Fore.GREEN}You win! {emojize(':smiley:', use_aliases=True)}{Style.RESET_ALL}")
     else:
         print(f"{Fore.RED}Computer wins! {emojize(':squinting_face_with_tongue:', use_aliases=True)}{Style.RESET_ALL}")
+
+def handle_keyboard_interrupt():
+    response = input("\nGame interrupted. Do you want to continue playing? (yes/no): ")
+    if response.lower() in ['no', 'n']:
+        exit()
+    else:
+        print("Resuming the game...")
 
 def main():
     # Controls the flow of the game and allows the player to play multiple rounds.
