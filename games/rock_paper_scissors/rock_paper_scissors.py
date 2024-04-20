@@ -16,7 +16,7 @@ class GameResult:
     Tie = 0
     PlayerWins = 1
     ComputerWins = 2
-
+    
 def get_player_choice():
     # Ask the player to input a choice (rock, paper, scissors) and validate the input.
     while True:
@@ -42,24 +42,6 @@ def check_win(player, computer):
     else:
         return GameResult.ComputerWins
 
-def play_game():
-    # Plays a game of Rock, Paper, Scissors and updates the win count for the player and computer.
-    try:
-        player_choice = get_player_choice()
-        computer_choice = generate_computer_choice()
-
-        print(f"You chose {player_choice}, computer chose {computer_choice}")
-
-        result = check_win(player_choice, computer_choice)
-        print_result(result)
-
-        update_score(result)
-
-        print(f"Player wins: {PLAYER_WINS}")
-        print(f"Computer wins: {COMPUTER_WINS}")
-    except KeyboardInterrupt:
-        handle_keyboard_interrupt()
-
 def update_score(result):
     # Update the score based on the result of the game.
     global PLAYER_WINS, COMPUTER_WINS
@@ -77,7 +59,23 @@ def print_result(result):
     else:
         print(f"{Fore.RED}Computer wins! {emojize(':squinting_face_with_tongue:', use_aliases=True)}{Style.RESET_ALL}")
 
+def play_game():
+    # Plays a single game round of Rock, Paper, Scissors.
+    player_choice = get_player_choice()
+    computer_choice = generate_computer_choice()
+
+    print(f"You chose {player_choice}, computer chose {computer_choice}")
+
+    result = check_win(player_choice, computer_choice)
+    print_result(result)
+
+    update_score(result)
+
+    print(f"Player wins: {PLAYER_WINS}")
+    print(f"Computer wins: {COMPUTER_WINS}")
+
 def handle_keyboard_interrupt():
+    # Handle a keyboard interrupt during the game.
     response = input("\nGame interrupted. Do you want to continue playing? (yes/no): ")
     if response.lower() in ['no', 'n']:
         exit()
@@ -85,7 +83,7 @@ def handle_keyboard_interrupt():
         print("Resuming the game...")
 
 def main():
-    # Controls the flow of the game and allows the player to play multiple rounds.
+    # Main function to control the game flow.
     play_again = 'yes'
     rounds_to_play = get_rounds_to_play()
 
@@ -122,6 +120,5 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        response = input("\nGame interrupted. Do you want to continue playing? (yes/no): ")
-        if response.lower() in ['no', 'n']:
-            exit()
+        handle_keyboard_interrupt()
+
