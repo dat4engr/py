@@ -21,20 +21,12 @@ def log_action(action, name, path, result):
     return f"{timestamp}: {action} - {name} ({path}) - Result: {result}"
 
 def move_to_recycle_bin(item_path, log_file, is_file=True):
-    # Move an item to the recycling bin with confirmation prompt.
+    # Move an item to the recycling bin without confirmation prompt.
     try:
-        confirmation = input(f"Are you sure you want to move the {'file' if is_file else 'folder'} {os.path.basename(item_path)} to the recycling bin? (y/n): ")
-        
-        if confirmation.lower() == 'y':
-            send2trash.send2trash(item_path)  # Move item to recycling bin with confirmation
-            log_text = log_action(f"Moved {'file' if is_file else 'folder'} to recycling bin", os.path.basename(item_path), item_path, "Success")
-            log_file.write(log_text + "\n")
-            return 1
-        elif confirmation.lower() == 'n':
-            return 0
-        else:
-            logging.error(f"Invalid input. Skipping {'file' if is_file else 'folder'} deletion.")
-            return 0
+        send2trash.send2trash(item_path)  # Move item to recycling bin without confirmation
+        log_text = log_action(f"Moved {'file' if is_file else 'folder'} to recycling bin", os.path.basename(item_path), item_path, "Success")
+        log_file.write(log_text + "\n")
+        return 1
     except OSError as error:
         logging.error(f"Error moving {'file' if is_file else 'folder'} to recycling bin: {str(error)}")
         return 0
