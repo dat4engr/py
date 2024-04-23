@@ -39,7 +39,7 @@ def validate_word(text, nlp):
 def get_user_input():
     # Get user input and validate it using the Spacy model.
     text = ""
-    nlp = load_spacy_model("en_core_web_sm")
+    nlp = load_spacy_model("en_core_web_lg")
 
     if nlp is None:
         logging.error("Failed to load Spacy model. Exiting program.")
@@ -116,7 +116,7 @@ def main():
     try:
         logging.basicConfig(filename='error.log', level=logging.ERROR)
         print("Welcome to the Word Count App!")
-        nlp = load_spacy_model("en_core_web_sm")
+        nlp = load_spacy_model("en_core_web_lg")
 
         if nlp is None:
             logging.error("Failed to load Spacy model. Exiting program.")
