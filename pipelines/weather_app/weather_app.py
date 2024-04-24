@@ -109,6 +109,7 @@ class DatabasePool:
     _connection_queue = LifoQueue(maxsize=10)  # Updated to LIFO queue.
     _active_connections = []
 
+    @staticmethod
     def get_pool():
         # Get the database connection pool. If the pool does not exist, creates a new one and returns it.
         if DatabasePool._pool is None:
@@ -116,12 +117,14 @@ class DatabasePool:
                 if DatabasePool._pool is None:
                     config = ConfigParserWrapper('config.ini')
                     db_credentials = config.get_database_credentials()
-                    DatabasePool._pool = pool.ThreadedConnectionPool(1, 10,
+                    # Adjust the minconn and maxconn values based on available resources and usage patterns.
+                    DatabasePool._pool = pool.ThreadedConnectionPool(minconn=1, maxconn=20,  # Adjust based on requirements.
                                        user=db_credentials.user,
                                        password=db_credentials.password,
                                        host=db_credentials.host,
                                        database=db_credentials.database)
         return DatabasePool._pool
+
 
     @staticmethod
     def get_connection():
@@ -769,13 +772,19 @@ class JSONHandler:
 
 def process_location(fetcher, location):
     # Helper method to process weather data fetching for a single location.
+    conn = DatabasePool.get_connection()
     try:
         fetcher.fetch_weather_data(location)
     except Exception as error:
         logging.error(f"Error processing location {location}: {error}")
     finally:
-        if DatabasePool._active_connections and fetcher:
-            DatabasePool.release_connection(fetcher)
+        # Check if the connection is still valid before releasing it.
+        if conn and conn.closed == 0:
+            DatabasePool.release_connection(conn)
+        else:
+            logging.error("Invalid database connection. Discarding and creating a new connection.")
+            if conn:
+                conn.close()
 
 def monitor_resources():
     # Monitor system resources during script execution.
