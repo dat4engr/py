@@ -1,8 +1,19 @@
-2024-04-22 12:29:06: Moved file to recycling bin - .DS_Store (/Users/carlo/Desktop/.DS_Store) - Result: Success
-2024-04-22 12:29:06: Moved file to recycling bin - wishlist.txt (/Users/carlo/Desktop/wishlist.txt) - Result: Success
-2024-04-22 12:29:06: Moved file to recycling bin - Screenshot 2023-09-21 at 7.45.27 AM.png (/Users/carlo/Desktop/Screenshot 2023-09-21 at 7.45.27 AM.png) - Result: Success
-2024-04-22 12:29:06: Moved file to recycling bin - Carlo Laxamana CV.docx (/Users/carlo/Desktop/Carlo Laxamana CV.docx) - Result: Success
-2024-04-22 12:29:06: Moved file to recycling bin - metamask-pvu.txt (/Users/carlo/Desktop/metamask-pvu.txt) - Result: Success
-2024-04-22 12:29:06: Moved file to recycling bin - Carlo Laxamana CV.pdf (/Users/carlo/Desktop/Carlo Laxamana CV.pdf) - Result: Success
-2024-04-22 12:29:06: Moved file to recycling bin - CC Payments.xlsx (/Users/carlo/Desktop/CC Payments.xlsx) - Result: Success
-2024-04-22 12:29:06: Moved file to recycling bin - advanced quantum technology tips.png (/Users/carlo/Desktop/advanced quantum technology tips.png) - Result: Success
+2024-04-24 10:59:04: Moved folder to recycling bin - untitled folder (/Users/carlo/Desktop/untitled folder) - Result: Success
+2024-04-24 10:59:04: Moved file to recycling bin - .DS_Store (/Users/carlo/Desktop/.DS_Store) - Result: Success
+2024-04-24 10:59:04: Moved file to recycling bin - Carlo IT Cover Letter.docx (/Users/carlo/Desktop/Carlo IT Cover Letter.docx) - Result: Success
+2024-04-24 10:59:04: Moved file to recycling bin - advanced quantum technology relations.png (/Users/carlo/Desktop/advanced quantum technology relations.png) - Result: Success
+2024-04-24 10:59:04: Moved folder to recycling bin - untitled folder 2 (/Users/carlo/Desktop/untitled folder 2) - Result: Success
+2024-04-24 10:59:04: Moved folder to recycling bin - untitled folder 3 (/Users/carlo/Desktop/untitled folder 3) - Result: Success
+2024-04-24 10:59:04: Moved file to recycling bin - Carlo Cover Letter.pdf (/Users/carlo/Desktop/Carlo Cover Letter.pdf) - Result: Success
+2024-04-24 10:59:04: Moved file to recycling bin - Mulan - Reflection.pdf (/Users/carlo/Desktop/Mulan - Reflection.pdf) - Result: Success
+2024-04-24 10:59:04: Moved file to recycling bin - CC Payments.xlsx (/Users/carlo/Desktop/CC Payments.xlsx) - Result: Success
+2024-04-24 10:59:04: Moved file to recycling bin - ro-slayers-accounts.txt (/Users/carlo/Desktop/ro-slayers-accounts.txt) - Result: Success
+2024-04-24 11:08:32: Moved folder to recycling bin - untitled folder (/Users/carlo/Desktop/untitled folder) - Result: Success
+2024-04-24 11:08:32: Moved file to recycling bin - Carlo IT Cover Letter.docx (/Users/carlo/Desktop/Carlo IT Cover Letter.docx) - Result: Success
+2024-04-24 11:08:32: Moved file to recycling bin - advanced quantum technology relations.png (/Users/carlo/Desktop/advanced quantum technology relations.png) - Result: Success
+2024-04-24 11:08:32: Moved folder to recycling bin - untitled folder 2 (/Users/carlo/Desktop/untitled folder 2) - Result: Success
+2024-04-24 11:08:32: Moved folder to recycling bin - untitled folder 3 (/Users/carlo/Desktop/untitled folder 3) - Result: Success
+2024-04-24 11:08:32: Moved file to recycling bin - Carlo Cover Letter.pdf (/Users/carlo/Desktop/Carlo Cover Letter.pdf) - Result: Success
+2024-04-24 11:08:32: Moved file to recycling bin - Mulan - Reflection.pdf (/Users/carlo/Desktop/Mulan - Reflection.pdf) - Result: Success
+2024-04-24 11:08:32: Moved file to recycling bin - CC Payments.xlsx (/Users/carlo/Desktop/CC Payments.xlsx) - Result: Success
+2024-04-24 11:08:32: Moved file to recycling bin - ro-slayers-accounts.txt (/Users/carlo/Desktop/ro-slayers-accounts.txt) - Result: Success
