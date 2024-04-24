@@ -32,14 +32,20 @@ def validate_word(text, nlp):
         else:
             logging.error(f"Invalid input: {text}, contains non-alphabetic characters.")
             return False
-    except (ValueError, Errors) as error:
-        logging.error(f"Error occurred while validating word: {error}")
+    except ValueError as error:
+        logging.error(f"ValueError occurred while validating word: {error}")
+        return False
+    except OSError as error:
+        logging.error(f"OSError occurred while validating word: {error}")
+        return False
+    except Errors as error:
+        logging.error(f"Spacy Error occurred while validating word: {error}")
         return False
 
 def get_user_input():
     # Get user input and validate it using the Spacy model.
     text = ""
-    nlp = load_spacy_model("en_core_web_lg")
+    nlp = load_spacy_model("en_core_web_sm")
 
     if nlp is None:
         logging.error("Failed to load Spacy model. Exiting program.")
@@ -106,8 +112,8 @@ def process_text(input_text, nlp):
         print("Readability Suggestions:")
         for suggestion in readability_suggestions:
             print(suggestion)
-    except spacy.errors.UserWarning as warning:
-        logging.warning(f"UserWarning occurred while processing text: {warning}")
+    except OSError as error:
+        logging.error(f"OSError occurred while processing text: {error}")
     except Errors as error:
         logging.error(f"Spacy Error occurred while processing text: {error}")
 
@@ -116,7 +122,7 @@ def main():
     try:
         logging.basicConfig(filename='error.log', level=logging.ERROR)
         print("Welcome to the Word Count App!")
-        nlp = load_spacy_model("en_core_web_lg")
+        nlp = load_spacy_model("en_core_web_sm")
 
         if nlp is None:
             logging.error("Failed to load Spacy model. Exiting program.")
