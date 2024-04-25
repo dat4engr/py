@@ -34,11 +34,18 @@ def move_to_recycle_bin(item_path, log_file, is_file=True):
         logging.error(f"Error moving {'file' if is_file else 'folder'} to recycling bin: {str(error)}")
         return 0
 
-def delete_items(item_path, log_file, is_file=True):
+def delete_items(item_path, log_file, is_file=True, max_file_size=None, file_type=None, days_since_modified=None):
     # Delete items based on specified criteria and move them to the recycling bin.
     try:
+        item_stat = os.stat(item_path)
+        
         if (is_file and os.path.isfile(item_path)) or (not is_file and os.path.isdir(item_path)):
-            return move_to_recycle_bin(item_path, log_file, is_file)
+            if (max_file_size is None or item_stat.st_size <= max_file_size) and \
+               (file_type is None or item_path.endswith(file_type)) and \
+               (days_since_modified is None or (datetime.now() - datetime.fromtimestamp(item_stat.st_mtime)).days <= days_since_modified):
+                return move_to_recycle_bin(item_path, log_file, is_file)
+            else:
+                return 0
         else:
             logging.error(f"Path '{item_path}' is not a {'file' if is_file else 'folder'}")
             return 0
@@ -60,14 +67,11 @@ def delete_files(desktop_path, max_file_size=None, file_type=None, days_since_mo
             if os.path.exists(log_file_path):
                 with open(log_file_path, 'a') as log_file:
                     with ThreadPoolExecutor() as executor:
-                        for item in os.scandir(desktop_path):
-                            if item.is_file():
-                                if (max_file_size is None or item.stat().st_size <= max_file_size) and \
-                                   (file_type is None or item.name.endswith(file_type)) and \
-                                   (days_since_modified is None or (datetime.now() - datetime.fromtimestamp(item.stat().st_mtime)).days <= days_since_modified):
-                                    number_of_items_deleted += executor.submit(delete_items, item.path, log_file, is_file=True).result()
-                            elif item.is_dir():
-                                number_of_items_deleted += executor.submit(delete_items, item.path, log_file, is_file=False).result()
+                        for item in os.listdir(desktop_path):
+                            item_path = os.path.join(desktop_path, item)
+                            if os.path.isfile(item_path) or os.path.isdir(item_path):
+                                number_of_items_deleted += executor.submit(delete_items, item_path, log_file, is_file=os.path.isfile(item_path), 
+                                                                          max_file_size=max_file_size, file_type=file_type, days_since_modified=days_since_modified).result()
 
             else:
                 logging.error("Log file not found. Aborting deletion process.")
