@@ -1,32 +1,32 @@
 [
     {
-        "date": "2024-04-24",
-        "time": "11:48:00",
+        "date": "2024-04-26",
+        "time": "11:11:58",
         "location": "angeles, ph",
-        "weather_status": "clear",
-        "temperature": 34.01,
-        "wind_speed": 1.39,
-        "humidity": 47,
+        "weather_status": "clouds",
+        "temperature": 29.48,
+        "wind_speed": 1.12,
+        "humidity": 63,
         "version": 2
     },
     {
-        "date": "2024-04-24",
-        "time": "11:48:03",
+        "date": "2024-04-26",
+        "time": "11:11:59",
         "location": "mabalacat city, ph",
-        "weather_status": "clear",
-        "temperature": 33.89,
-        "wind_speed": 1.35,
-        "humidity": 48,
+        "weather_status": "clouds",
+        "temperature": 29.44,
+        "wind_speed": 1.11,
+        "humidity": 63,
         "version": 2
     },
     {
-        "date": "2024-04-24",
-        "time": "11:48:05",
+        "date": "2024-04-26",
+        "time": "11:12:01",
         "location": "magalang, ph",
         "weather_status": "clear",
-        "temperature": 34.32,
-        "wind_speed": 1.13,
-        "humidity": 48,
+        "temperature": 29.86,
+        "wind_speed": 0.96,
+        "humidity": 62,
         "version": 2
     }
 ]
