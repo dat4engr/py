@@ -227,7 +227,7 @@ class WeatherInfo:
 
 class WeatherDataFetcher:
     # Class responsible for fetching weather data.
-    CACHE_SIZE = 128  # Adjust based on memory availability and access patterns.
+    CACHE_SIZE = 256  # Adjust based on memory availability and access patterns.
     CACHE_TTL = 3600  # Adjust the TTL in seconds based on data freshness requirements.
     
     def __init__(self, api_config: APIConfig) -> None:
@@ -251,16 +251,16 @@ class WeatherDataFetcher:
         if self.total_accesses == 0:
             return 0
         return self.cache_hits / self.total_accesses
-
+    
     def adjust_cache_size(self):
         # Adjust the size of the cache based on the cache hit rate.
         hit_rate = self.calculate_cache_hit_rate()
         if hit_rate > self.cache_hit_rate_threshold:
             # Increase cache size if hit rate is high
-            self.weather_cache = TTLCache(maxsize=min(256, self.weather_cache.maxsize * 2), ttl=3600)
+            self.weather_cache = TTLCache(maxsize=min(512, self.weather_cache.maxsize * 2), ttl=3600)
         else:
             # Decrease cache size if hit rate is low
-            self.weather_cache = TTLCache(maxsize=max(32, self.weather_cache.maxsize // 2), ttl=3600)
+            self.weather_cache = TTLCache(maxsize=max(128, self.weather_cache.maxsize // 2), ttl=3600)
 
     def get_weather_data(self, location: str) -> dict:
         # Retrieve weather data for a given location from the cache or API.
