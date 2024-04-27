@@ -1,6 +1,6 @@
 import configparser
 from datetime import datetime
-from functools import lru_cache
+from functools import lru_cache, partial
 import json
 import logging
 from typing import Union, Tuple, Any
@@ -10,7 +10,7 @@ from psycopg2 import OperationalError, DatabaseError, pool, sql
 from pyowm import OWM
 import geocoder
 from contextlib import contextmanager
-from cachetools import TTLCache
+from cachetools import TTLCache, LRUCache
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 from tenacity import retry, stop_after_attempt, wait_exponential
 from queue import LifoQueue
@@ -233,7 +233,8 @@ class WeatherDataFetcher:
     def __init__(self, api_config: APIConfig) -> None:
         # Initializes the WeatherDataFetcher with the specified API configuration.
         self.weather_cache = TTLCache(maxsize=self.CACHE_SIZE, ttl=self.CACHE_TTL)
-        self.cache_lock = threading.Lock()  # Add lock for the cache.
+        self.lru_cache = LRUCache(maxsize=128)  # Adding an LRU cache for faster access
+        self.cache_lock = threading.Lock()
         self.cache_hits = 0
         self.cache_misses = 0
         self.total_accesses = 0
@@ -253,14 +254,16 @@ class WeatherDataFetcher:
         return self.cache_hits / self.total_accesses
     
     def adjust_cache_size(self):
-        # Adjust the size of the cache based on the cache hit rate.
-        hit_rate = self.calculate_cache_hit_rate()
-        if hit_rate > self.cache_hit_rate_threshold:
-            # Increase cache size if hit rate is high
-            self.weather_cache = TTLCache(maxsize=min(512, self.weather_cache.maxsize * 2), ttl=3600)
-        else:
-            # Decrease cache size if hit rate is low
-            self.weather_cache = TTLCache(maxsize=max(128, self.weather_cache.maxsize // 2), ttl=3600)
+            # Adjust the size of the caches based on the cache hit rate.
+            hit_rate = self.calculate_cache_hit_rate()
+            if hit_rate > self.cache_hit_rate_threshold:
+                # Increase cache size if hit rate is high
+                self.weather_cache = TTLCache(maxsize=min(512, self.weather_cache.maxsize * 2), ttl=3600)
+                self.lru_cache = LRUCache(maxsize=min(256, self.lru_cache.maxsize * 2))
+            else:
+                # Decrease cache size if hit rate is low
+                self.weather_cache = TTLCache(maxsize=max(128, self.weather_cache.maxsize // 2), ttl=3600)
+                self.lru_cache = LRUCache(maxsize=max(64, self.lru_cache.maxsize // 2))
 
     def get_weather_data(self, location: str) -> dict:
         # Retrieve weather data for a given location from the cache or API.
@@ -269,10 +272,14 @@ class WeatherDataFetcher:
             if location in self.weather_cache:
                 self.cache_hits += 1
                 return self.weather_cache[location]
+            elif location in self.lru_cache:
+                self.cache_hits += 1
+                return self.lru_cache[location]
             else:
                 self.cache_misses += 1
                 data = self.fetch_weather_data_from_api(location)
                 self.weather_cache[location] = data
+                self.lru_cache[location] = data
                 return data
 
     @staticmethod
@@ -292,7 +299,7 @@ class WeatherDataFetcher:
             logging.error(error_message)
             raise RuntimeError(error_message)
 
-    @lru_cache(maxsize=128)
+    @partial(lru_cache(maxsize=128))
     def get_coordinates(self, location: str) -> Union[Tuple[float, float], None]:
         # Fetches the latitude and longitude coordinates for a given location.
         try:
