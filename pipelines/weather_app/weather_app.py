@@ -795,24 +795,28 @@ def process_location(fetcher, location):
 
 def monitor_resources():
     # Monitor system resources during script execution.
-    process = psutil.Process()
     logging.info("Resource Usage Monitoring:")
-    while not weather_data_collection_completed:
-        # Get detailed resource metrics
-        cpu_percent = process.cpu_percent(interval=1.0)
-        memory_info = process.memory_info()
-        disk_usage = psutil.disk_usage('/')
-        network_io = psutil.net_io_counters()
-        
-        # Log resource metrics
-        logging.info(f"CPU Usage: {cpu_percent:.2f}%")
-        logging.info(f"Memory Usage: {memory_info.rss / (1024*1024):.2f} MB")
-        logging.info(f"Disk Usage - Total: {disk_usage.total / (1024*1024*1024):.2f} GB, Used: {disk_usage.used / (1024*1024*1024):.2f} GB")
-        logging.info(f"Network IO - Bytes Sent: {network_io.bytes_sent}, Bytes Received: {network_io.bytes_recv}")
-        
-        time.sleep(5)  # Adjust the interval for monitoring based on performance metrics.
+    process = psutil.Process()
 
-    logging.info("Weather data collection completed. Terminating resource monitoring.")
+    try:
+        while not weather_data_collection_completed:
+            # Get detailed resource metrics.
+            cpu_percent = psutil.cpu_percent(interval=1.0)
+            memory_info = process.memory_info()
+            disk_usage = psutil.disk_usage('/')
+            network_io = psutil.net_io_counters()
+
+            # Log resource metrics.
+            logging.info(f"CPU Usage: {cpu_percent:.2f}%")
+            logging.info(f"Memory Usage: {memory_info.rss / (1024*1024):.2f} MB")
+            logging.info(f"Disk Usage - Total: {disk_usage.total / (1024*1024*1024):.2f} GB, Used: {disk_usage.used / (1024*1024*1024):.2f} GB")
+            logging.info(f"Network IO - Bytes Sent: {network_io.bytes_sent}, Bytes Received: {network_io.bytes_recv}")
+
+    except Exception as monitoring_error:
+        logging.error(f"Error occurred during resource monitoring: {monitoring_error}")
+
+    finally:
+        logging.info("Weather data collection completed. Terminating resource monitoring.")
 
 def main():
     # Main function that fetches weather data from API for multiple locations concurrently.
