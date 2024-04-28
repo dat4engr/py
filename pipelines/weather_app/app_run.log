@@ -1,52 +1,58 @@
-2024-04-27 23:11:10,041 - INFO - Script execution started at 2024-04-27 23:11:10.
-2024-04-27 23:11:10,041 - INFO - Resource Usage Monitoring:
-2024-04-27 23:11:10,041 - INFO - CPU Usage: 0.0% | Memory Usage: 0.6738662719726562%
-2024-04-27 23:11:10,077 - INFO - Created weather_data table successfully.
-2024-04-27 23:11:10,088 - INFO - Indexes created for improved query performance.
-2024-04-27 23:11:10,088 - INFO - Database query performance optimizations completed.
-2024-04-27 23:11:10,327 - INFO - Fetching weather data for location: Angeles, PH
-2024-04-27 23:11:10,350 - DEBUG - Starting new HTTPS connection (1): nominatim.openstreetmap.org:443
-2024-04-27 23:11:11,584 - DEBUG - https://nominatim.openstreetmap.org:443 "GET /search?q=angeles+ph&format=jsonv2&addressdetails=1&limit=1 HTTP/1.1" 200 560
-2024-04-27 23:11:11,586 - INFO - Requested https://nominatim.openstreetmap.org/search?q=angeles+ph&format=jsonv2&addressdetails=1&limit=1
-2024-04-27 23:11:11,611 - DEBUG - Starting new HTTPS connection (1): api.openweathermap.org:443
-2024-04-27 23:11:12,328 - DEBUG - https://api.openweathermap.org:443 "GET /data/2.5/weather?APPID=5c9026775828973746c850fa10e2f45c&lang=en&lon=120.5875&lat=15.1389 HTTP/1.1" 200 503
-2024-04-27 23:11:12,334 - INFO - As of: 2024-04-27 | 23:11:12
-2024-04-27 23:11:12,334 - INFO - Current weather at Angeles, PH: Date: 2024-04-27, Time: 23:11:12, Temperature: 29.04°C, Humidity: 65%, Wind Speed: 0.76 m/s, Weather Status: clouds
-2024-04-27 23:11:12,354 - INFO - Weather data inserted into the database successfully.
-2024-04-27 23:11:12,354 - INFO - Reading JSON file: weather_data.json
-2024-04-27 23:11:12,356 - INFO - Opening JSON file: weather_data.json
-2024-04-27 23:11:12,357 - INFO - Updated JSON data with weather data.
-2024-04-27 23:11:12,357 - INFO - Closing JSON file.
-2024-04-27 23:11:12,357 - INFO - Finished processing location: Angeles, PH
-2024-04-27 23:11:12,358 - INFO - Fetching weather data for location: Mabalacat City, PH
-2024-04-27 23:11:12,361 - DEBUG - Starting new HTTPS connection (1): nominatim.openstreetmap.org:443
-2024-04-27 23:11:13,621 - DEBUG - https://nominatim.openstreetmap.org:443 "GET /search?q=mabalacat+city+ph&format=jsonv2&addressdetails=1&limit=1 HTTP/1.1" 200 872
-2024-04-27 23:11:13,622 - INFO - Requested https://nominatim.openstreetmap.org/search?q=mabalacat+city+ph&format=jsonv2&addressdetails=1&limit=1
-2024-04-27 23:11:13,630 - DEBUG - Starting new HTTPS connection (1): api.openweathermap.org:443
-2024-04-27 23:11:14,328 - DEBUG - https://api.openweathermap.org:443 "GET /data/2.5/weather?APPID=5c9026775828973746c850fa10e2f45c&lang=en&lon=120.5893&lat=15.179 HTTP/1.1" 200 497
-2024-04-27 23:11:14,332 - INFO - As of: 2024-04-27 | 23:11:14
-2024-04-27 23:11:14,332 - INFO - Current weather at Mabalacat City, PH: Date: 2024-04-27, Time: 23:11:14, Temperature: 28.96°C, Humidity: 66%, Wind Speed: 0.86 m/s, Weather Status: clouds
-2024-04-27 23:11:14,337 - INFO - Weather data inserted into the database successfully.
-2024-04-27 23:11:14,337 - INFO - Reading JSON file: weather_data.json
-2024-04-27 23:11:14,337 - INFO - Opening JSON file: weather_data.json
-2024-04-27 23:11:14,338 - INFO - Updated JSON data with weather data.
-2024-04-27 23:11:14,338 - INFO - Closing JSON file.
-2024-04-27 23:11:14,338 - INFO - Finished processing location: Mabalacat City, PH
-2024-04-27 23:11:14,339 - INFO - Fetching weather data for location: Magalang, PH
-2024-04-27 23:11:14,342 - DEBUG - Starting new HTTPS connection (1): nominatim.openstreetmap.org:443
-2024-04-27 23:11:15,047 - INFO - CPU Usage: 43.8% | Memory Usage: 1.1447906494140625%
-2024-04-27 23:11:15,485 - DEBUG - https://nominatim.openstreetmap.org:443 "GET /search?q=magalang+ph&format=jsonv2&addressdetails=1&limit=1 HTTP/1.1" 200 643
-2024-04-27 23:11:15,486 - INFO - Requested https://nominatim.openstreetmap.org/search?q=magalang+ph&format=jsonv2&addressdetails=1&limit=1
-2024-04-27 23:11:15,495 - DEBUG - Starting new HTTPS connection (1): api.openweathermap.org:443
-2024-04-27 23:11:16,196 - DEBUG - https://api.openweathermap.org:443 "GET /data/2.5/weather?APPID=5c9026775828973746c850fa10e2f45c&lang=en&lon=120.6616&lat=15.2141 HTTP/1.1" 200 501
-2024-04-27 23:11:16,202 - INFO - As of: 2024-04-27 | 23:11:16
-2024-04-27 23:11:16,202 - INFO - Current weather at Magalang, PH: Date: 2024-04-27, Time: 23:11:16, Temperature: 29.53°C, Humidity: 65%, Wind Speed: 0.96 m/s, Weather Status: clouds
-2024-04-27 23:11:16,207 - INFO - Weather data inserted into the database successfully.
-2024-04-27 23:11:16,207 - INFO - Reading JSON file: weather_data.json
-2024-04-27 23:11:16,208 - INFO - Opening JSON file: weather_data.json
-2024-04-27 23:11:16,208 - INFO - Updated JSON data with weather data.
-2024-04-27 23:11:16,208 - INFO - Closing JSON file.
-2024-04-27 23:11:16,209 - INFO - Finished processing location: Magalang, PH
-2024-04-27 23:11:16,209 - INFO - Script execution completed at 2024-04-27 23:11:16.
-2024-04-27 23:11:16,209 - INFO - Total time taken is 6.17 seconds.
-2024-04-27 23:11:20,053 - INFO - Weather data collection completed. Terminating resource monitoring.
+2024-04-28 14:33:33,436 - INFO - Script execution started at 2024-04-28 14:33:33.
+2024-04-28 14:33:33,437 - INFO - Resource Usage Monitoring:
+2024-04-28 14:33:33,495 - INFO - Created weather_data table successfully.
+2024-04-28 14:33:33,505 - INFO - Indexes created for improved query performance.
+2024-04-28 14:33:33,505 - INFO - Database query performance optimizations completed.
+2024-04-28 14:33:33,810 - INFO - Fetching weather data for location: Angeles, PH
+2024-04-28 14:33:34,206 - DEBUG - Starting new HTTPS connection (1): nominatim.openstreetmap.org:443
+2024-04-28 14:33:34,443 - INFO - CPU Usage: 204.50%
+2024-04-28 14:33:34,443 - INFO - Memory Usage: 91.86 MB
+2024-04-28 14:33:34,444 - INFO - Disk Usage - Total: 228.27 GB, Used: 9.54 GB
+2024-04-28 14:33:34,444 - INFO - Network IO - Bytes Sent: 21667840, Bytes Received: 95945728
+2024-04-28 14:33:35,782 - DEBUG - https://nominatim.openstreetmap.org:443 "GET /search?q=angeles+ph&format=jsonv2&addressdetails=1&limit=1 HTTP/1.1" 200 560
+2024-04-28 14:33:35,783 - INFO - Requested https://nominatim.openstreetmap.org/search?q=angeles+ph&format=jsonv2&addressdetails=1&limit=1
+2024-04-28 14:33:35,806 - DEBUG - Starting new HTTPS connection (1): api.openweathermap.org:443
+2024-04-28 14:33:36,910 - DEBUG - https://api.openweathermap.org:443 "GET /data/2.5/weather?APPID=5c9026775828973746c850fa10e2f45c&lang=en&lon=120.5875&lat=15.1389 HTTP/1.1" 200 479
+2024-04-28 14:33:36,915 - INFO - As of: 2024-04-28 | 14:33:36
+2024-04-28 14:33:36,916 - INFO - Current weather at Angeles, PH: Date: 2024-04-28, Time: 14:33:36, Temperature: 37.25°C, Humidity: 47%, Wind Speed: 1.38 m/s, Weather Status: clouds
+2024-04-28 14:33:36,937 - INFO - Weather data inserted into the database successfully.
+2024-04-28 14:33:36,937 - INFO - Reading JSON file: weather_data.json
+2024-04-28 14:33:36,938 - INFO - Opening JSON file: weather_data.json
+2024-04-28 14:33:36,938 - INFO - Updated JSON data with weather data.
+2024-04-28 14:33:36,938 - INFO - Closing JSON file.
+2024-04-28 14:33:36,938 - INFO - Finished processing location: Angeles, PH
+2024-04-28 14:33:36,939 - INFO - Fetching weather data for location: Mabalacat City, PH
+2024-04-28 14:33:36,942 - DEBUG - Starting new HTTPS connection (1): nominatim.openstreetmap.org:443
+2024-04-28 14:33:39,120 - DEBUG - https://nominatim.openstreetmap.org:443 "GET /search?q=mabalacat+city+ph&format=jsonv2&addressdetails=1&limit=1 HTTP/1.1" 200 872
+2024-04-28 14:33:39,121 - INFO - Requested https://nominatim.openstreetmap.org/search?q=mabalacat+city+ph&format=jsonv2&addressdetails=1&limit=1
+2024-04-28 14:33:39,128 - DEBUG - Starting new HTTPS connection (1): api.openweathermap.org:443
+2024-04-28 14:33:40,148 - DEBUG - https://api.openweathermap.org:443 "GET /data/2.5/weather?APPID=5c9026775828973746c850fa10e2f45c&lang=en&lon=120.5893&lat=15.179 HTTP/1.1" 200 476
+2024-04-28 14:33:40,154 - INFO - As of: 2024-04-28 | 14:33:40
+2024-04-28 14:33:40,154 - INFO - Current weather at Mabalacat City, PH: Date: 2024-04-28, Time: 14:33:40, Temperature: 37.21°C, Humidity: 47%, Wind Speed: 1.38 m/s, Weather Status: clouds
+2024-04-28 14:33:40,157 - INFO - Weather data inserted into the database successfully.
+2024-04-28 14:33:40,157 - INFO - Reading JSON file: weather_data.json
+2024-04-28 14:33:40,157 - INFO - Opening JSON file: weather_data.json
+2024-04-28 14:33:40,158 - INFO - Updated JSON data with weather data.
+2024-04-28 14:33:40,158 - INFO - Closing JSON file.
+2024-04-28 14:33:40,158 - INFO - Finished processing location: Mabalacat City, PH
+2024-04-28 14:33:40,159 - INFO - Fetching weather data for location: Magalang, PH
+2024-04-28 14:33:40,162 - DEBUG - Starting new HTTPS connection (1): nominatim.openstreetmap.org:443
+2024-04-28 14:33:40,454 - INFO - CPU Usage: 1.20%
+2024-04-28 14:33:40,455 - INFO - Memory Usage: 94.95 MB
+2024-04-28 14:33:40,455 - INFO - Disk Usage - Total: 228.27 GB, Used: 9.54 GB
+2024-04-28 14:33:40,455 - INFO - Network IO - Bytes Sent: 21787648, Bytes Received: 96385024
+2024-04-28 14:33:41,266 - DEBUG - https://nominatim.openstreetmap.org:443 "GET /search?q=magalang+ph&format=jsonv2&addressdetails=1&limit=1 HTTP/1.1" 200 643
+2024-04-28 14:33:41,268 - INFO - Requested https://nominatim.openstreetmap.org/search?q=magalang+ph&format=jsonv2&addressdetails=1&limit=1
+2024-04-28 14:33:41,276 - DEBUG - Starting new HTTPS connection (1): api.openweathermap.org:443
+2024-04-28 14:33:42,366 - DEBUG - https://api.openweathermap.org:443 "GET /data/2.5/weather?APPID=5c9026775828973746c850fa10e2f45c&lang=en&lon=120.6616&lat=15.2141 HTTP/1.1" 200 479
+2024-04-28 14:33:42,371 - INFO - As of: 2024-04-28 | 14:33:42
+2024-04-28 14:33:42,372 - INFO - Current weather at Magalang, PH: Date: 2024-04-28, Time: 14:33:42, Temperature: 37.62°C, Humidity: 47%, Wind Speed: 1.38 m/s, Weather Status: clouds
+2024-04-28 14:33:42,376 - INFO - Weather data inserted into the database successfully.
+2024-04-28 14:33:42,377 - INFO - Reading JSON file: weather_data.json
+2024-04-28 14:33:42,377 - INFO - Opening JSON file: weather_data.json
+2024-04-28 14:33:42,377 - INFO - Updated JSON data with weather data.
+2024-04-28 14:33:42,378 - INFO - Closing JSON file.
+2024-04-28 14:33:42,378 - INFO - Finished processing location: Magalang, PH
+2024-04-28 14:33:42,378 - INFO - Script execution completed at 2024-04-28 14:33:42.
+2024-04-28 14:33:42,378 - INFO - Total time taken is 8.94 seconds.
+2024-04-28 14:33:45,459 - INFO - Weather data collection completed. Terminating resource monitoring.
