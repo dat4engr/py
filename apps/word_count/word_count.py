@@ -8,10 +8,10 @@ def load_spacy_model(model_name):
         if not hasattr(load_spacy_model, "nlp"):
             load_spacy_model.nlp = spacy.load(model_name)
     except OSError as error:
-        logging.error(f"Failed to load Spacy model: {error}")
+        logging.error(f"Failed to load Spacy model due to an OSError: {error}")
         load_spacy_model.nlp = None
     except Errors as error:
-        logging.error(f"Spacy Error: {error}")
+        logging.error(f"Failed to load Spacy model due to a Spacy Error: {error}")
         load_spacy_model.nlp = None
         
     return load_spacy_model.nlp
