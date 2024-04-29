@@ -603,6 +603,7 @@ class DatabaseHandler:
             with self.create_cursor(self.conn) as cursor:
                 indexes = [
                     'idx_date',
+                    'idx_time',
                     'idx_location',
                     'idx_temperature',
                     'idx_weather_status',
@@ -615,7 +616,9 @@ class DatabaseHandler:
                     count = cursor.fetchone()[0]
 
                     if count == 0:
-                        cursor.execute(sql.SQL('CREATE INDEX {} ON weather_data ({});').format(sql.Identifier(index_name), sql.Identifier(index_name.lower())))
+                        if index_name.startswith('idx_'):
+                            column = index_name[4:]  # Get the column name for indexing.
+                            cursor.execute(sql.SQL('CREATE INDEX {} ON weather_data ({});').format(sql.Identifier(index_name), sql.Identifier(column.lower())))
                 
                 self.conn.commit()
 
