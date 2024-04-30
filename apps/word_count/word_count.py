@@ -1,12 +1,18 @@
 import logging
 import spacy
 from spacy.errors import Errors
+import datetime
+
+def initialize_logger():
+    # Initialize the logger with timestamp and format.
+    logging.basicConfig(filename='error.log', level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def load_spacy_model(model_name):
     # Load a Spacy model with the given model name and cache it.
     try:
         if not hasattr(load_spacy_model, "nlp"):
             load_spacy_model.nlp = spacy.load(model_name)
+            logging.info(f"Spacy model loaded successfully: {model_name}")
     except OSError as error:
         logging.error(f"Failed to load Spacy model due to an OSError: {error}")
         load_spacy_model.nlp = None
@@ -120,7 +126,7 @@ def process_text(input_text, nlp):
 def main():
     # The main function to run the Word Count App and handle user input.
     try:
-        logging.basicConfig(filename='error.log', level=logging.ERROR)
+        initialize_logger()
         print("Welcome to the Word Count App!")
         nlp = load_spacy_model("en_core_web_sm")
 
