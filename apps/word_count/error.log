@@ -1,1 +1,11 @@
-
+2024-05-02 12:33:43,104 - INFO - Processing text: asdf
+2024-05-02 12:34:21,125 - INFO - Spacy model loaded successfully: en_core_web_sm
+2024-05-02 12:34:22,669 - INFO - Processing text: ey
+2024-05-02 12:34:24,106 - INFO - Processing text: hey
+2024-05-02 12:34:26,558 - INFO - Processing text: quri
+2024-05-02 12:34:28,754 - INFO - Processing text: query
+2024-05-02 12:34:40,116 - INFO - Processing text: hello
+2024-05-02 12:34:42,245 - INFO - Processing text: error error
+2024-05-02 12:34:48,008 - ERROR - Invalid input: herro., contains non-alphabetic characters.
+2024-05-02 12:34:48,008 - WARNING - Invalid input: herro.. Please enter a valid English word or 'q' to quit.
+2024-05-02 12:34:51,358 - INFO - Processing text: hey
