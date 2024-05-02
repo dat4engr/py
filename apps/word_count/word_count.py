@@ -1,23 +1,24 @@
 import logging
 import spacy
 from spacy.errors import Errors
-import datetime
+
+logger = logging.getLogger(__name__)
 
 def initialize_logger():
     # Initialize the logger with timestamp and format.
-    logging.basicConfig(filename='error.log', level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename='error.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def load_spacy_model(model_name):
     # Load a Spacy model with the given model name and cache it.
     try:
         if not hasattr(load_spacy_model, "nlp"):
             load_spacy_model.nlp = spacy.load(model_name)
-            logging.info(f"Spacy model loaded successfully: {model_name}")
+            logger.info(f"Spacy model loaded successfully: {model_name}")
     except OSError as error:
-        logging.error(f"Failed to load Spacy model due to an OSError: {error}")
+        logger.error(f"Failed to load Spacy model due to an OSError: {error}")
         load_spacy_model.nlp = None
     except Errors as error:
-        logging.error(f"Failed to load Spacy model due to a Spacy Error: {error}")
+        logger.error(f"Failed to load Spacy model due to a Spacy Error: {error}")
         load_spacy_model.nlp = None
         
     return load_spacy_model.nlp
@@ -36,16 +37,16 @@ def validate_word(text, nlp):
         if all(token.is_alpha or token.text in [' ', '-'] for token in doc):
             return True
         else:
-            logging.error(f"Invalid input: {text}, contains non-alphabetic characters.")
+            logger.error(f"Invalid input: {text}, contains non-alphabetic characters.")
             return False
     except ValueError as error:
-        logging.error(f"ValueError occurred while validating word: {error}")
+        logger.error(f"ValueError occurred while validating word: {error}")
         return False
     except OSError as error:
-        logging.error(f"OSError occurred while validating word: {error}")
+        logger.error(f"OSError occurred while validating word: {error}")
         return False
     except Errors as error:
-        logging.error(f"Spacy Error occurred while validating word: {error}")
+        logger.error(f"Spacy Error occurred while validating word: {error}")
         return False
 
 def get_user_input():
@@ -54,7 +55,7 @@ def get_user_input():
     nlp = load_spacy_model("en_core_web_sm")
 
     if nlp is None:
-        logging.error("Failed to load Spacy model. Exiting program.")
+        logger.error("Failed to load Spacy model. Exiting program.")
         exit()
 
     while text != 'q':
@@ -66,7 +67,7 @@ def get_user_input():
         if text.strip() != "" and validate_word(text, nlp):
             return text
         else:
-            logging.error(f"Invalid input: {text}. Please enter a valid English word or 'q' to quit.")
+            logger.warning(f"Invalid input: {text}. Please enter a valid English word or 'q' to quit.")
             print("Invalid input. Please enter a valid English word or sentence or 'q' to quit.")
 
 def word_type(token):
@@ -119,9 +120,11 @@ def process_text(input_text, nlp):
         for suggestion in readability_suggestions:
             print(suggestion)
     except OSError as error:
-        logging.error(f"OSError occurred while processing text: {error}")
+        logger.error(f"OSError occurred while processing text: {error}")
     except Errors as error:
-        logging.error(f"Spacy Error occurred while processing text: {error}")
+        logger.error(f"Spacy Error occurred while processing text: {error}")
+    except Exception as error:
+        logger.error(f"An error occurred while processing text: {error}", exc_info=True)  # Log exception details
 
 def main():
     # The main function to run the Word Count App and handle user input.
@@ -131,7 +134,7 @@ def main():
         nlp = load_spacy_model("en_core_web_sm")
 
         if nlp is None:
-            logging.error("Failed to load Spacy model. Exiting program.")
+            logger.error("Failed to load Spacy model. Exiting program.")
             exit()
 
         while True:
@@ -140,12 +143,12 @@ def main():
             if text == 'q':
                 break
 
-            logging.info(f"Processing text: {text}")
+            logger.info(f"Processing text: {text}")
             process_text(text, nlp)
             print()
 
     except Exception as exception:
-        logging.error(f"An error occurred in the main function: {exception}")
+        logger.error(f"An error occurred in the main function: {exception}", exc_info=True)
 
 if __name__ == "__main__":
     main()
