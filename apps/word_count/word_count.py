@@ -3,25 +3,27 @@ import spacy
 from spacy.errors import Errors
 
 logger = logging.getLogger(__name__)
+nlp = None
 
 def initialize_logger():
     # Initialize the logger with timestamp and format.
     logging.basicConfig(filename='error.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def load_spacy_model(model_name):
-    # Load a Spacy model with the given model name and cache it.
+    global nlp
+    # Load a Spacy model with the given model name and cache it if not already loaded.
     try:
-        if not hasattr(load_spacy_model, "nlp"):
-            load_spacy_model.nlp = spacy.load(model_name)
+        if nlp is None:
+            nlp = spacy.load(model_name)
             logger.info(f"Spacy model loaded successfully: {model_name}")
     except OSError as error:
         logger.error(f"Failed to load Spacy model due to an OSError: {error}")
-        load_spacy_model.nlp = None
+        nlp = None
     except Errors as error:
         logger.error(f"Failed to load Spacy model due to a Spacy Error: {error}")
-        load_spacy_model.nlp = None
+        nlp = None
         
-    return load_spacy_model.nlp
+    return nlp
 
 def validate_word(text, nlp):
     # Validate the input text to ensure it is a valid English word.
