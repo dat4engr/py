@@ -54,17 +54,17 @@ def validate_word(text, nlp):
 def get_user_input():
     # Get user input and validate it using the Spacy model.
     text = ""
-    nlp = load_spacy_model("en_core_web_sm")
-
-    if nlp is None:
-        logger.error("Failed to load Spacy model. Exiting program.")
-        exit()
-
     while text != 'q':
         text = input("Enter a word or sentence (or 'q' to quit): ").lower()
 
         if text == 'q':
             return text
+
+        nlp = load_spacy_model("en_core_web_sm")
+
+        if nlp is None:
+            logger.error("Failed to load Spacy model. Exiting program.")
+            return
 
         if text.strip() != "" and validate_word(text, nlp):
             return text
@@ -133,11 +133,6 @@ def main():
     try:
         initialize_logger()
         print("Welcome to the Word Count App!")
-        nlp = load_spacy_model("en_core_web_sm")
-
-        if nlp is None:
-            logger.error("Failed to load Spacy model. Exiting program.")
-            exit()
 
         while True:
             text = get_user_input()
@@ -146,6 +141,12 @@ def main():
                 break
 
             logger.info(f"Processing text: {text}")
+            nlp = load_spacy_model("en_core_web_sm")
+
+            if nlp is None:
+                logger.error("Failed to load Spacy model. Exiting program.")
+                exit()
+
             process_text(text, nlp)
             print()
 
