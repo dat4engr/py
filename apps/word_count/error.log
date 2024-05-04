@@ -1,13 +1,7 @@
-2024-05-03 10:57:26,904 - INFO - Spacy model loaded successfully: en_core_web_sm
-2024-05-03 10:57:29,530 - INFO - Processing text: hey
-2024-05-03 10:57:32,590 - INFO - Processing text: quit
-2024-05-03 10:57:39,731 - INFO - Processing text: practice
-2024-05-03 10:57:45,555 - INFO - Processing text: hello
-2024-05-03 10:57:50,034 - INFO - Processing text: apple
-2024-05-03 10:57:51,944 - INFO - Processing text: fruit
-2024-05-03 10:57:58,912 - INFO - Processing text: place
-2024-05-03 10:58:00,978 - INFO - Processing text: location
-2024-05-03 10:58:02,378 - INFO - Processing text: city
-2024-05-03 10:58:06,209 - INFO - Processing text: things
-2024-05-03 10:58:07,889 - INFO - Processing text: shirt
-2024-05-03 10:58:10,394 - INFO - Processing text: shoe
+2024-05-04 21:54:58,384 - INFO - Spacy model loaded successfully: en_core_web_sm
+2024-05-04 21:54:58,397 - INFO - Processing text: hey
+2024-05-04 21:55:00,596 - INFO - Processing text: handsome
+2024-05-04 21:55:01,922 - INFO - Processing text: ugly
+2024-05-04 21:55:05,174 - INFO - Processing text: hug
+2024-05-04 21:55:08,066 - INFO - Processing text: male
+2024-05-04 21:55:09,281 - INFO - Processing text: female
