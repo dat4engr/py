@@ -74,19 +74,17 @@ def get_user_input():
 
 def word_type(token):
     # Determine the word type (Noun, Verb, Adjective, Preposition) for a given token.
-    if token.pos_ == 'NOUN':
-        return 'Noun'
-    elif token.pos_ == 'VERB':
-        return 'Verb'
-    elif token.pos_ == 'ADJ':
-        return 'Adjective'
-    elif token.pos_ == 'ADP':
-        if any(token.text.lower() == preposition.lower() for preposition in ['about', 'above', 'across']):
-            return 'Complex Preposition'
-        else:
-            return 'Simple Preposition'
-    else:
-        return 'Other'
+    word_types_mapping = {
+        'NOUN': 'Noun',
+        'VERB': 'Verb',
+        'ADJ': 'Adjective',
+        'ADP': 'Simple Preposition'
+    }
+
+    if token.pos_ == 'ADP' and any(token.text.lower() == preposition.lower() for preposition in ['about', 'above', 'across']):
+        return 'Complex Preposition'
+    
+    return word_types_mapping.get(token.pos_, 'Other')
 
 def process_text(input_text, nlp):
     # Process the input text using the Spacy model and print relevant information.
