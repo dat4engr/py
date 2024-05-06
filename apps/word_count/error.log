@@ -1,7 +1,12 @@
-2024-05-04 21:54:58,384 - INFO - Spacy model loaded successfully: en_core_web_sm
-2024-05-04 21:54:58,397 - INFO - Processing text: hey
-2024-05-04 21:55:00,596 - INFO - Processing text: handsome
-2024-05-04 21:55:01,922 - INFO - Processing text: ugly
-2024-05-04 21:55:05,174 - INFO - Processing text: hug
-2024-05-04 21:55:08,066 - INFO - Processing text: male
-2024-05-04 21:55:09,281 - INFO - Processing text: female
+2024-05-06 21:06:13,750 - INFO - Spacy model loaded successfully: en_core_web_sm
+2024-05-06 21:06:13,762 - INFO - Processing text: hello
+2024-05-06 21:06:15,546 - INFO - Processing text: handsome
+2024-05-06 21:06:17,986 - INFO - Processing text: awesome
+2024-05-06 21:06:19,663 - INFO - Processing text: cute
+2024-05-06 21:06:22,765 - INFO - Processing text: cute
+2024-05-06 21:06:24,271 - INFO - Processing text: handsome
+2024-05-06 21:06:43,140 - INFO - Processing text: cute
+2024-05-06 21:06:55,061 - INFO - Spacy model loaded successfully: en_core_web_sm
+2024-05-06 21:06:55,064 - INFO - Processing text: cute
+2024-05-06 21:06:58,304 - INFO - Processing text: handsome
+2024-05-06 21:06:59,314 - INFO - Processing text: ugly
