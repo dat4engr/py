@@ -33,7 +33,10 @@ def validate_word(text, nlp):
 
         if len(text) == 0:
             raise ValueError("Empty input string.")
-        
+
+        if not text.strip():
+            raise ValueError("Input contains only whitespaces.")
+
         doc = nlp(text)
         
         if all(token.is_alpha or token.text in [' ', '-'] for token in doc):
