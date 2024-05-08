@@ -1,20 +1,7 @@
-2024-05-07 11:06:49,758 - INFO - Spacy model loaded successfully: en_core_web_sm
-2024-05-07 11:06:49,758 - WARNING - Invalid input:   . Please enter a valid English word or 'q' to quit.
-2024-05-07 11:06:53,503 - WARNING - Invalid input:     . Please enter a valid English word or 'q' to quit.
-2024-05-07 11:06:59,781 - INFO - Processing text: a a a
-2024-05-07 11:07:11,031 - WARNING - Invalid input:            . Please enter a valid English word or 'q' to quit.
-2024-05-07 11:07:28,433 - INFO - Spacy model loaded successfully: en_core_web_sm
-2024-05-07 11:07:28,433 - WARNING - Invalid input:  . Please enter a valid English word or 'q' to quit.
-2024-05-07 11:07:30,065 - WARNING - Invalid input:  . Please enter a valid English word or 'q' to quit.
-2024-05-07 11:07:48,619 - INFO - Spacy model loaded successfully: en_core_web_sm
-2024-05-07 11:07:48,622 - INFO - Processing text: a a a 
-2024-05-07 11:07:49,620 - WARNING - Invalid input:  . Please enter a valid English word or 'q' to quit.
-2024-05-07 11:07:50,761 - WARNING - Invalid input:  . Please enter a valid English word or 'q' to quit.
-2024-05-07 11:07:52,014 - INFO - Processing text: s
-2024-05-07 11:08:00,059 - WARNING - Invalid input:    . Please enter a valid English word or 'q' to quit.
-2024-05-07 11:08:01,925 - WARNING - Invalid input:     . Please enter a valid English word or 'q' to quit.
-2024-05-07 11:08:04,018 - WARNING - Invalid input:                . Please enter a valid English word or 'q' to quit.
-2024-05-07 11:08:24,493 - INFO - Spacy model loaded successfully: en_core_web_sm
-2024-05-07 11:08:24,496 - INFO - Processing text: hello
-2024-05-07 11:08:27,487 - INFO - Processing text: hello world
-2024-05-07 11:08:33,515 - INFO - Processing text: check it out
+2024-05-08 13:36:15,429 - INFO - Spacy model loaded successfully: en_core_web_sm
+2024-05-08 13:36:15,441 - INFO - Processing text: hello
+2024-05-08 13:36:16,942 - INFO - Processing text: awesome
+2024-05-08 13:36:19,068 - INFO - Processing text: check
+2024-05-08 13:36:23,930 - INFO - Processing text: checker
+2024-05-08 13:36:29,442 - INFO - Processing text: checking
+2024-05-08 13:36:33,423 - INFO - Processing text: undeniable
