@@ -5,6 +5,12 @@ from spacy.errors import Errors
 logger = logging.getLogger(__name__)
 nlp = None
 
+class SpacyModelError(Exception):
+    pass
+
+class InputValidationError(Exception):
+    pass
+
 def initialize_logger():
     # Initialize the logger with timestamp and format.
     logging.basicConfig(filename='error.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -19,9 +25,11 @@ def load_spacy_model(model_name):
     except OSError as error:
         logger.error(f"Failed to load Spacy model due to an OSError: {error}")
         nlp = None
+        raise SpacyModelError("Failed to load Spacy model")
     except Errors as error:
         logger.error(f"Failed to load Spacy model due to a Spacy Error: {error}")
         nlp = None
+        raise SpacyModelError("Spacy Error occurred while loading model")
         
     return nlp
 
@@ -29,13 +37,13 @@ def validate_word(text, nlp):
     # Validate the input text to ensure it is a valid English word.
     try:
         if not isinstance(text, str):
-            raise ValueError("Input must be a string.")
+            raise InputValidationError("Input must be a string.")
 
         if len(text) == 0:
-            raise ValueError("Empty input string.")
+            raise InputValidationError("Empty input string.")
 
         if not text.strip():
-            raise ValueError("Input contains only whitespaces.")
+            raise InputValidationError("Input contains only whitespaces.")
 
         doc = nlp(text)
         
@@ -44,8 +52,8 @@ def validate_word(text, nlp):
         else:
             logger.error(f"Invalid input: {text}, contains non-alphabetic characters.")
             return False
-    except ValueError as error:
-        logger.error(f"ValueError occurred while validating word: {error}")
+    except InputValidationError as error:
+        logger.error(f"InputValidationError occurred while validating word: {error}")
         return False
     except OSError as error:
         logger.error(f"OSError occurred while validating word: {error}")
@@ -63,10 +71,10 @@ def get_user_input():
         if text == 'q':
             return text
 
-        nlp = load_spacy_model("en_core_web_sm")
-
-        if nlp is None:
-            logger.error("Failed to load Spacy model. Exiting program.")
+        try:
+            nlp = load_spacy_model("en_core_web_sm")
+        except SpacyModelError as error:
+            logger.error(f"{error}. Exiting program.")
             return
 
         if text.strip() != "" and validate_word(text, nlp):
@@ -142,10 +150,11 @@ def main():
                 break
 
             logger.info(f"Processing text: {text}")
-            nlp = load_spacy_model("en_core_web_sm")
 
-            if nlp is None:
-                logger.error("Failed to load Spacy model. Exiting program.")
+            try:
+                nlp = load_spacy_model("en_core_web_sm")
+            except SpacyModelError as error:
+                logger.error(f"{error}. Exiting program.")
                 exit()
 
             process_text(text, nlp)
