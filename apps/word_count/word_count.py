@@ -89,12 +89,22 @@ def word_type(token):
         'NOUN': 'Noun',
         'VERB': 'Verb',
         'ADJ': 'Adjective',
-        'ADP': 'Simple Preposition'
+        'ADV': 'Adverb',
+        'ADP': 'Simple Preposition',
+        'CONJ': 'Conjunction',
+        'PRON': 'Pronoun',
+        'DET': 'Determiner',
+        'SCONJ': 'Subordinating Conjunction',
+        'INTJ': 'Interjection',
+        'NUM': 'Number',
+        'SYM': 'Symbol',
+        'X': 'Other'
     }
 
+    # Additional conditions for specific types of words
     if token.pos_ == 'ADP' and any(token.text.lower() == preposition.lower() for preposition in ['about', 'above', 'across']):
         return 'Complex Preposition'
-    
+
     return word_types_mapping.get(token.pos_, 'Other')
 
 def process_text(input_text, nlp):
