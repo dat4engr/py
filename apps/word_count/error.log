@@ -1,7 +1,7 @@
-2024-05-08 13:36:15,429 - INFO - Spacy model loaded successfully: en_core_web_sm
-2024-05-08 13:36:15,441 - INFO - Processing text: hello
-2024-05-08 13:36:16,942 - INFO - Processing text: awesome
-2024-05-08 13:36:19,068 - INFO - Processing text: check
-2024-05-08 13:36:23,930 - INFO - Processing text: checker
-2024-05-08 13:36:29,442 - INFO - Processing text: checking
-2024-05-08 13:36:33,423 - INFO - Processing text: undeniable
+2024-05-09 12:27:10,908 - INFO - Spacy model loaded successfully: en_core_web_sm
+2024-05-09 12:27:10,920 - INFO - Processing text: hello
+2024-05-09 12:27:17,824 - INFO - Processing text: practice
+2024-05-09 12:27:25,399 - INFO - Processing text: whole
+2024-05-09 12:27:31,234 - INFO - Processing text: kill
+2024-05-09 12:27:35,440 - INFO - Processing text: check
+2024-05-09 12:27:39,770 - INFO - Processing text: a a a 
