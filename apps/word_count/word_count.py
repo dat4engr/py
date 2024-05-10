@@ -162,7 +162,8 @@ def main():
             logger.info(f"Processing text: {text}")
 
             try:
-                nlp = load_spacy_model("en_core_web_sm")
+                model_name = "en_core_web_sm"  # You can change the model name here
+                nlp = load_spacy_model(model_name)
             except SpacyModelError as error:
                 logger.error(f"{error}. Exiting program.")
                 exit()
