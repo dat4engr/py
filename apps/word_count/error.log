@@ -1,7 +1,3 @@
-2024-05-09 12:27:10,908 - INFO - Spacy model loaded successfully: en_core_web_sm
-2024-05-09 12:27:10,920 - INFO - Processing text: hello
-2024-05-09 12:27:17,824 - INFO - Processing text: practice
-2024-05-09 12:27:25,399 - INFO - Processing text: whole
-2024-05-09 12:27:31,234 - INFO - Processing text: kill
-2024-05-09 12:27:35,440 - INFO - Processing text: check
-2024-05-09 12:27:39,770 - INFO - Processing text: a a a 
+2024-05-10 10:14:25,003 - INFO - Spacy model loaded successfully: en_core_web_sm
+2024-05-10 10:14:25,015 - INFO - Processing text: hello
+2024-05-10 10:14:33,232 - INFO - Processing text: what are you doing
