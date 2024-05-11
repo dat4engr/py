@@ -36,14 +36,17 @@ def load_spacy_model(model_name):
 def validate_word(text, nlp):
     # Validate the input text to ensure it is a valid English word.
     try:
+        if text is None:
+            raise InputValidationError("Input text is None.")
+
         if not isinstance(text, str):
             raise InputValidationError("Input must be a string.")
 
         if len(text) == 0:
             raise InputValidationError("Empty input string.")
 
-        if not text.strip():
-            raise InputValidationError("Input contains only whitespaces.")
+        if not any(char.isalpha() for char in text):
+            raise InputValidationError("Input contains non-alphabetic characters.")
 
         doc = nlp(text)
         
@@ -55,29 +58,27 @@ def validate_word(text, nlp):
     except InputValidationError as error:
         logger.error(f"InputValidationError occurred while validating word: {error}")
         return False
-    except OSError as error:
-        logger.error(f"OSError occurred while validating word: {error}")
-        return False
-    except Errors as error:
-        logger.error(f"Spacy Error occurred while validating word: {error}")
+    except Exception as error:
+        logger.error(f"An error occurred while validating word: {error}", exc_info=True)
         return False
 
 def get_user_input():
     # Get user input and validate it using the Spacy model.
-    text = ""
-    while text != 'q':
+    try:
+        nlp = load_spacy_model("en_core_web_sm")
+    except SpacyModelError as error:
+        logger.error(f"{error}. Exiting program.")
+        return
+
+    while True:
         text = input("Enter a word or sentence (or 'q' to quit): ").lower()
 
         if text == 'q':
             return text
-
-        try:
-            nlp = load_spacy_model("en_core_web_sm")
-        except SpacyModelError as error:
-            logger.error(f"{error}. Exiting program.")
-            return
-
-        if text.strip() != "" and validate_word(text, nlp):
+        elif text.strip() == "":
+            logger.warning("Empty input. Please enter a valid English word or sentence or 'q' to quit.")
+            print("Invalid input. Please enter a valid English word or sentence or 'q' to quit.")
+        elif validate_word(text, nlp):
             return text
         else:
             logger.warning(f"Invalid input: {text}. Please enter a valid English word or 'q' to quit.")
