@@ -1,6 +1,5 @@
-2024-05-11 22:25:12,910 - INFO - Spacy model loaded successfully: en_core_web_sm
-2024-05-11 22:25:14,976 - INFO - Processing text: hello
-2024-05-11 22:25:17,933 - INFO - Processing text: take this
-2024-05-11 22:25:24,289 - INFO - Processing text: good
-2024-05-11 22:25:25,268 - ERROR - InputValidationError occurred while validating word: Input contains non-alphabetic characters.
-2024-05-11 22:25:25,268 - WARNING - Invalid input: .. Please enter a valid English word or 'q' to quit.
+2024-05-12 23:26:42,908 - INFO - Spacy model loaded successfully: en_core_web_sm
+2024-05-12 23:26:44,570 - INFO - Processing text: hello
+2024-05-12 23:26:47,293 - INFO - Processing text: take it easy
+2024-05-12 23:26:54,407 - INFO - Processing text: you are going to be okay
+2024-05-12 23:27:05,173 - INFO - Processing text: nicely done
