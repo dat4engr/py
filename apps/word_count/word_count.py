@@ -1,6 +1,7 @@
 import logging
 import spacy
 from spacy.errors import Errors
+import re
 
 logger = logging.getLogger(__name__)
 nlp = None
@@ -42,10 +43,10 @@ def validate_word(text, nlp):
         if not isinstance(text, str):
             raise InputValidationError("Input must be a string.")
 
-        if len(text) == 0:
+        if not text:
             raise InputValidationError("Empty input string.")
 
-        if not any(char.isalpha() for char in text):
+        if not re.match("^[a-zA-Z -]*$", text):
             raise InputValidationError("Input contains non-alphabetic characters.")
 
         doc = nlp(text)
@@ -75,10 +76,14 @@ def get_user_input():
 
         if text == 'q':
             return text
-        elif text.strip() == "":
+
+        text = text.strip()
+        if not text:
             logger.warning("Empty input. Please enter a valid English word or sentence or 'q' to quit.")
             print("Invalid input. Please enter a valid English word or sentence or 'q' to quit.")
-        elif validate_word(text, nlp):
+            continue
+
+        if validate_word(text, nlp):
             return text
         else:
             logger.warning(f"Invalid input: {text}. Please enter a valid English word or 'q' to quit.")
