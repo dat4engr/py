@@ -80,7 +80,7 @@ def get_user_input():
         text = text.strip()
         if not text:
             logger.warning("Empty input. Please enter a valid English word or sentence or 'q' to quit.")
-            print("Invalid input. Please enter a valid English word or sentence or 'q' to quit.")
+            print("Empty input. Please enter a valid English word or sentence or 'q' to quit.")
             continue
 
         if validate_word(text, nlp):
@@ -164,8 +164,6 @@ def main():
 
             if text == 'q':
                 break
-
-            logger.info(f"Processing text: {text}")
 
             try:
                 model_name = "en_core_web_sm"  # You can change the model name here
