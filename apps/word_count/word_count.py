@@ -92,52 +92,30 @@ def get_user_input():
 def word_type(token):
     # Determine the word type (Noun, Verb, Adjective, Preposition) for a given token.
     word_types_mapping = {
-        'NOUN': 'Noun',
-        'VERB': 'Verb',
-        'ADJ': 'Adjective',
-        'ADV': 'Adverb',
-        'ADP': 'Simple Preposition',
-        'CONJ': 'Conjunction',
-        'PRON': 'Pronoun',
-        'DET': 'Determiner',
-        'SCONJ': 'Subordinating Conjunction',
-        'INTJ': 'Interjection',
-        'NUM': 'Number',
-        'SYM': 'Symbol',
-        'X': 'Other'
+        'NOUN', 'VERB', 'ADJ', 'ADV', 'ADP', 'CONJ', 'PRON', 'DET', 'SCONJ', 'INTJ', 'NUM', 'SYM', 'X'
     }
 
     # Additional conditions for specific types of words
-    if token.pos_ == 'ADP' and any(token.text.lower() == preposition.lower() for preposition in ['about', 'above', 'across']):
+    special_prepositions = {'about', 'above', 'across'}
+    if token.pos_ == 'ADP' and token.text.lower() in special_prepositions:
         return 'Complex Preposition'
 
-    return word_types_mapping.get(token.pos_, 'Other')
+    return token.pos_ if token.pos_ in word_types_mapping else 'Other'
 
 def process_text(input_text, nlp):
     # Process the input text using the Spacy model and print relevant information.
     try:
         doc = nlp(input_text)
         word_count = len(doc)
-        word_types = {}
         
-        for token in doc:
-            wt = word_type(token)
-            if wt in word_types:
-                word_types[wt].append(token.text)
-            else:
-                word_types[wt] = [token.text]
-
+        word_types = {wt: [token.text for token in doc if word_type(token) == wt] for wt in set(word_type(token) for token in doc)}
+        
         sentence_structure = {}
         for sent in doc.sents:
             for token in sent:
-                if token.dep_ in sentence_structure:
-                    sentence_structure[token.dep_] += 1
-                else:
-                    sentence_structure[token.dep_] = 1
-                    
-        readability_suggestions = []
-        if word_count > 20:
-            readability_suggestions.append("Consider breaking down the text into shorter sentences.")
+                sentence_structure[token.dep_] = sentence_structure.get(token.dep_, 0) + 1
+                
+        readability_suggestions = ["Consider breaking down the text into shorter sentences."] if word_count > 20 else []
 
         print(f"Number of words: {word_count}")
         for wt, words in word_types.items():
