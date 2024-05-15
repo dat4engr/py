@@ -18,62 +18,38 @@ def initialize_logger():
 
 def load_spacy_model(model_name):
     global nlp
-    # Load a Spacy model with the given model name and cache it if not already loaded.
-    try:
-        if nlp is None:
+    if nlp is None:
+        try:
             nlp = spacy.load(model_name)
             logger.info(f"Spacy model loaded successfully: {model_name}")
-    except OSError as error:
-        logger.error(f"Failed to load Spacy model due to an OSError: {error}")
-        nlp = None
-        raise SpacyModelError("Failed to load Spacy model")
-    except Errors as error:
-        logger.error(f"Failed to load Spacy model due to a Spacy Error: {error}")
-        nlp = None
-        raise SpacyModelError("Spacy Error occurred while loading model")
-        
+        except (OSError, Errors) as error:
+            logger.error(f"Failed to load Spacy model: {error}")
+            raise SpacyModelError("Failed to load Spacy model")
     return nlp
 
 def validate_word(text, nlp):
     # Validate the input text to ensure it is a valid English word.
     try:
-        if text is None:
-            raise InputValidationError("Input text is None.")
-
-        if not isinstance(text, str):
-            raise InputValidationError("Input must be a string.")
-
-        if not text:
-            raise InputValidationError("Empty input string.")
-
-        if not re.match("^[a-zA-Z -]*$", text):
-            raise InputValidationError("Input contains non-alphabetic characters.")
-
-        doc = nlp(text)
+        if text is None or not isinstance(text, str) or not text or not re.match("^[a-zA-Z -]*$", text):
+            raise InputValidationError("Invalid input")
         
-        if all(token.is_alpha or token.text in [' ', '-'] for token in doc):
-            return True
-        else:
-            logger.error(f"Invalid input: {text}, contains non-alphabetic characters.")
-            return False
-    except InputValidationError as error:
-        logger.error(f"InputValidationError occurred while validating word: {error}")
-        return False
-    except Exception as error:
-        logger.error(f"An error occurred while validating word: {error}", exc_info=True)
+        doc = nlp(text)
+        return all(token.is_alpha or token.text in [' ', '-'] for token in doc)
+    except (InputValidationError, Exception) as error:
+        logger.error(f"Failed to validate input word: {error}")
         return False
 
 def get_user_input():
     # Get user input and validate it using the Spacy model.
+    model_name = "en_core_web_sm"  # Load model only once
     try:
-        nlp = load_spacy_model("en_core_web_sm")
+        nlp = load_spacy_model(model_name)
     except SpacyModelError as error:
         logger.error(f"{error}. Exiting program.")
         return
 
     while True:
         text = input("Enter a word or sentence (or 'q' to quit): ").lower()
-
         if text == 'q':
             return text
 
@@ -91,15 +67,12 @@ def get_user_input():
 
 def word_type(token):
     # Determine the word type (Noun, Verb, Adjective, Preposition) for a given token.
-    word_types_mapping = {
-        'NOUN', 'VERB', 'ADJ', 'ADV', 'ADP', 'CONJ', 'PRON', 'DET', 'SCONJ', 'INTJ', 'NUM', 'SYM', 'X'
-    }
-
-    # Additional conditions for specific types of words
+    word_types_mapping = {'NOUN', 'VERB', 'ADJ', 'ADV', 'ADP', 'CONJ', 'PRON', 'DET', 'SCONJ', 'INTJ', 'NUM', 'SYM', 'X'}
     special_prepositions = {'about', 'above', 'across'}
+    
     if token.pos_ == 'ADP' and token.text.lower() in special_prepositions:
         return 'Complex Preposition'
-
+    
     return token.pos_ if token.pos_ in word_types_mapping else 'Other'
 
 def process_text(input_text, nlp):
@@ -124,12 +97,8 @@ def process_text(input_text, nlp):
         print("Readability Suggestions:")
         for suggestion in readability_suggestions:
             print(suggestion)
-    except OSError as error:
-        logger.error(f"OSError occurred while processing text: {error}")
-    except Errors as error:
-        logger.error(f"Spacy Error occurred while processing text: {error}")
-    except Exception as error:
-        logger.error(f"An error occurred while processing text: {error}", exc_info=True)  # Log exception details
+    except (OSError, Errors, Exception) as error:
+        logger.error(f"An error occurred while processing text: {error}")
 
 def main():
     # The main function to run the Word Count App and handle user input.
@@ -153,8 +122,8 @@ def main():
             process_text(text, nlp)
             print()
 
-    except Exception as exception:
-        logger.error(f"An error occurred in the main function: {exception}", exc_info=True)
+    except (OSError, Errors, Exception) as error:
+        logger.error(f"An error occurred in the main function: {error}", exc_info=True)
 
 if __name__ == "__main__":
     main()
