@@ -17,12 +17,13 @@ def initialize_logger():
     logging.basicConfig(filename='error.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def load_spacy_model(model_name):
+    # Function to load a Spacy model based on the given model_name.
     global nlp
     if nlp is None:
         try:
             nlp = spacy.load(model_name)
             logger.info(f"Spacy model loaded successfully: {model_name}")
-        except (OSError, Errors) as error:
+        except OSError as error:
             logger.error(f"Failed to load Spacy model: {error}")
             raise SpacyModelError("Failed to load Spacy model")
     return nlp
@@ -35,7 +36,10 @@ def validate_word(text, nlp):
         
         doc = nlp(text)
         return all(token.is_alpha or token.text in [' ', '-'] for token in doc)
-    except (InputValidationError, Exception) as error:
+    except InputValidationError as error:
+        logger.error(f"Invalid input: {error}")
+        return False
+    except Exception as error:
         logger.error(f"Failed to validate input word: {error}")
         return False
 
@@ -97,8 +101,10 @@ def process_text(input_text, nlp):
         print("Readability Suggestions:")
         for suggestion in readability_suggestions:
             print(suggestion)
-    except (OSError, Errors, Exception) as error:
+    except (OSError, Errors) as error:
         logger.error(f"An error occurred while processing text: {error}")
+    except Exception as error:
+        logger.error(f"An unexpected error occurred while processing text: {error}")
 
 def main():
     # The main function to run the Word Count App and handle user input.
@@ -122,8 +128,10 @@ def main():
             process_text(text, nlp)
             print()
 
-    except (OSError, Errors, Exception) as error:
+    except (OSError, Errors) as error:
         logger.error(f"An error occurred in the main function: {error}", exc_info=True)
+    except Exception as error:
+        logger.error(f"An unexpected error occurred in the main function: {error}", exc_info=True)
 
 if __name__ == "__main__":
     main()
