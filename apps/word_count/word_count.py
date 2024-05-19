@@ -31,16 +31,13 @@ def load_spacy_model(model_name):
 def validate_word(text, nlp):
     # Validate the input text to ensure it is a valid English word.
     try:
-        if text is None or not isinstance(text, str) or not text or not re.match("^[a-zA-Z -]*$", text):
+        if not isinstance(text, str) or not text or not re.match("^[a-zA-Z -]*$", text):
             raise InputValidationError("Invalid input")
         
         doc = nlp(text)
         return all(token.is_alpha or token.text in [' ', '-'] for token in doc)
-    except InputValidationError as error:
+    except (InputValidationError, Exception) as error:
         logger.error(f"Invalid input: {error}")
-        return False
-    except Exception as error:
-        logger.error(f"Failed to validate input word: {error}")
         return False
 
 def get_user_input():
@@ -118,13 +115,9 @@ def main():
             if text == 'q':
                 break
 
-            try:
-                model_name = "en_core_web_sm"  # You can change the model name here
-                nlp = load_spacy_model(model_name)
-            except SpacyModelError as error:
-                logger.error(f"{error}. Exiting program.")
-                exit()
-
+            model_name = "en_core_web_sm"  # You can change the model name here
+            nlp = load_spacy_model(model_name)
+            
             process_text(text, nlp)
             print()
 
