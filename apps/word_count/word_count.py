@@ -43,12 +43,8 @@ def validate_word(text, nlp):
 def get_user_input():
     # Get user input and validate it using the Spacy model.
     model_name = "en_core_web_sm"  # Load model only once
-    try:
-        nlp = load_spacy_model(model_name)
-    except SpacyModelError as error:
-        logger.error(f"{error}. Exiting program.")
-        return
-
+    nlp = load_spacy_model(model_name)
+    
     while True:
         text = input("Enter a word or sentence (or 'q' to quit): ").lower()
         if text == 'q':
