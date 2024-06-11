@@ -26,7 +26,16 @@ def move_cursor_like_person(num_moves):
 
 def main():
     # Main function
-    num_moves = int(input("Enter the number of cursor moves you want to make: "))
+    while True:
+        try:
+            num_moves = int(input("Enter the number of cursor moves you want to make: "))
+            if num_moves <= 0:
+                print("Please enter a positive integer greater than 0.")
+                continue
+            break
+        except ValueError:
+            print("Invalid input. Please enter a positive integer.")
+                
     move_cursor_like_person(num_moves)
     print("Cursor movements completed!")
 
