@@ -24,18 +24,21 @@ def move_cursor_like_person(num_moves):
         pyautogui.move(x_offset, y_offset, duration=np.random.uniform(0.001, 0.05))
         time.sleep(np.random.uniform(0.01, 0.1))
 
-def main():
-    # Main function
+def get_user_input():
+    # Function to get user input for the number of cursor moves
     while True:
         try:
             num_moves = int(input("Enter the number of cursor moves you want to make: "))
             if num_moves <= 0:
                 print("Please enter a positive integer greater than 0.")
                 continue
-            break
+            return num_moves
         except ValueError:
             print("Invalid input. Please enter a positive integer.")
-                
+
+def main():
+    # Main function
+    num_moves = get_user_input()
     move_cursor_like_person(num_moves)
     print("Cursor movements completed!")
 
