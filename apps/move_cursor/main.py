@@ -1,10 +1,10 @@
 import cursor_movement
 import user_input
 
-def main():
+def main() -> None:
     # Main function
     try:
-        num_moves = user_input.get_user_input()
+        num_moves: int = user_input.get_user_input()
         cursor_movement.move_cursor_like_person(num_moves)
         print("Cursor movements completed!")
     except Exception as exception:
