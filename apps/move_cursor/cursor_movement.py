@@ -18,7 +18,10 @@ def get_circular_offset(radius: int, angle: float) -> tuple[int, int]:
     return x_offset, y_offset
 
 def move_cursor(x_offset: int, y_offset: int, duration: float) -> None:
-    pyautogui.move(x_offset, y_offset, duration=duration)
+    try:
+        pyautogui.move(x_offset, y_offset, duration=duration)
+    except pyautogui.PyAutoGUIException as exception:
+        print(f"An error occurred while moving the cursor: {exception}")
 
 def move_cursor_like_person(num_moves: int) -> None:
     random_offsets = get_random_offsets(num_moves)
