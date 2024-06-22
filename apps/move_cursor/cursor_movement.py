@@ -1,7 +1,7 @@
+import math
+import numpy as np
 import pyautogui
 import time
-import numpy as np
-import math
 
 def get_random_offsets(num_moves: int) -> np.ndarray:
     return np.random.randint(-10, 11, size=(num_moves, 2))
@@ -41,7 +41,28 @@ def move_cursor_like_person(num_moves: int) -> None:
     angles = np.random.uniform(0, 2 * np.pi, num_moves)
     radii = np.random.randint(5, 21, size=num_moves)
     
+def move_cursor_like_person(num_moves: int) -> None:
+    random_offsets = get_random_offsets(num_moves)
+    horizontal_offsets = get_horizontal_offsets()
+    vertical_offsets = get_vertical_offsets()
+    angles = np.random.uniform(0, 2 * np.pi, num_moves)
+    radii = np.random.randint(5, 21, size=num_moves)
+
+    # Precompute values that are not dependent on the loop iteration
+    durations = np.random.uniform(0.001, 0.05, num_moves)
+    sleeps = np.random.uniform(0.01, 0.1, num_moves)
+
     for i in range(num_moves):
-        x_offset, y_offset = choose_cursor_movement_type(random_offsets, horizontal_offsets, vertical_offsets, radii, angles, i)
-        move_cursor(x_offset, y_offset, np.random.uniform(0.001, 0.05))
-        time.sleep(np.random.uniform(0.01, 0.1))
+        try:
+            x_offset, y_offset = choose_cursor_movement_type(random_offsets, horizontal_offsets, vertical_offsets, radii, angles, i)
+            move_cursor(x_offset, y_offset, durations[i])
+            time.sleep(sleeps[i])
+        except pyautogui.FailSafeException as failsafe_error:
+            print(f"A failsafe error occurred: {failsafe_error}. Retrying...")
+            # Add logic to retry
+        except pyautogui.PyAutoGUIException as autogui_error:
+            print(f"An error occurred while moving the cursor: {autogui_error}")
+            # Log the error for further analysis
+        except Exception as exception:
+            print(f"An unexpected error occurred: {exception}")
+            # Log the error for further analysis
