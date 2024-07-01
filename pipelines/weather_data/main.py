@@ -1,6 +1,7 @@
 import httpx
 import asyncio
 import logging
+import re
 
 # Configure logging
 logging.basicConfig(filename='error_log.log', level=logging.ERROR)
@@ -10,7 +11,7 @@ response_cache = {}
 async def get_time_zone_data(latitude, longitude):
     try:
         # Function to retrieve time zone data based on OWM's latitude and longitude using the TimezoneDB API.
-        api_key = "Insert_TimeZoneDB_API_Here"
+        api_key = "NGW248HZVWV8"
         base_url = "http://api.timezonedb.com/v2.1/get-time-zone"
         params = {
             "key": api_key,
@@ -38,7 +39,7 @@ async def get_time_zone_data(latitude, longitude):
 async def check_city_existence(city_name, country_code):
     try:
         # Function to check if a city exists in OpenWeatherMap API based on the user's provided city name and country code.
-        api_key = "Insert_OWM_API_Here"
+        api_key = "5c9026775828973746c850fa10e2f45c"
         base_url = "http://api.openweathermap.org/data/2.5/weather"
         params = {
             "appid": api_key,
@@ -82,7 +83,22 @@ async def check_city_existence(city_name, country_code):
         print(f"A network error occurred, please check your internet connection.")
         raise
 
+def validate_city_name(city_name):
+    # Function to validate the city name to ensure it only contains letters and spaces using regex.
+    if not re.match("^[a-zA-Z ]+$", city_name):
+        raise ValueError("City name should only contain letters and spaces")
+
+def validate_country_code(country_code):
+    # Function to validate the country code to ensure it is a 2-letters using regex.
+    if not re.match("^[a-zA-Z]{2}$", country_code):
+        raise ValueError("Country code should only 2-letter code")
+
 city_name = input("Enter city name: ")
 country_code = input("Enter country code: ")
 
-asyncio.run(check_city_existence(city_name, country_code))
+try:
+    validate_city_name(city_name)
+    validate_country_code(country_code)
+    asyncio.run(check_city_existence(city_name, country_code))
+except ValueError as value_error:
+    print(f"Invalid input: {value_error}.")
