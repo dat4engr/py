@@ -1,10 +1,11 @@
-import requests
-from requests.exceptions import RequestException
+import httpx
+import asyncio
 
 response_cache = {}
 
-def get_time_zone_data(latitude, longitude):
-    api_key = "Insert_TimezoneDB_API_Key_Here"
+async def get_time_zone_data(latitude, longitude):
+    # Function to retrieve time zone data based on OWM's latitude and longitude using the TimezoneDB API.
+    api_key = "NGW248HZVWV8"
     base_url = "http://api.timezonedb.com/v2.1/get-time-zone"
     params = {
         "key": api_key,
@@ -14,18 +15,16 @@ def get_time_zone_data(latitude, longitude):
         "lng": longitude
     }
 
-    try:
-        response = requests.get(base_url, params=params)
+    async with httpx.AsyncClient() as client:
+        response = await client.get(base_url, params=params)
         response.raise_for_status()
 
         data = response.json()
         return data
 
-    except RequestException as request_exception:
-        print(f"An error occured: {request_exception}.")
-
-def check_city_existence(city_name, country_code):
-    api_key = "Insert_OWM_API_Key_Here"
+async def check_city_existence(city_name, country_code):
+    # Function to check if a city exists in OpenWeatherMap API based on the user's provided city name and country code.
+    api_key = "5c9026775828973746c850fa10e2f45c"
     base_url = "http://api.openweathermap.org/data/2.5/weather"
     params = {
         "appid": api_key,
@@ -41,28 +40,29 @@ def check_city_existence(city_name, country_code):
         data = response_cache[key]
     else:
         try:
-            response = requests.get(base_url, params=params)
-            response.raise_for_status()
+            async with httpx.AsyncClient() as client:
+                response = await client.get(base_url, params=params)
+                response.raise_for_status()
 
-            data = response.json()
+                data = response.json()
 
-            response_cache[key] = data
+                response_cache[key] = data
 
-            # Get the latitude and longitude from OpenWeatherMap response.
-            latitude = data['coord']['lat']
-            longitude = data['coord']['lon']
+                # Get the latitude and longitude from OpenWeatherMap response.
+                latitude = data['coord']['lat']
+                longitude = data['coord']['lon']
 
-            # Get time zone data.
-            time_zone_data = get_time_zone_data(latitude, longitude)
+                # Get time zone data.
+                time_zone_data = await get_time_zone_data(latitude, longitude)
 
-            print(f"Timezone: {time_zone_data['zoneName']}, Current time: {time_zone_data['formatted']}")
-            print(f"{city_name}, {country_code} exists in OpenWeatherMap API.")
-            print(f"Temperature in {city_name}, {country_code}: {data['main']['temp']}°C")
+                print(f"Timezone: {time_zone_data['zoneName']}, Current time: {time_zone_data['formatted']}")
+                print(f"{city_name}, {country_code} exists in OpenWeatherMap API.")
+                print(f"Temperature in {city_name}, {country_code}: {data['main']['temp']}°C")
 
-        except RequestException as request_exception:
-            print(f"An error occured: {request_exception}.")
+        except httpx.HTTPError as http_exception:
+            print(f"An error occurred: {http_exception}.")
 
 city_name = input("Enter city name: ")
 country_code = input("Enter country code: ")
 
-check_city_existence(city_name, country_code)
+asyncio.run(check_city_existence(city_name, country_code))
