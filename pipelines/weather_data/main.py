@@ -2,10 +2,13 @@ import httpx
 import asyncio
 import logging
 import re
+from cachetools import LRUCache
 
+# Configure logging settings.
 logging.basicConfig(filename='error_log.log', level=logging.ERROR)
 
-response_cache = {}
+# Initialize a cache instance with a maximum size of 1000 items and update existing code to use this cache.
+response_cache = LRUCache(maxsize=1000)
 
 async def fetch_data(url, params):
     # Asynchronously fetches data from a given URL with parameters.
@@ -78,6 +81,7 @@ def validate_country_code(country_code):
     if not re.match("^[a-zA-Z]{2}$", country_code):
         raise ValueError("Country code should only 2-letter code")
 
+# Input from user.
 city_name = input("Enter city name: ")
 country_code = input("Enter country code: ")
 
