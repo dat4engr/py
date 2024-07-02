@@ -3,47 +3,39 @@ import asyncio
 import logging
 import re
 
-# Configure logging
 logging.basicConfig(filename='error_log.log', level=logging.ERROR)
 
 response_cache = {}
 
+async def fetch_data(url, params):
+    # Asynchronously fetches data from a given URL with parameters.
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, params=params)
+        response.raise_for_status()
+        return response.json()
+
 async def get_time_zone_data(latitude, longitude):
-    try:
-        # Function to retrieve time zone data based on OWM's latitude and longitude using the TimezoneDB API.
-        api_key = "NGW248HZVWV8"
-        base_url = "http://api.timezonedb.com/v2.1/get-time-zone"
-        params = {
-            "key": api_key,
-            "format": "json",
-            "by": "position",
-            "lat": latitude,
-            "lng": longitude
-        }
-
-        async with httpx.AsyncClient() as client:
-            response = await client.get(base_url, params=params)
-            response.raise_for_status()
-
-            data = response.json()
-            return data
-
-    except httpx.HTTPStatusError as http_status_error:
-        logging.error(f"An HTTP Error occurred: {http_status_error}")
-        raise
-
-    except httpx.NetworkError as network_error:
-        logging.error(f"An HTTP Network Error occurred: {network_error}")
-        raise
+    # Retrieves time zone data based on latitude and longitude.
+    api_key = ""
+    base_url = "http://api.timezonedb.com/v2.1/get-time-zone"
+    params = {
+        "key": api_key,
+        "format": "json",
+        "by": "position",
+        "lat": latitude,
+        "lng": longitude
+    }
+    
+    return await fetch_data(base_url, params)
 
 async def check_city_existence(city_name, country_code):
+    # Checks if a given city exists in OpenWeatherMap API and retrieves weather data.
     try:
-        # Function to check if a city exists in OpenWeatherMap API based on the user's provided city name and country code.
-        api_key = "5c9026775828973746c850fa10e2f45c"
+        api_key = ""
         base_url = "http://api.openweathermap.org/data/2.5/weather"
         params = {
             "appid": api_key,
-            "units": "metric"  # Specify the unit system here
+            "units": "metric"
         }
 
         query = f"{city_name},{country_code}"
@@ -54,24 +46,17 @@ async def check_city_existence(city_name, country_code):
             print(f"Retrieving cached response for {city_name}, {country_code}.")
             data = response_cache[key]
         else:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(base_url, params=params)
-                response.raise_for_status()
+            data = await fetch_data(base_url, params)
+            response_cache[key] = data
 
-                data = response.json()
+            latitude = data['coord']['lat']
+            longitude = data['coord']['lon']
 
-                response_cache[key] = data
+            time_zone_data = await get_time_zone_data(latitude, longitude)
 
-                # Get the latitude and longitude from OpenWeatherMap response.
-                latitude = data['coord']['lat']
-                longitude = data['coord']['lon']
-
-                # Get time zone data.
-                time_zone_data = await get_time_zone_data(latitude, longitude)
-
-                print(f"Timezone: {time_zone_data['zoneName']}, Current time: {time_zone_data['formatted']}")
-                print(f"{city_name}, {country_code} exists in OpenWeatherMap API.")
-                print(f"Temperature in {city_name}, {country_code}: {data['main']['temp']}°C")
+            print(f"Timezone: {time_zone_data['zoneName']}, Current time: {time_zone_data['formatted']}")
+            print(f"{city_name}, {country_code} exists in OpenWeatherMap API.")
+            print(f"Temperature in {city_name}, {country_code}: {data['main']['temp']}°C")
 
     except httpx.HTTPStatusError as http_status_error:
         logging.error(f"An HTTP Error occurred: {http_status_error}")
@@ -84,12 +69,12 @@ async def check_city_existence(city_name, country_code):
         raise
 
 def validate_city_name(city_name):
-    # Function to validate the city name to ensure it only contains letters and spaces using regex.
+    # Validates the format of the city name input.
     if not re.match("^[a-zA-Z ]+$", city_name):
         raise ValueError("City name should only contain letters and spaces")
 
 def validate_country_code(country_code):
-    # Function to validate the country code to ensure it is a 2-letters using regex.
+    # Validates the format of the country code input.
     if not re.match("^[a-zA-Z]{2}$", country_code):
         raise ValueError("Country code should only 2-letter code")
 
